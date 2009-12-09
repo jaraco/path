@@ -1,0 +1,17 @@
+Metadata-Version: 1.0
+Name: path
+Version: 2.2
+Summary: A module wrapper for os.path
+Home-page: http://www.jorendorff.com/articles/python/path/
+Author: Jason Orendorff
+Author-email: jason@jorendorff.com
+License: Public domain
+Download-URL: http://www.jorendorff.com/articles/python/path/path-2.2.zip
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: License :: Freely Distributable
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
