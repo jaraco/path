@@ -29,7 +29,7 @@ Date:    9 Mar 2007
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, md5
+import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib
 
 __version__ = '2.2'
 __all__ = ['path']
@@ -765,9 +765,17 @@ class path(_base):
 
         This reads through the entire file.
         """
+        return self.read_hash('md5')
+
+    def read_hash(self, hash_name):
+        """ Calculate given hash for this file.
+
+        List of supported hashes can be obtained from hashlib package. This
+        reads the entire file.
+        """
         f = self.open('rb')
         try:
-            m = md5.new()
+            m = hashlib.new(hash_name)
             while True:
                 d = f.read(8192)
                 if not d:
