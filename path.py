@@ -767,12 +767,7 @@ class path(_base):
         """
         return self.read_hash('md5')
 
-    def read_hash(self, hash_name):
-        """ Calculate given hash for this file.
-
-        List of supported hashes can be obtained from hashlib package. This
-        reads the entire file.
-        """
+    def _hash(self, hash_name):
         f = self.open('rb')
         try:
             m = hashlib.new(hash_name)
@@ -781,9 +776,25 @@ class path(_base):
                 if not d:
                     break
                 m.update(d)
+            return m
         finally:
             f.close()
-        return m.digest()
+
+    def read_hash(self, hash_name):
+        """ Calculate given hash for this file.
+
+        List of supported hashes can be obtained from hashlib package. This
+        reads the entire file.
+        """
+        return self._hash(hash_name).digest()
+
+    def read_hexhash(self, hash_name):
+        """ Calculate given hash for this file, returning hexdigest.
+
+        List of supported hashes can be obtained from hashlib package. This
+        reads the entire file.
+        """
+        return self._hash(hash_name).hexdigest()
 
     # --- Methods for querying the filesystem.
 
