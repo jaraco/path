@@ -11,9 +11,9 @@ TempDirTestCase.testTouch() takes a while to run.  It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 
-URL:     http://www.jorendorff.com/articles/python/path
-Author:  Jason Orendorff <jason@jorendorff.com>
-Date:    7 Mar 2004
+Authors:
+ Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+ Others - unfortunately attribution is lost
 
 """
 

@@ -8,9 +8,9 @@ kw = {
     'name': "path",
     'version': "2.2",
     'description': "A module wrapper for os.path",
-    'author': "Jason Orendorff",
-    'author_email': "jason@jorendorff.com",
-    'url': "http://www.jorendorff.com/articles/python/path/",
+    'author': "Mikhail Gusarov",
+    'author_email': "dottedmag@dottedmag.net",
+    'url': "http://github.com/dottedmag/path.py",
     'license': "Public domain",
     'py_modules': ['path', 'test_path']
     }
@@ -28,7 +28,7 @@ if hasattr(distutils.core, 'setup_keywords'):
             'Topic :: Software Development :: Libraries :: Python Modules'
           ]
     if 'download_url' in distutils.core.setup_keywords:
-        urlfmt = "http://www.jorendorff.com/articles/python/path/path-%s.zip"
+        urlfmt = "http://github.com/dottedmag/celery/tarball/%s"
         kw['download_url'] = urlfmt % kw['version']
 
 

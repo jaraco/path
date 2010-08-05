@@ -1,5 +1,10 @@
 """ path.py - An object representing a path to a file or directory.
 
+Authors:
+ Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+ Mikhail Gusarov <dottedmag@dottedmag.net>
+ Others - unfortunately attribution is lost
+
 Example:
 
 from path import path
@@ -8,11 +13,6 @@ for f in d.files('*.py'):
     f.chmod(0755)
 
 This module requires Python 2.2 or later.
-
-
-URL:     http://www.jorendorff.com/articles/python/path
-Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
-Date:    9 Mar 2007
 """
 
 
