@@ -6,7 +6,7 @@ import distutils.core
 
 kw = {
     'name': "path",
-    'version': "2.2",
+    'version': "2.2.1",
     'description': "A module wrapper for os.path",
     'author': "Mikhail Gusarov",
     'author_email': "dottedmag@dottedmag.net",
