@@ -29,7 +29,7 @@ Date:    9 Mar 2007
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib
+import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
 
 __version__ = '2.2'
 __all__ = ['path']
@@ -905,8 +905,22 @@ class path(_base):
     def mkdir(self, mode=0777):
         os.mkdir(self, mode)
 
+    def mkdir_p(self, mode=0777):
+        try:
+            self.mkdir(mode)
+        except OSError, e:
+            if e.errno != errno.EEXIST:
+                raise
+
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
+
+    def makedirs_p(self, mode=0777):
+        try:
+            self.makedirs(mode)
+        except OSError, e:
+            if e.errno != errno.EEXIST:
+                raise
 
     def rmdir(self):
         os.rmdir(self)
@@ -928,9 +942,18 @@ class path(_base):
     def remove(self):
         os.remove(self)
 
+    def remove_p(self):
+        try:
+            self.unlink()
+        except OSError, e:
+            if e.errno != errno.ENOENT:
+                raise
+
     def unlink(self):
         os.unlink(self)
 
+    def unlink_p(self):
+        self.remove_p()
 
     # --- Links
 
