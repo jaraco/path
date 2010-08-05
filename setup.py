@@ -5,8 +5,8 @@ import distutils.core
 # Setup script for path
 
 kw = {
-    'name': "path",
-    'version': "2.2.1",
+    'name': "path.py",
+    'version': "2.2.1.990",
     'description': "A module wrapper for os.path",
     'author': "Mikhail Gusarov",
     'author_email': "dottedmag@dottedmag.net",
