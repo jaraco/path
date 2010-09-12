@@ -28,7 +28,7 @@ if hasattr(distutils.core, 'setup_keywords'):
             'Topic :: Software Development :: Libraries :: Python Modules'
           ]
     if 'download_url' in distutils.core.setup_keywords:
-        urlfmt = "http://github.com/dottedmag/celery/tarball/%s"
+        urlfmt = "http://github.com/dottedmag/path.py/tarball/%s"
         kw['download_url'] = urlfmt % kw['version']
 
 
