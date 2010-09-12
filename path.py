@@ -31,7 +31,7 @@ from __future__ import generators
 
 import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
 
-__version__ = '2.2.2'
+__version__ = '2.2.2.990'
 __all__ = ['path']
 
 # Platform-specific support for path.owner
