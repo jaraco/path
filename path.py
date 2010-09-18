@@ -925,9 +925,22 @@ class path(_base):
     def rmdir(self):
         os.rmdir(self)
 
+    def rmdir_p(self):
+        try:
+            self.rmdir()
+        except OSError, e:
+            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+                raise
+
     def removedirs(self):
         os.removedirs(self)
 
+    def removedirs_p(self):
+        try:
+            self.removedirs()
+        except OSError, e:
+            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+                raise
 
     # --- Modifying operations on files
 
