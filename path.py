@@ -63,10 +63,9 @@ except NameError:
     basestring = (str, unicode)
 
 # Universal newline support
-_textmode = 'r'
-if hasattr(file, 'newlines'):
-    _textmode = 'U'
-
+_textmode = 'U'
+if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
+    _textmode = 'r'
 
 class TreeWalkWarning(Warning):
     pass
