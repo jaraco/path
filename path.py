@@ -56,12 +56,6 @@ try:
 except AttributeError:
     pass
 
-# Pre-2.3 workaround for booleans
-try:
-    True, False
-except NameError:
-    True, False = 1, 0
-
 # Pre-2.3 workaround for basestring.
 try:
     basestring
@@ -69,10 +63,9 @@ except NameError:
     basestring = (str, unicode)
 
 # Universal newline support
-_textmode = 'r'
-if hasattr(file, 'newlines'):
-    _textmode = 'U'
-
+_textmode = 'U'
+if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
+    _textmode = 'r'
 
 class TreeWalkWarning(Warning):
     pass
@@ -517,7 +510,7 @@ class path(_base):
 
     def open(self, mode='r'):
         """ Open this file.  Return a file object. """
-        return file(self, mode)
+        return open(self, mode)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
