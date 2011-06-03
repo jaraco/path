@@ -22,10 +22,11 @@
 
 """ path.py - An object representing a path to a file or directory.
 
-Authors:
+Original author:
  Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+
+Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
- Others - unfortunately attribution is lost
 
 Example:
 
