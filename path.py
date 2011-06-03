@@ -38,17 +38,6 @@ for f in d.files('*.py'):
 This module requires Python 2.3 or later.
 """
 
-# TODO
-#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison
-#     sent me a patch for this.
-#   - Bug in write_text().  It doesn't support Universal newline mode.
-#   - Better error message in listdir() when self isn't a
-#     directory. (On Windows, the error message really sucks.)
-#   - Make sure everything has a good docstring.
-#   - Add methods for regex find and replace.
-#   - guess_content_type() method?
-#   - Perhaps support arguments to touch().
-
 from __future__ import generators
 
 import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
