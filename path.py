@@ -34,9 +34,8 @@ d = path('/home/guido/bin')
 for f in d.files('*.py'):
     f.chmod(0755)
 
-This module requires Python 2.2 or later.
+This module requires Python 2.3 or later.
 """
-
 
 # TODO
 #   - Tree-walking functions don't avoid symlink loops.  Matt Harrison
