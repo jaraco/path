@@ -3,9 +3,9 @@
 import distutils.core
 
 try:
-	from distutils.command.build_py import build_py_2to3 as build_py
+    from distutils.command.build_py import build_py_2to3 as build_py
 except ImportError:
-	from distutils.command.build_py import build_py
+    from distutils.command.build_py import build_py
 
 # Setup script for path
 
@@ -19,7 +19,7 @@ kw = {
     'license': "Public domain",
     'py_modules': ['path', 'test_path'],
     'cmdclass': dict(build_py=build_py),
-    }
+}
 
 
 # If we're running Python 2.3, add extra information
