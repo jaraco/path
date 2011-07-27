@@ -137,7 +137,7 @@ class path(_base):
     def expanduser(self):    return self.__class__(os.path.expanduser(self))
     def expandvars(self):    return self.__class__(os.path.expandvars(self))
     def dirname(self):       return self.__class__(os.path.dirname(self))
-    basename = os.path.basename
+    def basename(self):      return self.__class__(os.path.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
