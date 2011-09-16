@@ -129,7 +129,6 @@ class path(_base):
 
     # --- Operations on path strings.
 
-    isabs = os.path.isabs
     def abspath(self):       return self.__class__(os.path.abspath(self))
     def normcase(self):      return self.__class__(os.path.normcase(self))
     def normpath(self):      return self.__class__(os.path.normpath(self))
@@ -801,33 +800,37 @@ class path(_base):
         return self._hash(hash_name).hexdigest()
 
     # --- Methods for querying the filesystem.
+    # N.B. On some platforms, the os.path functions may be implemented in C
+    # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
+    # bound. Playing it safe and wrapping them all in method calls.
 
-    exists = os.path.exists
-    isdir = os.path.isdir
-    isfile = os.path.isfile
-    islink = os.path.islink
-    ismount = os.path.ismount
+    def isabs(self): return os.path.isabs(self)
+    def exists(self): return os.path.exists(self)
+    def isdir(self): return os.path.isdir(self)
+    def isfile(self): return os.path.isfile(self)
+    def islink(self): return os.path.islink(self)
+    def ismount(self): return os.path.ismount(self)
 
     if hasattr(os.path, 'samefile'):
-        samefile = os.path.samefile
+        def samefile(self): return os.path.samefile(self)
 
-    getatime = os.path.getatime
+    def getatime(self): return os.path.getatime(self)
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    getmtime = os.path.getmtime
+    def getmtime(self): return os.path.getmtime(self)
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
     if hasattr(os.path, 'getctime'):
-        getctime = os.path.getctime
+        def getctime(self): return os.path.getctime(self)
         ctime = property(
             getctime, None, None,
             """ Creation time of the file. """)
 
-    getsize = os.path.getsize
+    def getsize(self): return os.path.getsize(self)
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
