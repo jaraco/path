@@ -136,8 +136,11 @@ class TempDirTestCase(unittest.TestCase):
         d = path(self.tempdir)
         subdir = d / 'subdir'
         subdir.makedirs()
+        old_dir = os.getcwd()
         with subdir:
             self.assertEquals(os.getcwd(), subdir)
+        self.assertEquals(os.getcwd(), old_dir)
+
 
     def testTouch(self):
         # NOTE: This test takes a long time to run (~10 seconds).
