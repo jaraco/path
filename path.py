@@ -121,6 +121,13 @@ class path(_base):
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
+    def __enter__(self):
+        self._old_dir = self.getcwd()
+        os.chdir(self)
+
+    def __exit__(self, *_):
+        os.chdir(self._old_dir)
+
     def getcwd(cls):
         """ Return the current working directory as a path object. """
         return cls(_getcwd())
@@ -356,7 +363,7 @@ class path(_base):
         whose names match the given pattern.  For example,
         d.files('*.pyc').
         """
-        
+
         return [p for p in self.listdir(pattern) if p.isfile()]
 
     def walk(self, pattern=None, errors='strict'):

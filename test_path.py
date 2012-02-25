@@ -131,6 +131,17 @@ class TempDirTestCase(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
+    def testContextManager(self):
+        """Can be used as context manager for chdir."""
+        d = path(self.tempdir)
+        subdir = d / 'subdir'
+        subdir.makedirs()
+        old_dir = os.getcwd()
+        with subdir:
+            self.assertEquals(os.getcwd(), subdir)
+        self.assertEquals(os.getcwd(), old_dir)
+
+
     def testTouch(self):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
@@ -176,7 +187,7 @@ class TempDirTestCase(unittest.TestCase):
                     self.assertEqual(ct, ct2)
                     self.assert_(ct2 < t2)
                 else:
-                    # On other systems, it might be the CHANGE time 
+                    # On other systems, it might be the CHANGE time
                     # (especially on Unix, time of inode changes)
                     self.failUnless(ct == ct2 or ct2 == f.mtime)
         finally:
@@ -185,7 +196,7 @@ class TempDirTestCase(unittest.TestCase):
     def testListing(self):
         d = path(self.tempdir)
         self.assertEqual(d.listdir(), [])
-        
+
         f = 'testfile.txt'
         af = d / f
         self.assertEqual(af, os.path.join(d, f))
