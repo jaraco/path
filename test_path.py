@@ -22,7 +22,7 @@ import codecs, os, random, shutil, tempfile, time
 from path import path, __version__ as path_version
 
 # This should match the version of path.py being tested.
-__version__ = '2.2.1.990'
+__version__ = '2.2.2.990'
 
 
 def p(**choices):
