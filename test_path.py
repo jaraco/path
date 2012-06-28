@@ -18,6 +18,7 @@ Authors:
 
 """
 
+from __future__ import with_statement  # Needed for Python 2.5
 import unittest
 import codecs, os, random, shutil, tempfile, time
 from path import path, __version__ as path_version
