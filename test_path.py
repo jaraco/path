@@ -13,16 +13,18 @@ time on files.
 
 Authors:
  Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+ Marc Abramowitz <msabramo\x40gmail\x2ecom>
  Others - unfortunately attribution is lost
 
 """
 
+from __future__ import with_statement  # Needed for Python 2.5
 import unittest
 import codecs, os, random, shutil, tempfile, time
 from path import path, __version__ as path_version
 
 # This should match the version of path.py being tested.
-__version__ = '2.2.1.990'
+__version__ = '2.2.2.990'
 
 
 def p(**choices):
@@ -138,7 +140,7 @@ class TempDirTestCase(unittest.TestCase):
         subdir.makedirs()
         old_dir = os.getcwd()
         with subdir:
-            self.assertEquals(os.getcwd(), subdir)
+            self.assertEquals(os.getcwd(), os.path.realpath(subdir))
         self.assertEquals(os.getcwd(), old_dir)
 
 
@@ -165,8 +167,8 @@ class TempDirTestCase(unittest.TestCase):
                 self.assert_(t0 <= ct <= t1)
 
             time.sleep(5)
-            fobj = file(f, 'ab')
-            fobj.write('some bytes')
+            fobj = open(f, 'ab')
+            fobj.write('some bytes'.encode('utf-8'))
             fobj.close()
 
             time.sleep(5)
@@ -220,7 +222,7 @@ class TempDirTestCase(unittest.TestCase):
         # Try a test with 20 files
         files = [d / ('%d.txt' % i) for i in range(20)]
         for f in files:
-            fobj = file(f, 'w')
+            fobj = open(f, 'w')
             fobj.write('some text\n')
             fobj.close()
         try:

@@ -27,6 +27,7 @@ Original author:
 
 Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
+ Marc Abramowitz <marc@marc-abramowitz.com>
 
 Example:
 
