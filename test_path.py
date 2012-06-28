@@ -166,8 +166,8 @@ class TempDirTestCase(unittest.TestCase):
                 self.assert_(t0 <= ct <= t1)
 
             time.sleep(5)
-            fobj = file(f, 'ab')
-            fobj.write('some bytes')
+            fobj = open(f, 'ab')
+            fobj.write('some bytes'.encode('utf-8'))
             fobj.close()
 
             time.sleep(5)
@@ -221,7 +221,7 @@ class TempDirTestCase(unittest.TestCase):
         # Try a test with 20 files
         files = [d / ('%d.txt' % i) for i in range(20)]
         for f in files:
-            fobj = file(f, 'w')
+            fobj = open(f, 'w')
             fobj.write('some text\n')
             fobj.close()
         try:
