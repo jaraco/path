@@ -138,7 +138,7 @@ class TempDirTestCase(unittest.TestCase):
         subdir.makedirs()
         old_dir = os.getcwd()
         with subdir:
-            self.assertEquals(os.getcwd(), subdir)
+            self.assertEquals(os.getcwd(), os.path.realpath(subdir))
         self.assertEquals(os.getcwd(), old_dir)
 
 
