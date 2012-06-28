@@ -11,11 +11,13 @@ except ImportError:
 
 kw = {
     'name': "path.py",
-    'version': "2.2.2.990",
+    'version': "2.3",
     'description': "A module wrapper for os.path",
     'author': "Mikhail Gusarov",
     'author_email': "dottedmag@dottedmag.net",
-    'url': "http://github.com/dottedmag/path.py",
+    'maintainer': "Jason R. Coombs",
+    'maintainer_email': "jaraco@jaraco.com",
+    'url': "http://github.com/jaraco/path.py",
     'license': "MIT License",
     'py_modules': ['path', 'test_path'],
     'cmdclass': dict(build_py=build_py),
@@ -33,9 +35,6 @@ if hasattr(distutils.core, 'setup_keywords'):
             'Programming Language :: Python',
             'Topic :: Software Development :: Libraries :: Python Modules'
           ]
-    if 'download_url' in distutils.core.setup_keywords:
-        urlfmt = "http://github.com/dottedmag/path.py/tarball/%s"
-        kw['download_url'] = urlfmt % kw['version']
 
 
 distutils.core.setup(**kw)
