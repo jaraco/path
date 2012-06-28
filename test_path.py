@@ -13,6 +13,7 @@ time on files.
 
 Authors:
  Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+ Marc Abramowitz <msabramo\x40gmail\x2ecom>
  Others - unfortunately attribution is lost
 
 """
