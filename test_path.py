@@ -492,6 +492,19 @@ class TempDirTestCase(unittest.TestCase):
         test('UTF-16LE')
         test('UTF-16')
 
+    def testRmtreeP(self):
+        d = path(self.tempdir)
+        sub = d / 'subfolder'
+        sub.mkdir()
+        (sub / 'afile').write_text('something')
+        sub.rmtree_p()
+        self.assertFalse(sub.exists())
+        try:
+            sub.rmtree_p()
+        except OSError:
+            self.fail("Calling `rmtree_p` on empty directory "
+                      "should not raise exceptoin.")
+
 if __name__ == '__main__':
     if __version__ != path_version:
         print ("Version mismatch:  test_path.py version %s, path version %s" %
