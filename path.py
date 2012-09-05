@@ -1027,6 +1027,13 @@ class path(_base):
         move = shutil.move
     rmtree = shutil.rmtree
 
+    def rmtree_p(self):
+        try:
+            self.rmtree()
+        except OSError, e:
+            if e.errno != errno.ENOENT:
+                raise
+
 
     # --- Special stuff from os
 
