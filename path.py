@@ -41,7 +41,15 @@ This module requires Python 2.3 or later.
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
+import sys
+import warnings
+import os
+import fnmatch
+import glob
+import shutil
+import codecs
+import hashlib
+import errno
 
 __version__ = '2.2.2.990'
 __all__ = ['path']
@@ -98,7 +106,7 @@ class path(_base):
     def __add__(self, more):
         try:
             resultStr = _base.__add__(self, more)
-        except TypeError:  #Python bug
+        except TypeError:  # Python bug
             resultStr = NotImplemented
         if resultStr is NotImplemented:
             return resultStr
@@ -134,7 +142,7 @@ class path(_base):
         return cls(_getcwd())
     getcwd = classmethod(getcwd)
 
-
+    #
     # --- Operations on path strings.
 
     def abspath(self):       return self.__class__(os.path.abspath(self))
@@ -523,7 +531,7 @@ class path(_base):
         cls = self.__class__
         return [cls(s) for s in glob.glob(_base(self / pattern))]
 
-
+    #
     # --- Reading or writing an entire file at once.
 
     def open(self, mode='r'):
@@ -894,7 +902,7 @@ class path(_base):
         def pathconf(self, name):
             return os.pathconf(self, name)
 
-
+    #
     # --- Modifying operations on files and directories
 
     def utime(self, times):
@@ -914,7 +922,7 @@ class path(_base):
     def renames(self, new):
         os.renames(self, new)
 
-
+    #
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=0777):
@@ -1014,7 +1022,7 @@ class path(_base):
             else:
                 return (self.parent / p).abspath()
 
-
+    #
     # --- High-level functions from shutil
 
     copyfile = shutil.copyfile
@@ -1034,7 +1042,7 @@ class path(_base):
             if e.errno != errno.ENOENT:
                 raise
 
-
+    #
     # --- Special stuff from os
 
     if hasattr(os, 'chroot'):
@@ -1044,4 +1052,3 @@ class path(_base):
     if hasattr(os, 'startfile'):
         def startfile(self):
             os.startfile(self)
-
