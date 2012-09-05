@@ -11,7 +11,7 @@ except ImportError:
 
 kw = {
     'name': "path.py",
-    'version': "2.3",
+    'version': "2.4",
     'description': "A module wrapper for os.path",
     'author': "Mikhail Gusarov",
     'author_email': "dottedmag@dottedmag.net",
