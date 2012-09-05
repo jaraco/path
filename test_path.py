@@ -19,8 +19,15 @@ Authors:
 """
 
 from __future__ import with_statement  # Needed for Python 2.5
+
 import unittest
-import codecs, os, random, shutil, tempfile, time
+import codecs
+import os
+import random
+import shutil
+import tempfile
+import time
+
 from path import path, __version__ as path_version
 
 # This should match the version of path.py being tested.
@@ -33,12 +40,11 @@ def p(**choices):
 
 class BasicTestCase(unittest.TestCase):
     def testRelpath(self):
-        root = path(p(nt='C:\\',
-                      posix='/'))
+        root = path(p(nt='C:\\', posix='/'))
         foo = root / 'foo'
-        quux =        foo / 'quux'
-        bar =         foo / 'bar'
-        boz =                bar / 'Baz' / 'Boz'
+        quux = foo / 'quux'
+        bar = foo / 'bar'
+        boz = bar / 'Baz' / 'Boz'
         up = path(os.pardir)
 
         # basics
@@ -143,7 +149,6 @@ class TempDirTestCase(unittest.TestCase):
             self.assertEquals(os.getcwd(), os.path.realpath(subdir))
         self.assertEquals(os.getcwd(), old_dir)
 
-
     def testTouch(self):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
@@ -246,7 +251,7 @@ class TempDirTestCase(unittest.TestCase):
         tempf.touch()
         try:
             foo = d / 'foo'
-            boz =      foo / 'bar' / 'baz' / 'boz'
+            boz = foo / 'bar' / 'baz' / 'boz'
             boz.makedirs()
             try:
                 self.assert_(boz.isdir())
@@ -354,7 +359,7 @@ class TempDirTestCase(unittest.TestCase):
 
     def testPatterns(self):
         d = path(self.tempdir)
-        names = [ 'x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt' ]
+        names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
 
         for e in dirs:
@@ -473,7 +478,6 @@ class TempDirTestCase(unittest.TestCase):
             testLinesep(u'\r')
             testLinesep(u'\r\n')
             testLinesep(u'\x0d\x85')
-
 
             # Again, but with linesep=None.
             p.write_lines(givenLines, enc, linesep=None)
