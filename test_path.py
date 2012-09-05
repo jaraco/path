@@ -506,8 +506,8 @@ class TempDirTestCase(unittest.TestCase):
         try:
             sub.rmtree_p()
         except OSError:
-            self.fail("Calling `rmtree_p` on empty directory "
-                      "should not raise exceptoin.")
+            self.fail("Calling `rmtree_p` on non-existent directory "
+                      "should not raise an exception.")
 
 if __name__ == '__main__':
     if __version__ != path_version:
