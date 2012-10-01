@@ -51,7 +51,7 @@ import codecs
 import hashlib
 import errno
 
-__version__ = '2.4'
+__version__ = '2.4.1'
 __all__ = ['path']
 
 # Platform-specific support for path.owner
