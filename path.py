@@ -37,7 +37,7 @@ d = path('/home/guido/bin')
 for f in d.files('*.py'):
     f.chmod(0755)
 
-This module requires Python 2.3 or later.
+path.py requires Python 2.3 or later.
 """
 
 from __future__ import generators
@@ -67,31 +67,10 @@ else:
     except ImportError:
         pwd = None
 
-# Pre-2.3 support.  Are unicode filenames supported?
-_base = str
-_getcwd = os.getcwd
-try:
-    if os.path.supports_unicode_filenames:
-        _base = unicode
-        _getcwd = os.getcwdu
-except AttributeError:
-    pass
-
-# Pre-2.3 workaround for basestring.
-try:
-    basestring
-except NameError:
-    basestring = (str, unicode)
-
-# Universal newline support
-_textmode = 'U'
-if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
-    _textmode = 'r'
-
 class TreeWalkWarning(Warning):
     pass
 
-class path(_base):
+class path(unicode):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -101,23 +80,19 @@ class path(_base):
     # --- Special Python methods.
 
     def __repr__(self):
-        return 'path(%s)' % _base.__repr__(self)
+        return 'path(%s)' % super(path, self).__repr__()
 
     # Adding a path and a string yields a path.
     def __add__(self, more):
         try:
-            resultStr = _base.__add__(self, more)
+            return self.__class__(super(path, self).__add__(more))
         except TypeError:  # Python bug
-            resultStr = NotImplemented
-        if resultStr is NotImplemented:
-            return resultStr
-        return self.__class__(resultStr)
+            return NotImplemented
 
     def __radd__(self, other):
-        if isinstance(other, basestring):
-            return self.__class__(other.__add__(self))
-        else:
+        if not isinstance(other, basestring):
             return NotImplemented
+        return self.__class__(other.__add__(self))
 
     # The / operator joins paths.
     def __div__(self, rel):
@@ -138,10 +113,10 @@ class path(_base):
     def __exit__(self, *_):
         os.chdir(self._old_dir)
 
+    @classmethod
     def getcwd(cls):
         """ Return the current working directory as a path object. """
-        return cls(_getcwd())
-    getcwd = classmethod(getcwd)
+        return cls(os.getcwdu())
 
     #
     # --- Operations on path strings.
@@ -169,7 +144,7 @@ class path(_base):
         return base
 
     def _get_ext(self):
-        f, ext = os.path.splitext(_base(self))
+        f, ext = os.path.splitext(self)
         return ext
 
     def _get_drive(self):
@@ -530,7 +505,7 @@ class path(_base):
         of all the files users have in their bin directories.
         """
         cls = self.__class__
-        return [cls(s) for s in glob.glob(_base(self / pattern))]
+        return [cls(s) for s in glob.glob(self / pattern)]
 
     #
     # --- Reading or writing an entire file at once.
@@ -566,8 +541,8 @@ class path(_base):
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
 
-        This uses 'U' mode in Python 2.3 and later, so '\r\n' and '\r'
-        are automatically translated to '\n'.
+        This method uses 'U' mode, so '\r\n' and '\r' are automatically
+        translated to '\n'.
 
         Optional arguments:
 
@@ -580,7 +555,7 @@ class path(_base):
         """
         if encoding is None:
             # 8-bit
-            f = self.open(_textmode)
+            f = self.open('U')
             try:
                 return f.read()
             finally:
@@ -589,7 +564,7 @@ class path(_base):
             # Unicode
             f = codecs.open(self, 'r', encoding, errors)
             # (Note - Can't use 'U' mode here, since codecs.open
-            # doesn't support 'U' mode, even in Python 2.3.)
+            # doesn't support 'U' mode.)
             try:
                 t = f.read()
             finally:
@@ -704,10 +679,10 @@ class path(_base):
                 translated to '\n'.  If false, newline characters are
                 stripped off.  Default is True.
 
-        This uses 'U' mode in Python 2.3 and later.
+        This uses 'U' mode.
         """
         if encoding is None and retain:
-            f = self.open(_textmode)
+            f = self.open('U')
             try:
                 return f.readlines()
             finally:
