@@ -28,6 +28,7 @@ Original author:
 Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
  Marc Abramowitz <marc@marc-abramowitz.com>
+ Jason R. Coombs <jaraco@jaraco.com>
 
 Example:
 
