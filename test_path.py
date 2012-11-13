@@ -127,6 +127,23 @@ class BasicTestCase(unittest.TestCase):
             self.assert_(p.uncshare == r'\\python1\share1')
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
 
+class ReturnSelfTestCase(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory.
+        f = tempfile.mktemp()
+        system_tmp_dir = os.path.dirname(f)
+        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
+        self.tempdir = os.path.join(system_tmp_dir, my_dir)
+        os.mkdir(self.tempdir)
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def testMakedirs_pReturnsSelf(self):
+        p = path(self.tempdir) / "newpath"
+        ret = p.makedirs_p()
+        self.assertEquals(p, ret)
+
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory.
