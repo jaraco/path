@@ -77,6 +77,12 @@ class path(unicode):
     counterparts in os.path.
     """
 
+    # Constructor allows specifying an alternate path module (e.g. posixpath)
+    def __new__(cls, value, module=os.path):
+        self = unicode.__new__(cls, value)
+        self.module = module
+        return self
+
     # --- Special Python methods.
 
     def __repr__(self):
@@ -101,7 +107,7 @@ class path(unicode):
         Join two path components, adding a separator character if
         needed.
         """
-        return self.__class__(os.path.join(self, rel))
+        return self.__class__(self.module.join(self, rel))
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
@@ -121,14 +127,14 @@ class path(unicode):
     #
     # --- Operations on path strings.
 
-    def abspath(self):       return self.__class__(os.path.abspath(self))
-    def normcase(self):      return self.__class__(os.path.normcase(self))
-    def normpath(self):      return self.__class__(os.path.normpath(self))
-    def realpath(self):      return self.__class__(os.path.realpath(self))
-    def expanduser(self):    return self.__class__(os.path.expanduser(self))
-    def expandvars(self):    return self.__class__(os.path.expandvars(self))
-    def dirname(self):       return self.__class__(os.path.dirname(self))
-    def basename(self):      return self.__class__(os.path.basename(self))
+    def abspath(self):       return self.__class__(self.module.abspath(self))
+    def normcase(self):      return self.__class__(self.module.normcase(self))
+    def normpath(self):      return self.__class__(self.module.normpath(self))
+    def realpath(self):      return self.__class__(self.module.realpath(self))
+    def expanduser(self):    return self.__class__(self.module.expanduser(self))
+    def expandvars(self):    return self.__class__(self.module.expandvars(self))
+    def dirname(self):       return self.__class__(self.module.dirname(self))
+    def basename(self):      return self.__class__(self.module.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -140,15 +146,15 @@ class path(unicode):
         return self.expandvars().expanduser().normpath()
 
     def _get_namebase(self):
-        base, ext = os.path.splitext(self.name)
+        base, ext = self.module.splitext(self.name)
         return base
 
     def _get_ext(self):
-        f, ext = os.path.splitext(self)
+        f, ext = self.module.splitext(self)
         return ext
 
     def _get_drive(self):
-        drive, r = os.path.splitdrive(self)
+        drive, r = self.module.splitdrive(self)
         return self.__class__(drive)
 
     parent = property(
@@ -185,7 +191,7 @@ class path(unicode):
 
     def splitpath(self):
         """ p.splitpath() -> Return (p.parent, p.name). """
-        parent, child = os.path.split(self)
+        parent, child = self.module.split(self)
         return self.__class__(parent), child
 
     def splitdrive(self):
@@ -195,7 +201,7 @@ class path(unicode):
         no drive specifier, p.drive is empty, so the return value
         is simply (path(''), p).  This is always the case on Unix.
         """
-        drive, rel = os.path.splitdrive(self)
+        drive, rel = self.module.splitdrive(self)
         return self.__class__(drive), rel
 
     def splitext(self):
@@ -208,7 +214,7 @@ class path(unicode):
         last path segment.  This has the property that if
         (a, b) == p.splitext(), then a + b == p.
         """
-        filename, ext = os.path.splitext(self)
+        filename, ext = self.module.splitext(self)
         return self.__class__(filename), ext
 
     def stripext(self):
@@ -219,26 +225,25 @@ class path(unicode):
         """
         return self.splitext()[0]
 
-    if hasattr(os.path, 'splitunc'):
-        def splitunc(self):
-            unc, rest = os.path.splitunc(self)
-            return self.__class__(unc), rest
+    def splitunc(self):
+        unc, rest = self.module.splitunc(self)
+        return self.__class__(unc), rest
 
-        def _get_uncshare(self):
-            unc, r = os.path.splitunc(self)
-            return self.__class__(unc)
+    def _get_uncshare(self):
+        unc, r = self.module.splitunc(self)
+        return self.__class__(unc)
 
-        uncshare = property(
-            _get_uncshare, None, None,
-            """ The UNC mount point for this path.
-            This is empty for paths on local drives. """)
+    uncshare = property(
+        _get_uncshare, None, None,
+        """ The UNC mount point for this path.
+        This is empty for paths on local drives. """)
 
     def joinpath(self, *args):
         """ Join two or more path components, adding a separator
         character (os.sep) if needed.  Returns a new path
         object.
         """
-        return self.__class__(os.path.join(self, *args))
+        return self.__class__(self.module.join(self, *args))
 
     def splitall(self):
         r""" Return a list of the path components in this path.
@@ -283,14 +288,14 @@ class path(unicode):
         # Don't normcase dest!  We want to preserve the case.
         dest_list = dest.splitall()
 
-        if orig_list[0] != os.path.normcase(dest_list[0]):
+        if orig_list[0] != self.module.normcase(dest_list[0]):
             # Can't get here from there.
             return dest
 
         # Find the location where the two paths start to differ.
         i = 0
         for start_seg, dest_seg in zip(orig_list, dest_list):
-            if start_seg != os.path.normcase(dest_seg):
+            if start_seg != self.module.normcase(dest_seg):
                 break
             i += 1
 
@@ -304,7 +309,7 @@ class path(unicode):
             # If they happen to be identical, use os.curdir.
             relpath = os.curdir
         else:
-            relpath = os.path.join(*segments)
+            relpath = self.module.join(*segments)
         return self.__class__(relpath)
 
     # --- Listing, searching, walking, and matching
@@ -796,33 +801,31 @@ class path(unicode):
     # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
     # bound. Playing it safe and wrapping them all in method calls.
 
-    def isabs(self): return os.path.isabs(self)
-    def exists(self): return os.path.exists(self)
-    def isdir(self): return os.path.isdir(self)
-    def isfile(self): return os.path.isfile(self)
-    def islink(self): return os.path.islink(self)
-    def ismount(self): return os.path.ismount(self)
+    def isabs(self): return self.module.isabs(self)
+    def exists(self): return self.module.exists(self)
+    def isdir(self): return self.module.isdir(self)
+    def isfile(self): return self.module.isfile(self)
+    def islink(self): return self.module.islink(self)
+    def ismount(self): return self.module.ismount(self)
 
-    if hasattr(os.path, 'samefile'):
-        def samefile(self): return os.path.samefile(self)
+    def samefile(self): return self.module.samefile(self)
 
-    def getatime(self): return os.path.getatime(self)
+    def getatime(self): return self.module.getatime(self)
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    def getmtime(self): return os.path.getmtime(self)
+    def getmtime(self): return self.module.getmtime(self)
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
-    if hasattr(os.path, 'getctime'):
-        def getctime(self): return os.path.getctime(self)
-        ctime = property(
-            getctime, None, None,
-            """ Creation time of the file. """)
+    def getctime(self): return self.module.getctime(self)
+    ctime = property(
+        getctime, None, None,
+        """ Creation time of the file. """)
 
-    def getsize(self): return os.path.getsize(self)
+    def getsize(self): return self.module.getsize(self)
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
