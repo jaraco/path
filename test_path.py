@@ -27,6 +27,8 @@ import random
 import shutil
 import tempfile
 import time
+import ntpath
+import posixpath
 
 from path import path, __version__ as path_version
 
@@ -126,6 +128,18 @@ class BasicTestCase(unittest.TestCase):
             p = path(r'\\python1\share1\dir1\file1.txt')
             self.assert_(p.uncshare == r'\\python1\share1')
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
+
+    def testExplicitModule(self):
+        nt_ok = path.using_module(ntpath, r'foo\bar\baz')
+        posix_ok = path.using_module(posixpath, r'foo/bar/baz')
+        posix_wrong = path.using_module(posixpath, r'foo\bar\baz')
+
+        self.assertEqual(nt_ok.dirname(), r'foo\bar')
+        self.assertEqual(posix_ok.dirname(), r'foo/bar')
+        self.assertEqual(posix_wrong.dirname(), '')
+
+        self.assertEqual(nt_ok / 'quux', r'foo\bar\baz\quux')
+        self.assertEqual(posix_ok / 'quux', r'foo/bar/baz/quux')
 
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):
