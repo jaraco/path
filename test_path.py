@@ -130,13 +130,16 @@ class BasicTestCase(unittest.TestCase):
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
 
     def testExplicitModule(self):
-        nt_ok = path('C:\\Program Files\\Python\\Lib\\xyzzy.py', module=ntpath)
-        posix_ok = path('/usr/local/python/lib/xyzzy.py', module=posixpath)
-        posix_wrong = path('C:\\Program Files\\Python\\Lib\\xyzzy.py',
-                           module=posixpath)
-        self.assertEqual(nt_ok.dirname(), 'C:\\Program Files\\Python\\Lib')
-        self.assertEqual(posix_ok.dirname(), '/usr/local/python/lib')
+        nt_ok = path.using_module(ntpath, r'foo\bar\baz')
+        posix_ok = path.using_module(posixpath, r'foo/bar/baz')
+        posix_wrong = path.using_module(posixpath, r'foo\bar\baz')
+
+        self.assertEqual(nt_ok.dirname(), r'foo\bar')
+        self.assertEqual(posix_ok.dirname(), r'foo/bar')
         self.assertEqual(posix_wrong.dirname(), '')
+
+        self.assertEqual(nt_ok / 'quux', r'foo\bar\baz\quux')
+        self.assertEqual(posix_ok / 'quux', r'foo/bar/baz/quux')
 
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):

@@ -77,16 +77,27 @@ class path(unicode):
     counterparts in os.path.
     """
 
-    # Constructor allows specifying an alternate path module (e.g. posixpath)
-    def __new__(cls, value, module=os.path):
-        self = unicode.__new__(cls, value)
-        self.module = module
-        return self
+    # Use an alternate path module (e.g. posixpath)
+    module = os.path
+    _subclass_for_module = {}
+    @classmethod
+    def using_module(cls, module, value=None):
+        if module in cls._subclass_for_module:
+            subclass = cls._subclass_for_module[module]
+        else:
+            subclass_name = cls.__name__ + '_' + module.__name__
+            bases = (cls,)
+            ns = {'module': module}
+            subclass = type(subclass_name, bases, ns)
+            cls._subclass_for_module[module] = subclass
+        if value is None:
+            return subclass
+        return subclass(value)
 
     # --- Special Python methods.
 
     def __repr__(self):
-        return 'path(%s)' % super(path, self).__repr__()
+        return '%s(%s)' % (type(self).__name__, super(path, self).__repr__())
 
     # Adding a path and a string yields a path.
     def __add__(self, more):
