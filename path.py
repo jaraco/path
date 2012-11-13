@@ -917,10 +917,11 @@ class path(unicode):
 
     def makedirs_p(self, mode=0777):
         try:
-            return self.makedirs(mode)
+            self.makedirs(mode)
         except OSError, e:
             if e.errno != errno.EEXIST:
                 raise
+        return self
 
     def rmdir(self):
         os.rmdir(self)

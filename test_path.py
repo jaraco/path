@@ -144,6 +144,11 @@ class ReturnSelfTestCase(unittest.TestCase):
         ret = p.makedirs_p()
         self.assertEquals(p, ret)
 
+    def testMakedirs_pReturnsSelfEvenIfExists(self):
+        p = path(self.tempdir)
+        ret = p.makedirs_p()
+        self.assertEquals(p, ret)
+
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory.
