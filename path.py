@@ -913,10 +913,11 @@ class path(unicode):
 
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
+        return self
 
     def makedirs_p(self, mode=0777):
         try:
-            self.makedirs(mode)
+            return self.makedirs(mode)
         except OSError, e:
             if e.errno != errno.EEXIST:
                 raise
