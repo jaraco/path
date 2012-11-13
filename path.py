@@ -83,7 +83,7 @@ class path(unicode):
     module = os.path
     _subclass_for_module = {}
     @classmethod
-    def using_module(cls, module, value=None):
+    def using_module(cls, module):
         if module in cls._subclass_for_module:
             subclass = cls._subclass_for_module[module]
         else:
@@ -92,9 +92,7 @@ class path(unicode):
             ns = {'module': module}
             subclass = type(subclass_name, bases, ns)
             cls._subclass_for_module[module] = subclass
-        if value is None:
-            return subclass
-        return subclass(value)
+        return subclass
 
     # --- Special Python methods.
 
