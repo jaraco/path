@@ -29,6 +29,8 @@ Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
  Marc Abramowitz <marc@marc-abramowitz.com>
  Jason R. Coombs <jaraco@jaraco.com>
+ Jason Chu <jchu@xentac.net>
+ Vojislav Stojkovic <vstojkovic@syntertainment.com>
 
 Example:
 
