@@ -92,6 +92,11 @@ class path(unicode):
     counterparts in os.path.
     """
 
+    def __init__(self, other):
+        super(path, self).__init__(self, other)
+        if not isinstance(other, basestring):
+            raise TypeError("path must be a string")
+
     module = os.path
     "The path module to use for path operations."
 

@@ -82,6 +82,17 @@ class BasicTestCase(unittest.TestCase):
         else:
             raise Exception("DID NOT RAISE")
 
+    def testConstructionFromInt(self):
+        """
+        path class should raise a TypeError when constructed from an integer.
+        """
+        try:
+            path(1)
+        except TypeError:
+            pass
+        else:
+            raise Exception("DID NOT RAISE")
+
     def testStringCompatibility(self):
         """ Test compatibility with ordinary strings. """
         x = path('xyzzy')
