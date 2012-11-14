@@ -95,13 +95,12 @@ class path(unicode):
     module = os.path
     "The path module to use for path operations."
 
-    @classmethod
-    @simple_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)
         ns = {'module': module}
         return type(subclass_name, bases, ns)
+    using_module = classmethod(simple_cache(using_module))
 
     # --- Special Python methods.
 
@@ -139,10 +138,10 @@ class path(unicode):
     def __exit__(self, *_):
         os.chdir(self._old_dir)
 
-    @classmethod
     def getcwd(cls):
         """ Return the current working directory as a path object. """
         return cls(os.getcwdu())
+    getcwd = classmethod(getcwd)
 
     #
     # --- Operations on path strings.
