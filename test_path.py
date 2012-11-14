@@ -204,6 +204,13 @@ class ReturnSelfTestCase(unittest.TestCase):
         ret = p.makedirs_p()
         self.assertEquals(p, ret)
 
+    def testRenameReturnsSelf(self):
+        p = path(self.tempdir) / "somefile"
+        p.touch()
+        target = path(self.tempdir) / "otherfile"
+        ret = p.rename(target)
+        self.assertEquals(target, ret)
+
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory.
