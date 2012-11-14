@@ -72,6 +72,19 @@ else:
 class TreeWalkWarning(Warning):
     pass
 
+def simple_cache(func):
+    """
+    Save results for the 'using_module' classmethod.
+    When Python 3.2 is available, use functools.lru_cache instead.
+    """
+    saved_results = {}
+    def wrapper(cls, module):
+        if module in saved_results:
+            return saved_results[module]
+        saved_results[module] = func(cls, module)
+        return saved_results[module]
+    return wrapper
+
 class path(unicode):
     """ Represents a filesystem path.
 
@@ -79,20 +92,16 @@ class path(unicode):
     counterparts in os.path.
     """
 
-    # Use an alternate path module (e.g. posixpath)
     module = os.path
-    _subclass_for_module = {}
+    "The path module to use for path operations."
+
     @classmethod
+    @simple_cache
     def using_module(cls, module):
-        if module in cls._subclass_for_module:
-            subclass = cls._subclass_for_module[module]
-        else:
-            subclass_name = cls.__name__ + '_' + module.__name__
-            bases = (cls,)
-            ns = {'module': module}
-            subclass = type(subclass_name, bases, ns)
-            cls._subclass_for_module[module] = subclass
-        return subclass
+        subclass_name = cls.__name__ + '_' + module.__name__
+        bases = (cls,)
+        ns = {'module': module}
+        return type(subclass_name, bases, ns)
 
     # --- Special Python methods.
 
