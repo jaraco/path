@@ -176,7 +176,7 @@ class BasicTestCase(unittest.TestCase):
 
 class ReturnSelfTestCase(unittest.TestCase):
     """
-    Some methods don't necessarily return any value (i.e. makedirs,
+    Some methods don't necessarily return any value (e.g. makedirs,
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
@@ -210,6 +210,16 @@ class ReturnSelfTestCase(unittest.TestCase):
         target = path(self.tempdir) / "otherfile"
         ret = p.rename(target)
         self.assertEquals(target, ret)
+
+    def testMkdirReturnsSelf(self):
+        p = path(self.tempdir) / "newdir"
+        ret = p.mkdir()
+        self.assertEquals(p, ret)
+
+    def testTouchReturnsSelf(self):
+        p = path(self.tempdir) / "empty file"
+        ret = p.touch()
+        self.assertEquals(p, ret)
 
 class TempDirTestCase(unittest.TestCase):
     def setUp(self):

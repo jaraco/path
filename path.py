@@ -932,6 +932,7 @@ class path(unicode):
 
     def mkdir(self, mode=0777):
         os.mkdir(self, mode)
+        return self
 
     def mkdir_p(self, mode=0777):
         try:
@@ -939,6 +940,7 @@ class path(unicode):
         except OSError, e:
             if e.errno != errno.EEXIST:
                 raise
+        return self
 
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
@@ -981,6 +983,7 @@ class path(unicode):
         fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0666)
         os.close(fd)
         os.utime(self, None)
+        return self
 
     def remove(self):
         os.remove(self)
