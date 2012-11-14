@@ -130,9 +130,9 @@ class BasicTestCase(unittest.TestCase):
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
 
     def testExplicitModule(self):
-        nt_ok = path.using_module(ntpath, r'foo\bar\baz')
-        posix_ok = path.using_module(posixpath, r'foo/bar/baz')
-        posix_wrong = path.using_module(posixpath, r'foo\bar\baz')
+        nt_ok = path.using_module(ntpath)(r'foo\bar\baz')
+        posix_ok = path.using_module(posixpath)(r'foo/bar/baz')
+        posix_wrong = path.using_module(posixpath)(r'foo\bar\baz')
 
         self.assertEqual(nt_ok.dirname(), r'foo\bar')
         self.assertEqual(posix_ok.dirname(), r'foo/bar')
