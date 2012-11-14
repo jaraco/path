@@ -921,9 +921,11 @@ class path(unicode):
 
     def rename(self, new):
         os.rename(self, new)
+        return self.__class__(new)
 
     def renames(self, new):
         os.renames(self, new)
+        return self.__class__(new)
 
     #
     # --- Create/delete operations on directories
