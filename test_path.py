@@ -130,6 +130,9 @@ class BasicTestCase(unittest.TestCase):
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
 
     def testExplicitModule(self):
+        """
+        The user may specify an explicit path module to use.
+        """
         nt_ok = path.using_module(ntpath)(r'foo\bar\baz')
         posix_ok = path.using_module(posixpath)(r'foo/bar/baz')
         posix_wrong = path.using_module(posixpath)(r'foo\bar\baz')
@@ -143,7 +146,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testExplicitModuleClasses(self):
         """
-        multiple calls to path.using_module should produce the same class.
+        Multiple calls to path.using_module should produce the same class.
         """
         nt_path = path.using_module(ntpath)
         self.assert_(nt_path is path.using_module(ntpath))
