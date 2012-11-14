@@ -71,6 +71,17 @@ class BasicTestCase(unittest.TestCase):
             d = path('D:\\')
             self.assertEqual(d.relpathto(boz), boz)
 
+    def testConstructionFromNone(self):
+        """
+        path class raise a TypeError when constructed from None
+        """
+        try:
+            path(None)
+        except TypeError:
+            pass
+        else:
+            raise Exception("DID NOT RAISE")
+
     def testStringCompatibility(self):
         """ Test compatibility with ordinary strings. """
         x = path('xyzzy')
