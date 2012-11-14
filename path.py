@@ -920,7 +920,7 @@ class path(unicode):
     if hasattr(os, 'chown'):
         def chown(self, uid, gid):
             os.chown(self, uid, gid)
-        return self
+            return self
 
     def rename(self, new):
         os.rename(self, new)
