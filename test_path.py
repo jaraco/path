@@ -141,6 +141,14 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(nt_ok / 'quux', r'foo\bar\baz\quux')
         self.assertEqual(posix_ok / 'quux', r'foo/bar/baz/quux')
 
+    def testExplicitModuleClasses(self):
+        """
+        multiple calls to path.using_module should produce the same class.
+        """
+        nt_path = path.using_module(ntpath)
+        self.assert_(nt_path is path.using_module(ntpath))
+        self.assertEqual(nt_path.__name__, 'path_ntpath')
+
 class ReturnSelfTestCase(unittest.TestCase):
     def setUp(self):
         # Create a temporary directory.
