@@ -175,6 +175,11 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(nt_path.__name__, 'path_ntpath')
 
 class ReturnSelfTestCase(unittest.TestCase):
+    """
+    Some methods don't necessarily return any value (i.e. makedirs,
+    makedirs_p, rename, mkdir, touch, chroot). These methods should return
+    self anyhow to allow methods to be chained.
+    """
     def setUp(self):
         # Create a temporary directory.
         f = tempfile.mktemp()
@@ -187,6 +192,9 @@ class ReturnSelfTestCase(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def testMakedirs_pReturnsSelf(self):
+        """
+        path('foo').makedirs_p() == path('foo')
+        """
         p = path(self.tempdir) / "newpath"
         ret = p.makedirs_p()
         self.assertEquals(p, ret)
