@@ -911,13 +911,16 @@ class path(unicode):
     def utime(self, times):
         """ Set the access and modified times of this file. """
         os.utime(self, times)
+        return self
 
     def chmod(self, mode):
         os.chmod(self, mode)
+        return self
 
     if hasattr(os, 'chown'):
         def chown(self, uid, gid):
             os.chown(self, uid, gid)
+        return self
 
     def rename(self, new):
         os.rename(self, new)
@@ -956,6 +959,7 @@ class path(unicode):
 
     def rmdir(self):
         os.rmdir(self)
+        return self
 
     def rmdir_p(self):
         try:
@@ -963,9 +967,11 @@ class path(unicode):
         except OSError, e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
+        return self
 
     def removedirs(self):
         os.removedirs(self)
+        return self
 
     def removedirs_p(self):
         try:
@@ -973,6 +979,7 @@ class path(unicode):
         except OSError, e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
+        return self
 
     # --- Modifying operations on files
 
@@ -987,6 +994,7 @@ class path(unicode):
 
     def remove(self):
         os.remove(self)
+        return self
 
     def remove_p(self):
         try:
@@ -994,12 +1002,15 @@ class path(unicode):
         except OSError, e:
             if e.errno != errno.ENOENT:
                 raise
+        return self
 
     def unlink(self):
         os.unlink(self)
+        return self
 
     def unlink_p(self):
         self.remove_p()
+        return self
 
     # --- Links
 
@@ -1007,11 +1018,13 @@ class path(unicode):
         def link(self, newpath):
             """ Create a hard link at 'newpath', pointing to this file. """
             os.link(self, newpath)
+            return self.__class__(newpath)
 
     if hasattr(os, 'symlink'):
         def symlink(self, newlink):
             """ Create a symbolic link at 'newlink', pointing here. """
             os.symlink(self, newlink)
+            return self.__class__(newlink)
 
     if hasattr(os, 'readlink'):
         def readlink(self):
@@ -1051,6 +1064,7 @@ class path(unicode):
         except OSError, e:
             if e.errno != errno.ENOENT:
                 raise
+        return self
 
     #
     # --- Special stuff from os
@@ -1062,3 +1076,4 @@ class path(unicode):
     if hasattr(os, 'startfile'):
         def startfile(self):
             os.startfile(self)
+            return self
