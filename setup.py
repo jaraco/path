@@ -38,4 +38,5 @@ kw = dict(
 )
 
 
-distutils.core.setup(**kw)
+if __name__ == '__main__':
+    distutils.core.setup(**kw)
