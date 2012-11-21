@@ -151,14 +151,29 @@ class path(unicode):
     #
     # --- Operations on path strings.
 
-    def abspath(self):       return self.__class__(self.module.abspath(self))
-    def normcase(self):      return self.__class__(self.module.normcase(self))
-    def normpath(self):      return self.__class__(self.module.normpath(self))
-    def realpath(self):      return self.__class__(self.module.realpath(self))
-    def expanduser(self):    return self.__class__(self.module.expanduser(self))
-    def expandvars(self):    return self.__class__(self.module.expandvars(self))
-    def dirname(self):       return self.__class__(self.module.dirname(self))
-    def basename(self):      return self.__class__(self.module.basename(self))
+    def abspath(self):
+        return self.__class__(self.module.abspath(self))
+
+    def normcase(self):
+        return self.__class__(self.module.normcase(self))
+
+    def normpath(self):
+        return self.__class__(self.module.normpath(self))
+
+    def realpath(self):
+        return self.__class__(self.module.realpath(self))
+
+    def expanduser(self):
+        return self.__class__(self.module.expanduser(self))
+
+    def expandvars(self):
+        return self.__class__(self.module.expandvars(self))
+
+    def dirname(self):
+        return self.__class__(self.module.dirname(self))
+
+    def basename(self):
+        return self.__class__(self.module.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
