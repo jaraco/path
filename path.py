@@ -884,7 +884,7 @@ class path(unicode):
         return os.lstat(self)
 
     def __get_owner_windows(self):
-        """
+        r"""
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
