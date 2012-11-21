@@ -54,20 +54,18 @@ import codecs
 import hashlib
 import errno
 
+try:
+    import win32security
+except ImportError:
+    pass
+
+try:
+    import pwd
+except ImportError:
+    pass
+
 __version__ = '2.4.1'
 __all__ = ['path']
-
-# Platform-specific support for path.owner
-if os.name == 'nt':
-    try:
-        import win32security
-    except ImportError:
-        win32security = None
-else:
-    try:
-        import pwd
-    except ImportError:
-        pwd = None
 
 class TreeWalkWarning(Warning):
     pass
@@ -885,27 +883,36 @@ class path(unicode):
         """ Like path.stat(), but do not follow symbolic links. """
         return os.lstat(self)
 
-    def get_owner(self):
-        r""" Return the name of the owner of this file or directory.
-
-        This follows symbolic links.
-
-        On Windows, this returns a name of the form ur'DOMAIN\User Name'.
-        On Windows, a group can own a file or directory.
+    def __get_owner_windows(self):
         """
-        if os.name == 'nt':
-            if win32security is None:
-                raise Exception("path.owner requires win32all to be installed")
-            desc = win32security.GetFileSecurity(
-                self, win32security.OWNER_SECURITY_INFORMATION)
-            sid = desc.GetSecurityDescriptorOwner()
-            account, domain, typecode = win32security.LookupAccountSid(None, sid)
-            return domain + u'\\' + account
-        else:
-            if pwd is None:
-                raise NotImplementedError("path.owner is not implemented on this platform.")
-            st = self.stat()
-            return pwd.getpwuid(st.st_uid).pw_name
+        Return the name of the owner of this file or directory. Follow
+        symbolic links.
+
+        Return a name of the form ur'DOMAIN\User Name'; may be a group.
+        """
+        desc = win32security.GetFileSecurity(
+            self, win32security.OWNER_SECURITY_INFORMATION)
+        sid = desc.GetSecurityDescriptorOwner()
+        account, domain, typecode = win32security.LookupAccountSid(None, sid)
+        return domain + u'\\' + account
+
+    def __get_owner_unix(self):
+        """
+        Return the name of the owner of this file or directory. Follow
+        symbolic links.
+        """
+        st = self.stat()
+        return pwd.getpwuid(st.st_uid).pw_name
+
+    def __get_owner_not_implemented(self):
+        raise NotImplementedError("Ownership not available on this platform.")
+
+    if 'win32security' in globals():
+        get_owner = __get_owner_windows
+    elif 'pwd' in globals():
+        get_owner = __get_owner_unix
+    else:
+        get_owner = __get_owner_not_implemented
 
     owner = property(
         get_owner, None, None,
