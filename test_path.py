@@ -624,6 +624,7 @@ class TempDirTestCase(unittest.TestCase):
         res = d.__enter__()
         assert res is d
         (d / 'somefile.txt').touch()
+        assert not isinstance(d / 'somefile.txt', tempdir)
         d.__exit__(None, None, None)
         assert not d.exists()
 
@@ -634,6 +635,7 @@ class TempDirTestCase(unittest.TestCase):
         d = tempdir()
         d.__enter__()
         (d / 'somefile.txt').touch()
+        assert not isinstance(d / 'somefile.txt', tempdir)
         d.__exit__(TypeError, TypeError('foo'), None)
         assert d.exists()
 

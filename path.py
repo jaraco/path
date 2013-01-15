@@ -106,6 +106,13 @@ class path(unicode):
         return type(subclass_name, bases, ns)
     using_module = classmethod(simple_cache(using_module))
 
+    def _next_class(cls):
+        """
+        What class should be used to construct new instances from this class
+        """
+        return cls
+    _next_class = classmethod(_next_class)
+
     # --- Special Python methods.
 
     def __repr__(self):
@@ -114,14 +121,14 @@ class path(unicode):
     # Adding a path and a string yields a path.
     def __add__(self, more):
         try:
-            return self.__class__(super(path, self).__add__(more))
+            return self._next_class()(super(path, self).__add__(more))
         except TypeError:  # Python bug
             return NotImplemented
 
     def __radd__(self, other):
         if not isinstance(other, basestring):
             return NotImplemented
-        return self.__class__(other.__add__(self))
+        return self._next_class()(other.__add__(self))
 
     # The / operator joins paths.
     def __div__(self, rel):
@@ -130,7 +137,7 @@ class path(unicode):
         Join two path components, adding a separator character if
         needed.
         """
-        return self.__class__(self.module.join(self, rel))
+        return self._next_class()(self.module.join(self, rel))
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
@@ -151,28 +158,28 @@ class path(unicode):
     # --- Operations on path strings.
 
     def abspath(self):
-        return self.__class__(self.module.abspath(self))
+        return self._next_class()(self.module.abspath(self))
 
     def normcase(self):
-        return self.__class__(self.module.normcase(self))
+        return self._next_class()(self.module.normcase(self))
 
     def normpath(self):
-        return self.__class__(self.module.normpath(self))
+        return self._next_class()(self.module.normpath(self))
 
     def realpath(self):
-        return self.__class__(self.module.realpath(self))
+        return self._next_class()(self.module.realpath(self))
 
     def expanduser(self):
-        return self.__class__(self.module.expanduser(self))
+        return self._next_class()(self.module.expanduser(self))
 
     def expandvars(self):
-        return self.__class__(self.module.expandvars(self))
+        return self._next_class()(self.module.expandvars(self))
 
     def dirname(self):
-        return self.__class__(self.module.dirname(self))
+        return self._next_class()(self.module.dirname(self))
 
     def basename(self):
-        return self.__class__(self.module.basename(self))
+        return self._next_class()(self.module.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -193,7 +200,7 @@ class path(unicode):
 
     def _get_drive(self):
         drive, r = self.module.splitdrive(self)
-        return self.__class__(drive)
+        return self._next_class()(drive)
 
     parent = property(
         dirname, None, None,
@@ -230,7 +237,7 @@ class path(unicode):
     def splitpath(self):
         """ p.splitpath() -> Return (p.parent, p.name). """
         parent, child = self.module.split(self)
-        return self.__class__(parent), child
+        return self._next_class()(parent), child
 
     def splitdrive(self):
         """ p.splitdrive() -> Return (p.drive, <the rest of p>).
@@ -240,7 +247,7 @@ class path(unicode):
         is simply (path(''), p).  This is always the case on Unix.
         """
         drive, rel = self.module.splitdrive(self)
-        return self.__class__(drive), rel
+        return self._next_class()(drive), rel
 
     def splitext(self):
         """ p.splitext() -> Return (p.stripext(), p.ext).
@@ -253,7 +260,7 @@ class path(unicode):
         (a, b) == p.splitext(), then a + b == p.
         """
         filename, ext = self.module.splitext(self)
-        return self.__class__(filename), ext
+        return self._next_class()(filename), ext
 
     def stripext(self):
         """ p.stripext() -> Remove one file extension from the path.
@@ -265,11 +272,11 @@ class path(unicode):
 
     def splitunc(self):
         unc, rest = self.module.splitunc(self)
-        return self.__class__(unc), rest
+        return self._next_class()(unc), rest
 
     def _get_uncshare(self):
         unc, r = self.module.splitunc(self)
-        return self.__class__(unc)
+        return self._next_class()(unc)
 
     uncshare = property(
         _get_uncshare, None, None,
@@ -281,7 +288,7 @@ class path(unicode):
         character (os.sep) if needed.  Returns a new path
         object.
         """
-        return self.__class__(self.module.join(self, *args))
+        return self._next_class()(self.module.join(self, *args))
 
     def splitall(self):
         r""" Return a list of the path components in this path.
@@ -309,7 +316,7 @@ class path(unicode):
         """ Return this path as a relative path,
         based from the current working directory.
         """
-        cwd = self.__class__(os.getcwd())
+        cwd = self._next_class()(os.getcwd())
         return cwd.relpathto(self)
 
     def relpathto(self, dest):
@@ -320,7 +327,7 @@ class path(unicode):
         dest.abspath().
         """
         origin = self.abspath()
-        dest = self.__class__(dest).abspath()
+        dest = self._next_class()(dest).abspath()
 
         orig_list = origin.normcase().splitall()
         # Don't normcase dest!  We want to preserve the case.
@@ -348,7 +355,7 @@ class path(unicode):
             relpath = os.curdir
         else:
             relpath = self.module.join(*segments)
-        return self.__class__(relpath)
+        return self._next_class()(relpath)
 
     # --- Listing, searching, walking, and matching
 
@@ -547,7 +554,7 @@ class path(unicode):
         For example, path('/users').glob('*/bin/*') returns a list
         of all the files users have in their bin directories.
         """
-        cls = self.__class__
+        cls = self._next_class()
         return [cls(s) for s in glob.glob(self / pattern)]
 
     #
@@ -947,11 +954,11 @@ class path(unicode):
 
     def rename(self, new):
         os.rename(self, new)
-        return self.__class__(new)
+        return self._next_class()(new)
 
     def renames(self, new):
         os.renames(self, new)
-        return self.__class__(new)
+        return self._next_class()(new)
 
     #
     # --- Create/delete operations on directories
@@ -1041,13 +1048,13 @@ class path(unicode):
         def link(self, newpath):
             """ Create a hard link at 'newpath', pointing to this file. """
             os.link(self, newpath)
-            return self.__class__(newpath)
+            return self._next_class()(newpath)
 
     if hasattr(os, 'symlink'):
         def symlink(self, newlink):
             """ Create a symbolic link at 'newlink', pointing here. """
             os.symlink(self, newlink)
-            return self.__class__(newlink)
+            return self._next_class()(newlink)
 
     if hasattr(os, 'readlink'):
         def readlink(self):
@@ -1055,7 +1062,7 @@ class path(unicode):
 
             The result may be an absolute or a relative path.
             """
-            return self.__class__(os.readlink(self))
+            return self._next_class()(os.readlink(self))
 
         def readlinkabs(self):
             """ Return the path to which this symbolic link points.
@@ -1101,15 +1108,22 @@ class path(unicode):
             os.startfile(self)
             return self
 
-class TempDir(path):
+class tempdir(path):
     """
     A temporary directory via tempfile.mkdtemp, and constructed with the
     same parameters.
     """
 
-    @classmethod
-    def new(cls, *args, **kwargs):
-        return TempDir(tempfile.mkdtemp(*args, **kwargs))
+    def _next_class(cls):
+        return path
+    _next_class = classmethod(_next_class)
+
+    def __new__(cls, *args, **kwargs):
+        dirname = tempfile.mkdtemp(*args, **kwargs)
+        return super(tempdir, cls).__new__(cls, dirname)
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     def __enter__(self):
         return self
@@ -1117,5 +1131,3 @@ class TempDir(path):
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
             self.rmtree()
-
-tempdir = TempDir.new
