@@ -628,6 +628,16 @@ class TempDirTestCase(unittest.TestCase):
         d.rmdir()
         assert not d.exists()
 
+    def test_next_class(self):
+        """
+        It should be possible to invoke operations on a tempdir and get
+        path classes.
+        """
+        d = tempdir()
+        sub = d / 'subdir'
+        assert isinstance(sub, path)
+        d.rmdir()
+
     def test_context_manager(self):
         """
         One should be able to use a tempdir object as a context, which will
