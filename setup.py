@@ -7,12 +7,17 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py
 
-# Setup script for path
+ld_file = open('README.rst')
+try:
+    long_description = ld_file.read()
+finally:
+    ld_file.close()
 
 kw = dict(
     name = "path.py",
     version = "2.5",
     description = "A module wrapper for os.path",
+    long_description = long_description,
     author = "Jason Orendorff",
     author_email = "jason.orendorff@gmail.com",
     maintainer = "Jason R. Coombs",
