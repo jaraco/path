@@ -1101,18 +1101,15 @@ class path(unicode):
             os.startfile(self)
             return self
 
-class tempdir(path):
+class TempDir(path):
     """
     A temporary directory via tempfile.mkdtemp, and constructed with the
     same parameters.
     """
 
-    def __new__(cls, *args, **kwargs):
-        dirname = tempfile.mkdtemp(*args, **kwargs)
-        return super(tempdir, cls).__new__(cls, dirname)
-
-    def __init__(self, *args, **kwargs):
-        pass
+    @classmethod
+    def new(cls, *args, **kwargs):
+        return TempDir(tempfile.mkdtemp(*args, **kwargs))
 
     def __enter__(self):
         return self
@@ -1120,3 +1117,5 @@ class tempdir(path):
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
             self.rmtree()
+
+tempdir = TempDir.new
