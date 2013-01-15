@@ -603,6 +603,19 @@ class ScratchDirTestCase(unittest.TestCase):
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
 
+class SubclassTestCase(unittest.TestCase):
+    class PathSubclass(path):
+        pass
+
+    def test_subclass_produces_same_class(self):
+        """
+        When operations are invoked on a subclass, they should produce another
+        instance of that subclass.
+        """
+        p = self.PathSubclass('/foo')
+        subdir = p / 'bar'
+        assert isinstance(subdir, self.PathSubclass)
+
 class TempDirTestCase(unittest.TestCase):
     def test_constructor(self):
         """
