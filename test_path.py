@@ -617,6 +617,7 @@ class SubclassTestCase(unittest.TestCase):
         assert isinstance(subdir, self.PathSubclass)
 
 class TempDirTestCase(unittest.TestCase):
+
     def test_constructor(self):
         """
         One should be able to readily construct a temporary directory
@@ -645,7 +646,7 @@ class TempDirTestCase(unittest.TestCase):
         """
         d = tempdir()
         res = d.__enter__()
-        assert res is d
+        assert path(res) == path(d)
         (d / 'somefile.txt').touch()
         assert not isinstance(d / 'somefile.txt', tempdir)
         d.__exit__(None, None, None)
@@ -661,6 +662,18 @@ class TempDirTestCase(unittest.TestCase):
         assert not isinstance(d / 'somefile.txt', tempdir)
         d.__exit__(TypeError, TypeError('foo'), None)
         assert d.exists()
+
+
+    def test_context_manager_using_with(self):
+        """
+            The context manager will allow using the with keyword and
+            provide a temporry directory that will be deleted after that.
+        """
+
+        with tempdir() as d:
+            self.assertTrue(d.isdir())
+        self.assertFalse(d.isdir())
+
 
 if __name__ == '__main__':
     unittest.main()
