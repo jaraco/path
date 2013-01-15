@@ -30,10 +30,7 @@ import time
 import ntpath
 import posixpath
 
-from path import path, __version__ as path_version
-
-# This should match the version of path.py being tested.
-__version__ = '2.2.2.990'
+from path import path
 
 
 def p(**choices):
@@ -604,7 +601,4 @@ class TempDirTestCase(unittest.TestCase):
                       "should not raise an exception.")
 
 if __name__ == '__main__':
-    if __version__ != path_version:
-        print ("Version mismatch:  test_path.py version %s, path version %s" %
-               (__version__, path_version))
     unittest.main()
