@@ -30,7 +30,7 @@ import time
 import ntpath
 import posixpath
 
-from path import path
+from path import path, tempdir
 
 
 def p(**choices):
@@ -218,7 +218,10 @@ class ReturnSelfTestCase(unittest.TestCase):
         ret = p.touch()
         self.assertEquals(p, ret)
 
-class TempDirTestCase(unittest.TestCase):
+class ScratchDirTestCase(unittest.TestCase):
+    """
+    Tests that run in a temporary directory (does not test tempdir class)
+    """
     def setUp(self):
         # Create a temporary directory.
         f = tempfile.mktemp()
@@ -599,6 +602,40 @@ class TempDirTestCase(unittest.TestCase):
         except OSError:
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
+
+class TempDirTestCase(unittest.TestCase):
+    def test_constructor(self):
+        """
+        One should be able to readily construct a temporary directory
+        """
+        d = tempdir()
+        assert isinstance(d, path)
+        assert d.exists()
+        assert d.isdir()
+        d.rmdir()
+        assert not d.exists()
+
+    def test_context_manager(self):
+        """
+        One should be able to use a tempdir object as a context, which will
+        clean up the contents after.
+        """
+        d = tempdir()
+        res = d.__enter__()
+        assert res is d
+        (d / 'somefile.txt').touch()
+        d.__exit__(None, None, None)
+        assert not d.exists()
+
+    def test_context_manager_exception(self):
+        """
+        The context manager will not clean up if an exception occurs.
+        """
+        d = tempdir()
+        d.__enter__()
+        (d / 'somefile.txt').touch()
+        d.__exit__(TypeError, TypeError('foo'), None)
+        assert d.exists()
 
 if __name__ == '__main__':
     unittest.main()
