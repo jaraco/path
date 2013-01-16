@@ -1,6 +1,11 @@
 Changes
 =======
 
+3.0
+---
+
+ - Minimum Python version is now 2.5.
+
 2.6
 ---
 

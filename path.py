@@ -39,10 +39,10 @@ d = path('/home/guido/bin')
 for f in d.files('*.py'):
     f.chmod(0755)
 
-path.py requires Python 2.3 or later.
+path.py requires Python 2.5 or later.
 """
 
-from __future__ import generators
+from __future__ import with_statement
 
 import sys
 import warnings
@@ -54,6 +54,7 @@ import codecs
 import hashlib
 import errno
 import tempfile
+import functools
 
 try:
     import win32security
@@ -97,18 +98,10 @@ class multimethod(object):
         self.func = func
 
     def __get__(self, instance, owner):
-        """
-        When Python 2.5 is available, use functools.partial:
         return (
             functools.partial(self.func, owner) if instance is None
             else functools.partial(self.func, owner, instance)
         )
-        """
-        def with_instance(*args, **kwargs):
-            if instance is None:
-                return self.func(owner, *args, **kwargs)
-            return self.func(owner, instance, *args, **kwargs)
-        return with_instance
 
 class path(unicode):
     """ Represents a filesystem path.
@@ -125,19 +118,21 @@ class path(unicode):
     module = os.path
     "The path module to use for path operations."
 
+    @classmethod
+    @simple_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)
         ns = {'module': module}
         return type(subclass_name, bases, ns)
-    using_module = classmethod(simple_cache(using_module))
 
+    @ClassProperty
+    @classmethod
     def _next_class(cls):
         """
         What class should be used to construct new instances from this class
         """
         return cls
-    _next_class = ClassProperty(classmethod(_next_class))
 
     # --- Special Python methods.
 
@@ -175,10 +170,10 @@ class path(unicode):
     def __exit__(self, *_):
         os.chdir(self._old_dir)
 
+    @classmethod
     def getcwd(cls):
         """ Return the current working directory as a path object. """
         return cls(os.getcwdu())
-    getcwd = classmethod(getcwd)
 
     #
     # --- Operations on path strings.
@@ -300,15 +295,16 @@ class path(unicode):
         unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
-    def _get_uncshare(self):
+    @property
+    def uncshare(self):
+        """
+        The UNC mount point for this path.
+        This is empty for paths on local drives.
+        """
         unc, r = self.module.splitunc(self)
         return self._next_class(unc)
 
-    uncshare = property(
-        _get_uncshare, None, None,
-        """ The UNC mount point for this path.
-        This is empty for paths on local drives. """)
-
+    @multimethod
     def joinpath(cls, first, *others):
         """
         Join first to zero or more path components, adding a separator
@@ -318,7 +314,6 @@ class path(unicode):
         if not isinstance(first, cls):
             first = cls(first)
         return first._next_class(first.module.join(first, *others))
-    joinpath = multimethod(joinpath)
 
     def splitall(self):
         r""" Return a list of the path components in this path.
@@ -596,11 +591,8 @@ class path(unicode):
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
-        f = self.open('rb')
-        try:
+        with self.open('rb') as f:
             return f.read()
-        finally:
-            f.close()
 
     def write_bytes(self, bytes, append=False):
         """ Open this file and write the given bytes to it.
@@ -612,11 +604,8 @@ class path(unicode):
             mode = 'ab'
         else:
             mode = 'wb'
-        f = self.open(mode)
-        try:
+        with self.open(mode) as f:
             f.write(bytes)
-        finally:
-            f.close()
 
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
@@ -635,20 +624,14 @@ class path(unicode):
         """
         if encoding is None:
             # 8-bit
-            f = self.open('U')
-            try:
+            with self.open('U') as f:
                 return f.read()
-            finally:
-                f.close()
         else:
             # Unicode
-            f = codecs.open(self, 'r', encoding, errors)
-            # (Note - Can't use 'U' mode here, since codecs.open
-            # doesn't support 'U' mode.)
-            try:
+            with codecs.open(self, 'r', encoding, errors) as f:
+                # (Note - Can't use 'U' mode here, since codecs.open
+                # doesn't support 'U' mode.)
                 t = f.read()
-            finally:
-                f.close()
             return (t.replace(u'\r\n', u'\n')
                      .replace(u'\r\x85', u'\n')
                      .replace(u'\r', u'\n')
@@ -762,11 +745,8 @@ class path(unicode):
         This uses 'U' mode.
         """
         if encoding is None and retain:
-            f = self.open('U')
-            try:
+            with self.open('U') as f:
                 return f.readlines()
-            finally:
-                f.close()
         else:
             return self.text(encoding, errors).splitlines(retain)
 
@@ -808,8 +788,7 @@ class path(unicode):
             mode = 'ab'
         else:
             mode = 'wb'
-        f = self.open(mode)
-        try:
+        with self.open(mode) as f:
             for line in lines:
                 isUnicode = isinstance(line, unicode)
                 if linesep is not None:
@@ -832,8 +811,6 @@ class path(unicode):
                         encoding = sys.getdefaultencoding()
                     line = line.encode(encoding, errors)
                 f.write(line)
-        finally:
-            f.close()
 
     def read_md5(self):
         """ Calculate the md5 hash for this file.
@@ -843,8 +820,7 @@ class path(unicode):
         return self.read_hash('md5')
 
     def _hash(self, hash_name):
-        f = self.open('rb')
-        try:
+        with self.open('rb') as f:
             m = hashlib.new(hash_name)
             while True:
                 d = f.read(8192)
@@ -852,8 +828,6 @@ class path(unicode):
                     break
                 m.update(d)
             return m
-        finally:
-            f.close()
 
     def read_hash(self, hash_name):
         """ Calculate given hash for this file.
@@ -1151,9 +1125,10 @@ class tempdir(path):
         # here the directory is deleted automatically
     """
 
+    @ClassProperty
+    @classmethod
     def _next_class(cls):
         return path
-    _next_class = ClassProperty(classmethod(_next_class))
 
     def __new__(cls, *args, **kwargs):
         dirname = tempfile.mkdtemp(*args, **kwargs)
