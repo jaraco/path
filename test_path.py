@@ -171,6 +171,37 @@ class BasicTestCase(unittest.TestCase):
         self.assert_(nt_path is path.using_module(ntpath))
         self.assertEqual(nt_path.__name__, 'path_ntpath')
 
+    def test_joinpath_on_instance(self):
+        res = path('foo')
+        foo_bar = res.joinpath('bar')
+        assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
+
+    def test_joinpath_to_nothing(self):
+        res = path('foo')
+        assert res.joinpath() == res
+
+    def test_joinpath_on_class(self):
+        "Construct a path from a series of strings"
+        foo_bar = path.joinpath('foo', 'bar')
+        assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
+
+    def test_joinpath_fails_on_empty(self):
+        "It doesn't make sense to join nothing at all"
+        try:
+            path.joinpath()
+        except TypeError:
+            pass
+        else:
+            raise Exception("did not raise")
+
+    def test_joinpath_returns_same_type(self):
+        path_posix = path.using_module(posixpath)
+        res = path_posix.joinpath('foo')
+        assert isinstance(res, path_posix)
+        res2 = res.joinpath('bar')
+        assert isinstance(res2, path_posix)
+        assert res2 == 'foo/bar'
+
 class ReturnSelfTestCase(unittest.TestCase):
     """
     Some methods don't necessarily return any value (e.g. makedirs,

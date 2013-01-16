@@ -88,6 +88,28 @@ class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
 
+class multimethod(object):
+    """
+    Acts like a classmethod when invoked from the class and like an
+    instancemethod when invoked from the instance.
+    """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        """
+        When Python 2.5 is available, use functools.partial:
+        return (
+            functools.partial(self.func, owner) if instance is None
+            else functools.partial(self.func, owner, instance)
+        )
+        """
+        def with_instance(*args, **kwargs):
+            if instance is None:
+                return self.func(owner, *args, **kwargs)
+            return self.func(owner, instance, *args, **kwargs)
+        return with_instance
+
 class path(unicode):
     """ Represents a filesystem path.
 
@@ -287,12 +309,16 @@ class path(unicode):
         """ The UNC mount point for this path.
         This is empty for paths on local drives. """)
 
-    def joinpath(self, *args):
-        """ Join two or more path components, adding a separator
-        character (os.sep) if needed.  Returns a new path
-        object.
+    def joinpath(cls, first, *others):
         """
-        return self._next_class(self.module.join(self, *args))
+        Join first to zero or more path components, adding a separator
+        character (first.module.sep) if needed.  Returns a new instance of
+        first._next_class.
+        """
+        if not isinstance(first, cls):
+            first = cls(first)
+        return first._next_class(first.module.join(first, *others))
+    joinpath = multimethod(joinpath)
 
     def splitall(self):
         r""" Return a list of the path components in this path.
