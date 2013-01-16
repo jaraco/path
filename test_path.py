@@ -623,7 +623,7 @@ class TempDirTestCase(unittest.TestCase):
         """
         d = tempdir()
         res = d.__enter__()
-        assert path(res) == path(d)
+        assert res is d
         (d / 'somefile.txt').touch()
         assert not isinstance(d / 'somefile.txt', tempdir)
         d.__exit__(None, None, None)
