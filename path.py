@@ -65,7 +65,7 @@ try:
 except ImportError:
     pass
 
-__version__ = '2.4.1'
+__version__ = '2.6'
 __all__ = ['path']
 
 class TreeWalkWarning(Warning):
