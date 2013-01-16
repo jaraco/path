@@ -1141,7 +1141,14 @@ class path(unicode):
 class tempdir(path):
     """
     A temporary directory via tempfile.mkdtemp, and constructed with the
-    same parameters.
+    same parameters that you can use as a context manager.
+
+    Example:
+
+        with tempdir() as d:
+            # do stuff with the path object "d"
+
+        # here the directory is deleted automatically
     """
 
     def _next_class(cls):
