@@ -7,11 +7,8 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py
 
-ld_file = open('README.rst')
-try:
+with open('README.rst') as ld_file:
     long_description = ld_file.read()
-finally:
-    ld_file.close()
 
 kw = dict(
     name = "path.py",
