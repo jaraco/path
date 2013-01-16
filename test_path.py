@@ -640,11 +640,10 @@ class TempDirTestCase(unittest.TestCase):
         d.__exit__(TypeError, TypeError('foo'), None)
         assert d.exists()
 
-
     def test_context_manager_using_with(self):
         """
-            The context manager will allow using the with keyword and
-            provide a temporry directory that will be deleted after that.
+        The context manager will allow using the with keyword and
+        provide a temporry directory that will be deleted after that.
         """
 
         with tempdir() as d:
