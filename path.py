@@ -69,6 +69,8 @@ except ImportError:
 __version__ = '3.0'
 __all__ = ['path']
 
+warnings.simplefilter('ignore', DeprecationWarning, 116)
+
 class TreeWalkWarning(Warning):
     pass
 
