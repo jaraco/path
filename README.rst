@@ -20,7 +20,7 @@ Path.py may be installed using setuptools or distribute or pip::
     easy_install path.py
 
 The latest release is always updated to the `Python Package Index
-<http://pypy.python.org/pypi>`_.
+<http://pypi.python.org/pypi/path.py>`_.
 
 You may also always download the source distribution (zip/tarball), extract
 it, and run `python setup.py` to install it.
