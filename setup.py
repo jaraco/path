@@ -12,7 +12,7 @@ with open('README.rst') as ld_file:
 
 kw = dict(
     name = "path.py",
-    version = "3.0",
+    version = "3.0.1",
     description = "A module wrapper for os.path",
     long_description = long_description,
     author = "Jason Orendorff",
