@@ -32,12 +32,12 @@ Contributors:
  Jason Chu <jchu@xentac.net>
  Vojislav Stojkovic <vstojkovic@syntertainment.com>
 
-Example:
+Example::
 
-from path import path
-d = path('/home/guido/bin')
-for f in d.files('*.py'):
-    f.chmod(0755)
+    from path import path
+    d = path('/home/guido/bin')
+    for f in d.files('*.py'):
+        f.chmod(0755)
 
 path.py requires Python 2.5 or later.
 """
