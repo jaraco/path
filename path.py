@@ -32,12 +32,12 @@ Contributors:
  Jason Chu <jchu@xentac.net>
  Vojislav Stojkovic <vstojkovic@syntertainment.com>
 
-Example:
+Example::
 
-from path import path
-d = path('/home/guido/bin')
-for f in d.files('*.py'):
-    f.chmod(0755)
+    from path import path
+    d = path('/home/guido/bin')
+    for f in d.files('*.py'):
+        f.chmod(0755)
 
 path.py requires Python 2.5 or later.
 """
@@ -319,10 +319,10 @@ class path(unicode):
 
         The first item in the list will be a path.  Its value will be
         either os.curdir, os.pardir, empty, or the root directory of
-        this path (for example, '/' or 'C:\\').  The other items in
+        this path (for example, ``'/'`` or ``'C:\\'``).  The other items in
         the list will be strings.
 
-        path.path.joinpath(*result) will yield the original path.
+        ``path.path.joinpath(*result)`` will yield the original path.
         """
         parts = []
         loc = self
@@ -408,7 +408,7 @@ class path(unicode):
 
         With the optional 'pattern' argument, this only lists
         directories whose names match the given pattern.  For
-        example, d.dirs('build-*').
+        example, ``d.dirs('build-*')``.
         """
         return [p for p in self.listdir(pattern) if p.isdir()]
 
@@ -420,7 +420,7 @@ class path(unicode):
 
         With the optional 'pattern' argument, this only lists files
         whose names match the given pattern.  For example,
-        d.files('*.pyc').
+        ``d.files('*.pyc')``.
         """
 
         return [p for p in self.listdir(pattern) if p.isfile()]
@@ -483,7 +483,7 @@ class path(unicode):
 
         With the optional 'pattern' argument, this yields only
         directories whose names match the given pattern.  For
-        example, mydir.walkdirs('*test') yields only directories
+        example, ``mydir.walkdirs('*test')`` yields only directories
         with names ending in 'test'.
 
         The errors= keyword argument controls behavior when an
@@ -519,7 +519,7 @@ class path(unicode):
 
         The optional argument, pattern, limits the results to files
         with names that match the pattern.  For example,
-        mydir.walkfiles('*.tmp') yields only files with the .tmp
+        ``mydir.walkfiles('*.tmp')`` yields only files with the .tmp
         extension.
         """
         if errors not in ('strict', 'warn', 'ignore'):
@@ -566,7 +566,7 @@ class path(unicode):
         """ Return True if self.name matches the given pattern.
 
         pattern - A filename pattern with wildcards,
-            for example '*.py'.
+            for example ``'*.py'``.
         """
         return fnmatch.fnmatch(self.name, pattern)
 
