@@ -25,6 +25,9 @@
 Original author:
  Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
 
+Current maintainer:
+ Jason R. Coombs <jaraco@jaraco.com>
+
 Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
  Marc Abramowitz <marc@marc-abramowitz.com>
