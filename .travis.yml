@@ -1,5 +1,3 @@
-# http://travis-ci.org/#!/dottedmag/path.py
-
 language: python
 
 python:
@@ -10,7 +8,5 @@ python:
   - pypy
 
 script:
-  - pip install --use-mirrors -q nose
-  - rm -rf build
   - python setup.py build --build-lib=build/lib
-  - nosetests -w build/lib test_path
+  - py.test build/lib
