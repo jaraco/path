@@ -1,6 +1,12 @@
 Changes
 =======
 
+3.1
+---
+
+ - Issue #20: `relpath` now supports a "start" parameter to match the
+   signature of `os.path.relpath`.
+
 3.0
 ---
 

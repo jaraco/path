@@ -336,11 +336,11 @@ class path(unicode):
         parts.reverse()
         return parts
 
-    def relpath(self):
+    def relpath(self, start='.'):
         """ Return this path as a relative path,
-        based from the current working directory.
+        based from start, which defaults to the current working directory.
         """
-        cwd = self._next_class(os.getcwd())
+        cwd = self._next_class(start)
         return cwd.relpathto(self)
 
     def relpathto(self, dest):
