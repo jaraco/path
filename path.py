@@ -168,6 +168,7 @@ class path(unicode):
     def __enter__(self):
         self._old_dir = self.getcwd()
         os.chdir(self)
+        return self
 
     def __exit__(self, *_):
         os.chdir(self._old_dir)

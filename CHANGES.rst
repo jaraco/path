@@ -1,6 +1,11 @@
 Changes
 =======
 
+3.2
+---
+
+ - Issue #22: ``__enter__`` now returns self.
+
 3.1
 ---
 
