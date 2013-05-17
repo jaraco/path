@@ -214,15 +214,27 @@ class path(unicode):
         """
         return self.expandvars().expanduser().normpath()
 
-    def _get_namebase(self):
+    @property
+    def namebase(self):
+        """ The same as path.name, but with one file extension stripped off.
+
+        For example, path('/home/guido/python.tar.gz').name     == 'python.tar.gz',
+        but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
+        """
         base, ext = self.module.splitext(self.name)
         return base
 
-    def _get_ext(self):
+    @property
+    def ext(self):
+        """ The file extension, for example '.py'. """
         f, ext = self.module.splitext(self)
         return ext
 
-    def _get_drive(self):
+    @property
+    def drive(self):
+        """ The drive specifier, for example 'C:'.
+        This is always empty on systems that don't use drive specifiers.
+        """
         drive, r = self.module.splitdrive(self)
         return self._next_class(drive)
 
@@ -238,24 +250,6 @@ class path(unicode):
         """ The name of this file or directory without the full path.
 
         For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
-        """)
-
-    namebase = property(
-        _get_namebase, None, None,
-        """ The same as path.name, but with one file extension stripped off.
-
-        For example, path('/home/guido/python.tar.gz').name     == 'python.tar.gz',
-        but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
-        """)
-
-    ext = property(
-        _get_ext, None, None,
-        """ The file extension, for example '.py'. """)
-
-    drive = property(
-        _get_drive, None, None,
-        """ The drive specifier, for example 'C:'.
-        This is always empty on systems that don't use drive specifiers.
         """)
 
     def splitpath(self):
