@@ -2,8 +2,8 @@
 
 project = u'path.py'
 copyright = u'2013, Mikhail Gusarov, Jason R. Coombs'
-version = '3.0'
-release = '3.0.1'
+version = '3.2'
+release = '3.2.0'
 
 pygments_style = 'sphinx'
 html_theme = 'default'
