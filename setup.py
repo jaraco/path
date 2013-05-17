@@ -2,7 +2,10 @@
 
 from __future__ import with_statement
 
-import distutils.core
+try:
+    import setuptools as impl
+except ImportError:
+    import distutils.core as impl
 
 try:
     from distutils.command.build_py import build_py_2to3 as build_py
@@ -41,4 +44,4 @@ kw = dict(
 
 
 if __name__ == '__main__':
-    distutils.core.setup(**kw)
+    impl.setup(**kw)
