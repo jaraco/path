@@ -12,6 +12,8 @@ example::
 
 `path.py` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
+Documentation is `hosted with PyPI <https://pythonhosted.org/path.py/`_.
+
 Installing
 ==========
 
