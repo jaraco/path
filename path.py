@@ -591,6 +591,26 @@ class path(unicode):
         with self.open('rb') as f:
             return f.read()
 
+    def chunks(self, size, *args, **kwargs):
+        """ Returns a generator yielding chunks of the file, so it can
+            be read piece by piece with a simple for loop.
+
+           Any argument you pass after `size` will be passed to `open()`.
+
+           :example:
+
+               >>> for chunk in path("file.txt").chunk(8192):
+               ...    print(chunk)
+
+            This will read the file by chunks of 8192 bytes.
+        """
+        with open(self, *args, **kwargs) as f:
+            while True:
+                d = f.read(size)
+                if not d:
+                    break
+                yield d
+
     def write_bytes(self, bytes, append=False):
         """ Open this file and write the given bytes to it.
 
@@ -817,14 +837,15 @@ class path(unicode):
         return self.read_hash('md5')
 
     def _hash(self, hash_name):
-        with self.open('rb') as f:
-            m = hashlib.new(hash_name)
-            while True:
-                d = f.read(8192)
-                if not d:
-                    break
-                m.update(d)
-            return m
+        """ Returns a hash object for the file at the current path.
+
+            `hash_name` should be a hash algo name such as 'md5' or 'sha1'
+            that's available in the `hashlib` module.
+        """
+        m = hashlib.new(hash_name)
+        for chunk in self.chunks(8192):
+            m.update(chunk)
+        return m
 
     def read_hash(self, hash_name):
         """ Calculate given hash for this file.

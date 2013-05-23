@@ -621,6 +621,17 @@ class ScratchDirTestCase(unittest.TestCase):
         test('UTF-16LE')
         test('UTF-16')
 
+    def testChunks(self):
+        p = (tempdir() / 'test.txt').touch()
+        txt = "0123456789"
+        size = 5
+        p.write_text(txt)
+        for i, chunk in enumerate(p.chunks(size)):
+            self.assertEqual(chunk, txt[i * size:i * size + size])
+
+        self.assertEqual(i, len(txt) / size - 1)
+
+
     def testRmtreeP(self):
         d = path(self.tempdir)
         sub = d / 'subfolder'
