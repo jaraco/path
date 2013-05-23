@@ -631,6 +631,27 @@ class ScratchDirTestCase(unittest.TestCase):
 
         self.assertEqual(i, len(txt) / size - 1)
 
+    def testSameFile(self):
+        f1 = (tempdir() / '1.txt').touch()
+        f1.write_text('foo')
+        f2 = (tempdir() / '2.txt').touch()
+        f1.write_text('foo')
+        f3 = (tempdir() / '3.txt').touch()
+        f1.write_text('bar')
+        f4 = (tempdir() / '4.txt')
+        f1.copyfile(f4)
+
+        self.assertEqual(os.path.samefile(f1, f2),
+                         f1.samefile(f2))
+
+        self.assertEqual(os.path.samefile(f1, f3),
+                         f1.samefile(f3))
+
+        self.assertEqual(os.path.samefile(f1, f4),
+                         f1.samefile(f4))
+
+        self.assertEqual(os.path.samefile(f1, f1),
+                         f1.samefile(f1))
 
     def testRmtreeP(self):
         d = path(self.tempdir)

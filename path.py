@@ -875,7 +875,7 @@ class path(unicode):
     def islink(self): return self.module.islink(self)
     def ismount(self): return self.module.ismount(self)
 
-    def samefile(self): return self.module.samefile(self)
+    def samefile(self, other): return self.module.samefile(self, other)
 
     def getatime(self): return self.module.getatime(self)
     atime = property(
