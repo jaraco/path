@@ -17,7 +17,7 @@ with open('README.rst') as ld_file:
 
 kw = dict(
     name = "path.py",
-    version = "3.2",
+    version = "4.0",
     description = "A module wrapper for os.path",
     long_description = long_description,
     author = "Jason Orendorff",

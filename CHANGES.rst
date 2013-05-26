@@ -1,7 +1,7 @@
 Changes
 =======
 
-3.3
+4.0
 ---
 
  - Added a ``chunks()`` method to a allow quick iteration over pieces of a
@@ -9,7 +9,9 @@ Changes
  - Issue #28: Fix missing argument to ``samefile``.
  - Initializer no longer enforces `isinstance basestring` for the source
    object. Now any object that supplies ``__unicode__`` can be used by a
-   ``path`` (except None).
+   ``path`` (except None). Clients that depend on a ValueError being raised
+   for ``int`` and other non-string objects should trap these types
+   internally.
  - Issue #30: ``chown`` no longer requires both uid and gid to be provided
    and will not mutate the ownership if nothing is provided.
 
