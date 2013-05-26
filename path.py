@@ -58,6 +58,8 @@ import hashlib
 import errno
 import tempfile
 import functools
+import operator
+import re
 
 try:
     import win32security
@@ -1157,3 +1159,32 @@ class tempdir(path):
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
             self.rmtree()
+
+def _permission_mask(mode):
+    """
+    Convert a Unix chmod symbolic mode like 'ugo+rwx' to a function
+    suitable for applying to a mask to affect that change.
+
+    >>> mask = _permission_mask('ugo+rwx')
+    >>> oct(mask(0554))
+    '0777'
+
+    >>> oct(_permission_mask('gw-x')(0777))
+    '0766'
+    """
+    parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
+    if not parsed:
+        raise ValueError("Unrecognized symbolic mode", mode)
+    spec_map = dict(r=4, w=2, x=1)
+    spec = reduce(operator.or_, [spec_map[perm] for perm in parsed.group('what')])
+    # now apply spec to each in who
+    shift_map = dict(u=6, g=3, o=0)
+    mask = reduce(operator.or_, [spec << shift_map[subj] for subj in parsed.group('who')])
+
+    op = parsed.group('op')
+    # if op is -, invert the mask
+    if op == '-':
+        mask ^= 0777
+
+    op_map = {'+': operator.or_, '-': operator.and_}
+    return functools.partial(op_map[op], mask)
