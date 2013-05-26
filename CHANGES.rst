@@ -5,7 +5,10 @@ Changes
 ---
 
  - Initializer no longer enforces `isinstance basestring` for the source
-   object. Now any object that supplies `__unicode__` can be used by a `path`.
+   object. Now any object that supplies ``__unicode__`` can be used by a
+   ``path``.
+ - Issue #30: ``chown`` no longer requires both uid and gid to be provided
+   and will not mutate the ownership if nothing is provided.
 
 3.2
 ---

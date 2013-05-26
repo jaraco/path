@@ -968,7 +968,7 @@ class path(unicode):
         return self
 
     if hasattr(os, 'chown'):
-        def chown(self, uid, gid):
+        def chown(self, uid=-1, gid=-1):
             os.chown(self, uid, gid)
             return self
 
