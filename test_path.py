@@ -70,7 +70,7 @@ class BasicTestCase(unittest.TestCase):
 
     def testConstructionFromNone(self):
         """
-        path class raise a TypeError when constructed from None
+
         """
         try:
             path(None)
@@ -81,14 +81,9 @@ class BasicTestCase(unittest.TestCase):
 
     def testConstructionFromInt(self):
         """
-        path class should raise a TypeError when constructed from an integer.
+        path class will construct a path as a string of the number
         """
-        try:
-            path(1)
-        except TypeError:
-            pass
-        else:
-            raise Exception("DID NOT RAISE")
+        self.assert_(path(1) == '1')
 
     def testStringCompatibility(self):
         """ Test compatibility with ordinary strings. """

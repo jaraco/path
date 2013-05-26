@@ -9,7 +9,7 @@ Changes
  - Issue #28: Fix missing argument to ``samefile``.
  - Initializer no longer enforces `isinstance basestring` for the source
    object. Now any object that supplies ``__unicode__`` can be used by a
-   ``path``.
+   ``path`` (except None).
  - Issue #30: ``chown`` no longer requires both uid and gid to be provided
    and will not mutate the ownership if nothing is provided.
 

@@ -118,6 +118,10 @@ class path(unicode):
     module = os.path
     "The path module to use for path operations."
 
+    def __init__(self, other=''):
+        if other is None:
+            raise TypeError("Invalid initial value for path: None")
+
     @classmethod
     @simple_cache
     def using_module(cls, module):
