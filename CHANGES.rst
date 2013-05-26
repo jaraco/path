@@ -1,6 +1,12 @@
 Changes
 =======
 
+3.3
+---
+
+ - Initializer no longer enforces `isinstance basestring` for the source
+   object. Now any object that supplies `__unicode__` can be used by a `path`.
+
 3.2
 ---
 
