@@ -4,6 +4,9 @@ Changes
 3.3
 ---
 
+ - Added a ``chunks()`` method to a allow quick iteration over pieces of a
+   file at a given path.
+ - Issue #28: Fix missing argument to ``samefile``.
  - Initializer no longer enforces `isinstance basestring` for the source
    object. Now any object that supplies ``__unicode__`` can be used by a
    ``path``.
