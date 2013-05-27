@@ -30,7 +30,7 @@ import time
 import ntpath
 import posixpath
 
-from path import path, tempdir
+from path import path, tempdir, u
 
 # Octals for python 2 & 3 support
 o750 = 488
@@ -92,7 +92,7 @@ class BasicTestCase(unittest.TestCase):
         """ Test compatibility with ordinary strings. """
         x = path('xyzzy')
         self.assert_(x == 'xyzzy')
-        self.assert_(x == u'xyzzy')
+        self.assert_(x == u('xyzzy'))
 
         # sorting
         items = [path('fhj'),
@@ -508,39 +508,39 @@ class ScratchDirTestCase(unittest.TestCase):
             Unicode codepoints.
             """
 
-            given = (u'Hello world\n'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\r\n'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\x85'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\u2028'
-                     u'\r'
-                     u'hanging')
-            clean = (u'Hello world\n'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\n'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\n'
-                     u'\u0d0a\u0a0d\u0d15\u0a15\n'
-                     u'\n'
-                     u'hanging')
+            given = u('Hello world\n'
+                     '\u0d0a\u0a0d\u0d15\u0a15\r\n'
+                     '\u0d0a\u0a0d\u0d15\u0a15\x85'
+                     '\u0d0a\u0a0d\u0d15\u0a15\u2028'
+                     '\r'
+                     'hanging')
+            clean = u('Hello world\n'
+                     '\u0d0a\u0a0d\u0d15\u0a15\n'
+                     '\u0d0a\u0a0d\u0d15\u0a15\n'
+                     '\u0d0a\u0a0d\u0d15\u0a15\n'
+                     '\n'
+                     'hanging')
             givenLines = [
-                u'Hello world\n',
-                u'\u0d0a\u0a0d\u0d15\u0a15\r\n',
-                u'\u0d0a\u0a0d\u0d15\u0a15\x85',
-                u'\u0d0a\u0a0d\u0d15\u0a15\u2028',
-                u'\r',
-                u'hanging']
+                u('Hello world\n'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\x85'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
+                u('\r'),
+                u('hanging')]
             expectedLines = [
-                u'Hello world\n',
-                u'\u0d0a\u0a0d\u0d15\u0a15\n',
-                u'\u0d0a\u0a0d\u0d15\u0a15\n',
-                u'\u0d0a\u0a0d\u0d15\u0a15\n',
-                u'\n',
-                u'hanging']
+                u('Hello world\n'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                u('\n'),
+                u('hanging')]
             expectedLines2 = [
-                u'Hello world',
-                u'\u0d0a\u0a0d\u0d15\u0a15',
-                u'\u0d0a\u0a0d\u0d15\u0a15',
-                u'\u0d0a\u0a0d\u0d15\u0a15',
-                u'',
-                u'hanging']
+                u('Hello world'),
+                u('\u0d0a\u0a0d\u0d15\u0a15'),
+                u('\u0d0a\u0a0d\u0d15\u0a15'),
+                u('\u0d0a\u0a0d\u0d15\u0a15'),
+                u(''),
+                u('hanging')]
 
             # write bytes manually to file
             f = codecs.open(p, 'w', enc)
@@ -562,7 +562,7 @@ class ScratchDirTestCase(unittest.TestCase):
                 return
 
             # Write Unicode to file using path.write_text().
-            cleanNoHanging = clean + u'\n'  # This test doesn't work with a hanging line.
+            cleanNoHanging = clean + u('\n')  # This test doesn't work with a hanging line.
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
             # Check the result.
@@ -594,13 +594,13 @@ class ScratchDirTestCase(unittest.TestCase):
             def testLinesep(eol):
                 p.write_lines(givenLines, enc, linesep=eol)
                 p.write_lines(givenLines, enc, linesep=eol, append=True)
-                expected = 2 * cleanNoHanging.replace(u'\n', eol).encode(enc)
+                expected = 2 * cleanNoHanging.replace(u('\n'), eol).encode(enc)
                 self.assertEqual(p.bytes(), expected)
 
-            testLinesep(u'\n')
-            testLinesep(u'\r')
-            testLinesep(u'\r\n')
-            testLinesep(u'\x0d\x85')
+            testLinesep(u('\n'))
+            testLinesep(u('\r'))
+            testLinesep(u('\r\n'))
+            testLinesep(u('\x0d\x85'))
 
             # Again, but with linesep=None.
             p.write_lines(givenLines, enc, linesep=None)

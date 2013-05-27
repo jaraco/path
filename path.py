@@ -88,6 +88,14 @@ try:
 except AttributeError:
     os.getcwdu = os.getcwd
 
+if sys.version < '3':
+    import codecs
+    def u(x):
+        return codecs.unicode_escape_decode(x)[0]
+else:
+    def u(x):
+        return x
+
 o777 = 511
 o766 = 502
 o666 = 438
@@ -675,11 +683,11 @@ class path(unicode):
                 # (Note - Can't use 'U' mode here, since codecs.open
                 # doesn't support 'U' mode.)
                 t = f.read()
-            return (t.replace(u'\r\n', u'\n')
-                     .replace(u'\r\x85', u'\n')
-                     .replace(u'\r', u'\n')
-                     .replace(u'\x85', u'\n')
-                     .replace(u'\u2028', u'\n'))
+            return (t.replace(u('\r\n'), u('\n'))
+                     .replace(u('\r\x85'), u('\n'))
+                     .replace(u('\r'), u('\n'))
+                     .replace(u('\x85'), u('\n'))
+                     .replace(u('\u2028'), u('\n')))
 
     def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
         r""" Write the given text to this file.
