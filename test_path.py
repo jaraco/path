@@ -32,6 +32,9 @@ import posixpath
 
 from path import path, tempdir
 
+# Octals for python 2 & 3 support
+o750 = 488
+o700 = 448
 
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
@@ -380,8 +383,8 @@ class ScratchDirTestCase(unittest.TestCase):
             self.failIf(foo.exists())
             self.assert_(d.exists())
 
-            foo.mkdir(0750)
-            boz.makedirs(0700)
+            foo.mkdir(o750)
+            boz.makedirs(o700)
             try:
                 self.assert_(boz.isdir())
             finally:
