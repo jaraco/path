@@ -7,10 +7,7 @@ try:
 except ImportError:
     import distutils.core as impl
 
-try:
-    from distutils.command.build_py import build_py_2to3 as build_py
-except ImportError:
-    from distutils.command.build_py import build_py
+from distutils.command.build_py import build_py
 
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
