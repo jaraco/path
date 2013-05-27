@@ -71,8 +71,32 @@ try:
 except ImportError:
     pass
 
+################################
+# Monkey patchy python 3 support
+try:
+    basestring
+except NameError:
+    basestring = (str, unicode)
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
+try:
+    os.getcwdu
+except NameError
+    os.getcwdu = os.getcwd
+
+o777 = 511
+o766 = 502
+o666 = 438
+o554 = 364
+################################
+
 __version__ = '4.0'
 __all__ = ['path']
+
 
 class TreeWalkWarning(Warning):
     pass
@@ -987,26 +1011,26 @@ class path(unicode):
     #
     # --- Create/delete operations on directories
 
-    def mkdir(self, mode=0777):
+    def mkdir(self, mode=o777):
         os.mkdir(self, mode)
         return self
 
-    def mkdir_p(self, mode=0777):
+    def mkdir_p(self, mode=o777):
         try:
             self.mkdir(mode)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
         return self
 
-    def makedirs(self, mode=0777):
+    def makedirs(self, mode=o777):
         os.makedirs(self, mode)
         return self
 
-    def makedirs_p(self, mode=0777):
+    def makedirs_p(self, mode=o777):
         try:
             self.makedirs(mode)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
         return self
@@ -1018,7 +1042,7 @@ class path(unicode):
     def rmdir_p(self):
         try:
             self.rmdir()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
         return self
@@ -1030,7 +1054,7 @@ class path(unicode):
     def removedirs_p(self):
         try:
             self.removedirs()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
         return self
@@ -1041,7 +1065,7 @@ class path(unicode):
         """ Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0666)
+        fd = os.open(self, os.O_WRONLY | os.O_CREAT, o666)
         os.close(fd)
         os.utime(self, None)
         return self
@@ -1053,7 +1077,7 @@ class path(unicode):
     def remove_p(self):
         try:
             self.unlink()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
         return self
@@ -1115,7 +1139,7 @@ class path(unicode):
     def rmtree_p(self):
         try:
             self.rmtree()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
         return self
@@ -1170,11 +1194,11 @@ def _permission_mask(mode):
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
-    >>> oct(mask(0554))
-    '0777'
+    >>> oct(mask(o554))
+    'o777'
 
-    >>> oct(_permission_mask('gw-x')(0777))
-    '0766'
+    >>> oct(_permission_mask('gw-x')(o777))
+    'o766'
     """
     parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:
@@ -1188,7 +1212,7 @@ def _permission_mask(mode):
     op = parsed.group('op')
     # if op is -, invert the mask
     if op == '-':
-        mask ^= 0777
+        mask ^= o777
 
     op_map = {'+': operator.or_, '-': operator.and_}
     return functools.partial(op_map[op], mask)
