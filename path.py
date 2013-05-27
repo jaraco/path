@@ -74,14 +74,20 @@ except ImportError:
 ################################
 # Monkey patchy python 3 support
 try:
-    import six
-except ImportError:
-    pass
-else:
-    basestring = six.string_types
-    unicode = six.text_type
-    if six.PY3:
-        os.getcwdu = os.getcwd
+    basestring
+except NameError:
+    basestring = (str, unicode)
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
+try:
+    os.getcwdu
+except NameError
+    os.getcwdu = os.getcwd
+
 o777 = 511
 o766 = 502
 o666 = 438
