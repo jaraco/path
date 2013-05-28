@@ -71,8 +71,40 @@ try:
 except ImportError:
     pass
 
+################################
+# Monkey patchy python 3 support
+try:
+    basestring
+except NameError:
+    basestring = str
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
+try:
+    os.getcwdu
+except AttributeError:
+    os.getcwdu = os.getcwd
+
+if sys.version < '3':
+    import codecs
+    def u(x):
+        return codecs.unicode_escape_decode(x)[0]
+else:
+    def u(x):
+        return x
+
+o777 = 511
+o766 = 502
+o666 = 438
+o554 = 364
+################################
+
 __version__ = '4.0'
 __all__ = ['path']
+
 
 class TreeWalkWarning(Warning):
     pass
@@ -651,11 +683,11 @@ class path(unicode):
                 # (Note - Can't use 'U' mode here, since codecs.open
                 # doesn't support 'U' mode.)
                 t = f.read()
-            return (t.replace(u'\r\n', u'\n')
-                     .replace(u'\r\x85', u'\n')
-                     .replace(u'\r', u'\n')
-                     .replace(u'\x85', u'\n')
-                     .replace(u'\u2028', u'\n'))
+            return (t.replace(u('\r\n'), u('\n'))
+                     .replace(u('\r\x85'), u('\n'))
+                     .replace(u('\r'), u('\n'))
+                     .replace(u('\x85'), u('\n'))
+                     .replace(u('\u2028'), u('\n')))
 
     def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
         r""" Write the given text to this file.
@@ -725,12 +757,12 @@ class path(unicode):
             if linesep is not None:
                 # Convert all standard end-of-line sequences to
                 # ordinary newline characters.
-                text = (text.replace(u'\r\n', u'\n')
-                            .replace(u'\r\x85', u'\n')
-                            .replace(u'\r', u'\n')
-                            .replace(u'\x85', u'\n')
-                            .replace(u'\u2028', u'\n'))
-                text = text.replace(u'\n', linesep)
+                text = (text.replace(u('\r\n'), u('\n'))
+                            .replace(u('\r\x85'), u('\n'))
+                            .replace(u('\r'), u('\n'))
+                            .replace(u('\x85'), u('\n'))
+                            .replace(u('\u2028'), u('\n')))
+                text = text.replace(u('\n'), linesep)
             if encoding is None:
                 encoding = sys.getdefaultencoding()
             bytes = text.encode(encoding, errors)
@@ -814,10 +846,10 @@ class path(unicode):
                     # Strip off any existing line-end and add the
                     # specified linesep string.
                     if isUnicode:
-                        if line[-2:] in (u'\r\n', u'\x0d\x85'):
+                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
                             line = line[:-2]
-                        elif line[-1:] in (u'\r', u'\n',
-                                           u'\x85', u'\u2028'):
+                        elif line[-1:] in (u('\r'), u('\n'),
+                                           u('\x85'), u('\u2028')):
                             line = line[:-1]
                     else:
                         if line[-2:] == '\r\n':
@@ -926,7 +958,7 @@ class path(unicode):
             self, win32security.OWNER_SECURITY_INFORMATION)
         sid = desc.GetSecurityDescriptorOwner()
         account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + u'\\' + account
+        return domain + u('\\') + account
 
     def __get_owner_unix(self):
         """
@@ -987,26 +1019,28 @@ class path(unicode):
     #
     # --- Create/delete operations on directories
 
-    def mkdir(self, mode=0777):
+    def mkdir(self, mode=o777):
         os.mkdir(self, mode)
         return self
 
-    def mkdir_p(self, mode=0777):
+    def mkdir_p(self, mode=o777):
         try:
             self.mkdir(mode)
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.EEXIST:
                 raise
         return self
 
-    def makedirs(self, mode=0777):
+    def makedirs(self, mode=o777):
         os.makedirs(self, mode)
         return self
 
-    def makedirs_p(self, mode=0777):
+    def makedirs_p(self, mode=o777):
         try:
             self.makedirs(mode)
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.EEXIST:
                 raise
         return self
@@ -1018,7 +1052,8 @@ class path(unicode):
     def rmdir_p(self):
         try:
             self.rmdir()
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
         return self
@@ -1030,7 +1065,8 @@ class path(unicode):
     def removedirs_p(self):
         try:
             self.removedirs()
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
         return self
@@ -1041,7 +1077,7 @@ class path(unicode):
         """ Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0666)
+        fd = os.open(self, os.O_WRONLY | os.O_CREAT, o666)
         os.close(fd)
         os.utime(self, None)
         return self
@@ -1053,7 +1089,8 @@ class path(unicode):
     def remove_p(self):
         try:
             self.unlink()
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.ENOENT:
                 raise
         return self
@@ -1115,7 +1152,8 @@ class path(unicode):
     def rmtree_p(self):
         try:
             self.rmtree()
-        except OSError, e:
+        except OSError:
+            _, e, _ = sys.exc_info()
             if e.errno != errno.ENOENT:
                 raise
         return self
@@ -1170,11 +1208,11 @@ def _permission_mask(mode):
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
-    >>> oct(mask(0554))
-    '0777'
+    >>> oct(mask(o554))
+    'o777'
 
-    >>> oct(_permission_mask('gw-x')(0777))
-    '0766'
+    >>> oct(_permission_mask('gw-x')(o777))
+    'o766'
     """
     parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:
@@ -1188,7 +1226,7 @@ def _permission_mask(mode):
     op = parsed.group('op')
     # if op is -, invert the mask
     if op == '-':
-        mask ^= 0777
+        mask ^= o777
 
     op_map = {'+': operator.or_, '-': operator.and_}
     return functools.partial(op_map[op], mask)
