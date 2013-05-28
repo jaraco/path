@@ -1,6 +1,12 @@
 Changes
 =======
 
+4.1
+---
+
+ - Native Python 2 and Python 3 support without using 2to3 during the build
+   process.
+
 4.0
 ---
 
