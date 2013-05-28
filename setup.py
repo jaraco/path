@@ -2,6 +2,8 @@
 
 from __future__ import with_statement
 
+import re
+
 try:
     import setuptools as impl
 except ImportError:
@@ -12,9 +14,15 @@ from distutils.command.build_py import build_py
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
 
+# match the version indicated in path.py
+with open('path.py') as path_mod:
+    source = path_mod.read()
+    pattern = re.compile(r'''__version__ = ['"](?P<version>[\d.]+)['"]''')
+    version = pattern.search(source).group('version')
+
 kw = dict(
     name = "path.py",
-    version = "4.0",
+    version = version,
     description = "A module wrapper for os.path",
     long_description = long_description,
     author = "Jason Orendorff",
