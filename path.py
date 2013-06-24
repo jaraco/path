@@ -1127,6 +1127,11 @@ class path(unicode):
                 raise
         return self
 
+    def chdir(self):
+        os.chdir(self)
+
+    cd = chdir
+
     #
     # --- Special stuff from os
 
