@@ -8,8 +8,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -69,8 +69,10 @@ except ImportError:
 __version__ = '3.0'
 __all__ = ['path']
 
+
 class TreeWalkWarning(Warning):
     pass
+
 
 def simple_cache(func):
     """
@@ -78,6 +80,7 @@ def simple_cache(func):
     When Python 3.2 is available, use functools.lru_cache instead.
     """
     saved_results = {}
+
     def wrapper(cls, module):
         if module in saved_results:
             return saved_results[module]
@@ -85,9 +88,11 @@ def simple_cache(func):
         return saved_results[module]
     return wrapper
 
+
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
+
 
 class multimethod(object):
     """
@@ -102,6 +107,7 @@ class multimethod(object):
             functools.partial(self.func, owner) if instance is None
             else functools.partial(self.func, owner, instance)
         )
+
 
 class path(unicode):
     """ Represents a filesystem path.
@@ -226,7 +232,8 @@ class path(unicode):
         dirname, None, None,
         """ This path's parent directory, as a new path object.
 
-        For example, path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
+        For example, path('/usr/local/lib/libpython.so').parent ==
+                     path('/usr/local/lib')
         """)
 
     name = property(
@@ -240,7 +247,7 @@ class path(unicode):
         _get_namebase, None, None,
         """ The same as path.name, but with one file extension stripped off.
 
-        For example, path('/home/guido/python.tar.gz').name     == 'python.tar.gz',
+        For example, path('/home/guido/python.tar.gz').name == 'python.tar.gz',
         but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
         """)
 
@@ -637,7 +644,8 @@ class path(unicode):
                      .replace(u'\x85', u'\n')
                      .replace(u'\u2028', u'\n'))
 
-    def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
+    def write_text(self, text, encoding=None, errors='strict',
+                   linesep=os.linesep, append=False):
         r""" Write the given text to this file.
 
         The default behavior is to overwrite any existing file;
@@ -849,31 +857,51 @@ class path(unicode):
     # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
     # bound. Playing it safe and wrapping them all in method calls.
 
-    def isabs(self): return self.module.isabs(self)
-    def exists(self): return self.module.exists(self)
-    def isdir(self): return self.module.isdir(self)
-    def isfile(self): return self.module.isfile(self)
-    def islink(self): return self.module.islink(self)
-    def ismount(self): return self.module.ismount(self)
+    def isabs(self):
+        return self.module.isabs(self)
 
-    def samefile(self): return self.module.samefile(self)
+    def exists(self):
+        return self.module.exists(self)
 
-    def getatime(self): return self.module.getatime(self)
+    def isdir(self):
+        return self.module.isdir(self)
+
+    def isfile(self):
+        return self.module.isfile(self)
+
+    def islink(self):
+        return self.module.islink(self)
+
+    def ismount(self):
+        return self.module.ismount(self)
+
+    def samefile(self):
+        return self.module.samefile(self)
+
+    def getatime(self):
+        return self.module.getatime(self)
+
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    def getmtime(self): return self.module.getmtime(self)
+    def getmtime(self):
+        return self.module.getmtime(self)
+
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
-    def getctime(self): return self.module.getctime(self)
+    def getctime(self):
+        return self.module.getctime(self)
+
     ctime = property(
         getctime, None, None,
         """ Creation time of the file. """)
 
-    def getsize(self): return self.module.getsize(self)
+    def getsize(self):
+        return self.module.getsize(self)
+
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
@@ -1110,6 +1138,7 @@ class path(unicode):
         def startfile(self):
             os.startfile(self)
             return self
+
 
 class tempdir(path):
     """
