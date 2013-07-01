@@ -21,19 +21,19 @@ with open('path.py') as path_mod:
     version = pattern.search(source).group('version')
 
 kw = dict(
-    name = "path.py",
-    version = version,
-    description = "A module wrapper for os.path",
-    long_description = long_description,
-    author = "Jason Orendorff",
-    author_email = "jason.orendorff@gmail.com",
-    maintainer = "Jason R. Coombs",
-    maintainer_email = "jaraco@jaraco.com",
-    url = "http://github.com/jaraco/path.py",
-    license = "MIT License",
-    py_modules = ['path', 'test_path'],
-    cmdclass = dict(build_py=build_py),
-    classifiers = [
+    name="path.py",
+    version=version,
+    description="A module wrapper for os.path",
+    long_description=long_description,
+    author="Jason Orendorff",
+    author_email="jason.orendorff@gmail.com",
+    maintainer="Jason R. Coombs",
+    maintainer_email="jaraco@jaraco.com",
+    url="http://github.com/jaraco/path.py",
+    license="MIT License",
+    py_modules=['path', 'test_path'],
+    cmdclass=dict(build_py=build_py),
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
