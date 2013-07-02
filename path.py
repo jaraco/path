@@ -616,9 +616,9 @@ class path(unicode):
     #
     # --- Reading or writing an entire file at once.
 
-    def open(self, mode='r'):
+    def open(self, *args, **kwargs):
         """ Open this file.  Return a file object. """
-        return open(self, mode)
+        return open(self, *args, **kwargs)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """

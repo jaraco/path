@@ -1,6 +1,12 @@
 Changes
 =======
 
+4.2
+---
+
+ - ``open()`` now passes all positional and keyword arguments through to the
+   underlying ``builtins.open`` call.
+
 4.1
 ---
 
