@@ -1,6 +1,11 @@
 Changes
 =======
 
+4.3
+---
+
+ - Issue #32: Add ``chdir`` and ``cd`` methods.
+
 4.2
 ---
 
