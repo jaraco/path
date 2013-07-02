@@ -36,9 +36,11 @@ from path import path, tempdir, u
 o750 = 488
 o700 = 448
 
+
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
+
 
 class BasicTestCase(unittest.TestCase):
     def testRelpath(self):
@@ -200,6 +202,7 @@ class BasicTestCase(unittest.TestCase):
         assert isinstance(res2, path_posix)
         assert res2 == 'foo/bar'
 
+
 class ReturnSelfTestCase(unittest.TestCase):
     """
     Some methods don't necessarily return any value (e.g. makedirs,
@@ -246,6 +249,7 @@ class ReturnSelfTestCase(unittest.TestCase):
         p = path(self.tempdir) / "empty file"
         ret = p.touch()
         self.assertEquals(p, ret)
+
 
 class ScratchDirTestCase(unittest.TestCase):
     """
@@ -396,9 +400,15 @@ class ScratchDirTestCase(unittest.TestCase):
 
     def assertSetsEqual(self, a, b):
         ad = {}
-        for i in a: ad[i] = None
+
+        for i in a:
+            ad[i] = None
+
         bd = {}
-        for i in b: bd[i] = None
+
+        for i in b:
+            bd[i] = None
+
         self.assertEqual(ad, bd)
 
     def testShutil(self):
@@ -486,13 +496,17 @@ class ScratchDirTestCase(unittest.TestCase):
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
 
         for e in dirs:
-            if not e.isdir():  e.makedirs()
+            if not e.isdir():
+                e.makedirs()
+
             for name in names:
                 (e/name).touch()
         self.assertList(d.listdir('*.tmp'), [d/'x.tmp', d/'xdir.tmp'])
         self.assertList(d.files('*.tmp'), [d/'x.tmp'])
         self.assertList(d.dirs('*.tmp'), [d/'xdir.tmp'])
-        self.assertList(d.walk(), [e for e in dirs if e != d] + [e/n for e in dirs for n in names])
+        self.assertList(d.walk(), [e for e in dirs
+                                   if e != d] + [e/n for e in dirs
+                                                 for n in names])
         self.assertList(d.walk('*.tmp'),
                         [e/'x.tmp' for e in dirs] + [d/'xdir.tmp'])
         self.assertList(d.walkfiles('*.tmp'), [e/'x.tmp' for e in dirs])
@@ -509,17 +523,17 @@ class ScratchDirTestCase(unittest.TestCase):
             """
 
             given = u('Hello world\n'
-                     '\u0d0a\u0a0d\u0d15\u0a15\r\n'
-                     '\u0d0a\u0a0d\u0d15\u0a15\x85'
-                     '\u0d0a\u0a0d\u0d15\u0a15\u2028'
-                     '\r'
-                     'hanging')
+                      '\u0d0a\u0a0d\u0d15\u0a15\r\n'
+                      '\u0d0a\u0a0d\u0d15\u0a15\x85'
+                      '\u0d0a\u0a0d\u0d15\u0a15\u2028'
+                      '\r'
+                      'hanging')
             clean = u('Hello world\n'
-                     '\u0d0a\u0a0d\u0d15\u0a15\n'
-                     '\u0d0a\u0a0d\u0d15\u0a15\n'
-                     '\u0d0a\u0a0d\u0d15\u0a15\n'
-                     '\n'
-                     'hanging')
+                      '\u0d0a\u0a0d\u0d15\u0a15\n'
+                      '\u0d0a\u0a0d\u0d15\u0a15\n'
+                      '\u0d0a\u0a0d\u0d15\u0a15\n'
+                      '\n'
+                      'hanging')
             givenLines = [
                 u('Hello world\n'),
                 u('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
@@ -555,18 +569,20 @@ class ScratchDirTestCase(unittest.TestCase):
             self.assertEqual(p.lines(enc, retain=False), expectedLines2)
 
             # If this is UTF-16, that's enough.
-            # The rest of these will unfortunately fail because append=True mode
-            # causes an extra BOM to be written in the middle of the file.
+            # The rest of these will unfortunately fail because append=True
+            # mode causes an extra BOM to be written in the middle of the file.
             # UTF-16 is the only encoding that has this problem.
             if enc == 'UTF-16':
                 return
 
             # Write Unicode to file using path.write_text().
-            cleanNoHanging = clean + u('\n')  # This test doesn't work with a hanging line.
+            cleanNoHanging = clean + u('\n')  # This test doesn't work with a
+                                              # hanging line.
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
             # Check the result.
-            expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(enc)
+            expectedBytes = 2 * cleanNoHanging.replace('\n',
+                                                       os.linesep).encode(enc)
             expectedLinesNoHanging = expectedLines[:]
             expectedLinesNoHanging[-1] += '\n'
             self.assertEqual(p.bytes(), expectedBytes)
@@ -664,6 +680,26 @@ class ScratchDirTestCase(unittest.TestCase):
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
 
+    def test_chdir_or_cd(self):
+        """ tests the chdir or cd method """
+        d = path(self.tempdir)
+        cwd = d.getcwd()
+
+        assert str(d) != str(cwd)  # ensure the cwd isn't our tempdir
+        d.chdir()  # now, we're going to chdir to tempdir
+
+        assert str(d.getcwd()) == str(self.tempdir)  # we now ensure that our
+                                                     # cwd is the tempdir
+        d = path(cwd)  # we're resetting our path
+
+        assert str(d.getcwd()) == str(self.tempdir)  # we ensure that our cwd
+                                                     # is still set to tempdir
+
+        d.cd()  # we're calling the alias cd method
+        assert str(d.getcwd()) == str(cwd)  # now, we ensure cwd isn'r tempdir
+        assert str(d.getcwd()) != str(self.tempdir)
+
+
 class SubclassTestCase(unittest.TestCase):
     class PathSubclass(path):
         pass
@@ -676,6 +712,7 @@ class SubclassTestCase(unittest.TestCase):
         p = self.PathSubclass('/foo')
         subdir = p / 'bar'
         assert isinstance(subdir, self.PathSubclass)
+
 
 class TempDirTestCase(unittest.TestCase):
 
