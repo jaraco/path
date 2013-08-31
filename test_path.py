@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """ test_path.py - Test the path module.
 
 This only runs on Posix and NT right now.  I would like to have more
@@ -770,6 +772,23 @@ class TempDirTestCase(unittest.TestCase):
         with tempdir() as d:
             self.assertTrue(d.isdir())
         self.assertFalse(d.isdir())
+
+
+class TestUnicodePaths(object):
+    def setup_method(self, method):
+        # Create a temporary directory.
+        self.tempdir = tempfile.mkdtemp()
+        # build a snowman (dir) in the temporary directory
+        snowman = os.path.join(self.tempdir, '☃')
+        os.mkdir(snowman)
+
+    def teardown_method(self, method):
+        shutil.rmtree(self.tempdir)
+
+    def test_walkdirs_with_unicode_name(self):
+        p = path(self.tempdir)
+        for res in p.walkdirs():
+            pass
 
 
 if __name__ == '__main__':
