@@ -774,7 +774,7 @@ class TempDirTestCase(unittest.TestCase):
         self.assertFalse(d.isdir())
 
 
-class TestUnicodePaths(object):
+class TestUnicodePaths(unittest.TestCase):
     def setup_method(self, method):
         # Create a temporary directory.
         self.tempdir = tempfile.mkdtemp()
