@@ -645,7 +645,7 @@ class path(unicode):
         """
         with open(self, *args, **kwargs) as f:
             while True:
-                d = f.read(size)
+                d = f.read(size, "rb")
                 if not d:
                     break
                 yield d
