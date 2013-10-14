@@ -15,7 +15,7 @@
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHhashERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
@@ -645,7 +645,7 @@ class path(unicode):
         """
         with open(self, *args, **kwargs) as f:
             while True:
-                d = f.read(size, "rb")
+                d = f.read(size)
                 if not d:
                     break
                 yield d
@@ -883,7 +883,7 @@ class path(unicode):
             that's available in the `hashlib` module.
         """
         m = hashlib.new(hash_name)
-        for chunk in self.chunks(8192):
+        for chunk in self.chunks(8192, mode="rb"):
             m.update(chunk)
         return m
 
