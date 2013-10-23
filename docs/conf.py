@@ -16,4 +16,4 @@ master_doc = 'index'
 
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3.3', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org/', None)}
