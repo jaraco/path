@@ -272,21 +272,24 @@ class path(unicode):
     def namebase(self):
         """ The same as :meth:`name`, but with one file extension stripped off.
 
-        For example, path('/home/guido/python.tar.gz').name == 'python.tar.gz',
-        but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
+        For example,
+        ``path('/home/guido/python.tar.gz').name == 'python.tar.gz'``,
+        but
+        ``path('/home/guido/python.tar.gz').namebase == 'python.tar'``.
         """
         base, ext = self.module.splitext(self.name)
         return base
 
     @property
     def ext(self):
-        """ The file extension, for example '.py'. """
+        """ The file extension, for example ``'.py'``. """
         f, ext = self.module.splitext(self)
         return ext
 
     @property
     def drive(self):
-        """ The drive specifier, for example 'C:'.
+        """ The drive specifier, for example ``'C:'``.
+
         This is always empty on systems that don't use drive specifiers.
         """
         drive, r = self.module.splitdrive(self)
@@ -297,7 +300,8 @@ class path(unicode):
         """ This path's parent directory, as a new path object.
 
         For example,
-        path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
+        ``path('/usr/local/lib/libpython.so').parent ==
+        path('/usr/local/lib')``
 
         .. seealso:: :meth:`dirname`, :func:`os.path.dirname`
         """)
@@ -306,13 +310,14 @@ class path(unicode):
         basename, None, None,
         """ The name of this file or directory without the full path.
 
-        For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
+        For example,
+        ``path('/usr/local/lib/libpython.so').name == 'libpython.so'``
 
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """)
 
     def splitpath(self):
-        """ p.splitpath() -> Return (p.parent, p.name).
+        """ p.splitpath() -> Return ``(p.parent, p.name)``.
 
         .. seealso:: :attr:`parent`, :attr:`name`, :func:`os.path.split`
         """
@@ -320,11 +325,11 @@ class path(unicode):
         return self._next_class(parent), child
 
     def splitdrive(self):
-        """ p.splitdrive() -> Return (p.drive, <the rest of p>).
+        """ p.splitdrive() -> Return ``(p.drive, <the rest of p>)``.
 
         Split the drive specifier from this path.  If there is
         no drive specifier, p.drive is empty, so the return value
-        is simply (path(''), p).  This is always the case on Unix.
+        is simply ``(path(''), p)``.  This is always the case on Unix.
 
         .. seealso:: :func:`os.path.splitdrive`
         """
@@ -332,14 +337,14 @@ class path(unicode):
         return self._next_class(drive), rel
 
     def splitext(self):
-        """ p.splitext() -> Return (p.stripext(), p.ext).
+        """ p.splitext() -> Return ``(p.stripext(), p.ext)``.
 
         Split the filename extension from this path and return
         the two parts.  Either part may be empty.
 
-        The extension is everything from '.' to the end of the
+        The extension is everything from ``'.'`` to the end of the
         last path segment.  This has the property that if
-        (a, b) == p.splitext(), then a + b == p.
+        ``(a, b) == p.splitext()``, then ``a + b == p``.
 
         .. seealso:: :func:`os.path.splitext`
         """
@@ -349,8 +354,8 @@ class path(unicode):
     def stripext(self):
         """ p.stripext() -> Remove one file extension from the path.
 
-        For example, path('/home/guido/python.tar.gz').stripext()
-        returns path('/home/guido/python.tar').
+        For example, ``path('/home/guido/python.tar.gz').stripext()``
+        returns ``path('/home/guido/python.tar')``.
         """
         return self.splitext()[0]
 
@@ -372,8 +377,8 @@ class path(unicode):
     def joinpath(cls, first, *others):
         """
         Join first to zero or more path components, adding a separator
-        character (first.module.sep) if needed.  Returns a new instance of
-        first._next_class.
+        character (``first.module.sep``) if needed.  Returns a new instance of
+        ``first._next_class``.
 
         .. seealso:: :func:`os.path.join`
         """
@@ -405,17 +410,17 @@ class path(unicode):
 
     def relpath(self, start='.'):
         """ Return this path as a relative path,
-        based from start, which defaults to the current working directory.
+        based from `start`, which defaults to the current working directory.
         """
         cwd = self._next_class(start)
         return cwd.relpathto(self)
 
     def relpathto(self, dest):
-        """ Return a relative path from self to dest.
+        """ Return a relative path from `self` to `dest`.
 
-        If there is no relative path from self to dest, for example if
+        If there is no relative path from `self` to `dest`, for example if
         they reside on different drives in Windows, then this returns
-        dest.abspath().
+        ``dest.abspath()``.
         """
         origin = self.abspath()
         dest = self._next_class(dest).abspath()
@@ -458,7 +463,7 @@ class path(unicode):
 
         The elements of the list are path objects.
 
-        With the optional 'pattern' argument, this only lists
+        With the optional `pattern` argument, this only lists
         items whose names match the given pattern.
 
         .. seealso:: :meth:`files`, :meth:`dirs`
@@ -475,7 +480,7 @@ class path(unicode):
         This does not walk recursively into subdirectories
         (but see :meth:`walkdirs`).
 
-        With the optional 'pattern' argument, this only lists
+        With the optional `pattern` argument, this only lists
         directories whose names match the given pattern.  For
         example, ``d.dirs('build-*')``.
         """
@@ -487,7 +492,7 @@ class path(unicode):
         The elements of the list are path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
 
-        With the optional 'pattern' argument, this only lists files
+        With the optional `pattern` argument, this only lists files
         whose names match the given pattern.  For example,
         ``d.files('*.pyc')``.
         """
@@ -504,10 +509,10 @@ class path(unicode):
         This performs a depth-first traversal of the directory tree.
         Each directory is returned just before all its children.
 
-        The errors= keyword argument controls behavior when an
+        The `errors=` keyword argument controls behavior when an
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
-        reports the error via warnings.warn(), and 'ignore'.
+        reports the error via ``warnings.warn()``, and 'ignore'.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -550,15 +555,15 @@ class path(unicode):
     def walkdirs(self, pattern=None, errors='strict'):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
-        With the optional 'pattern' argument, this yields only
+        With the optional `pattern` argument, this yields only
         directories whose names match the given pattern.  For
         example, ``mydir.walkdirs('*test')`` yields only directories
         with names ending in 'test'.
 
-        The errors= keyword argument controls behavior when an
+        The `errors=` keyword argument controls behavior when an
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
-        reports the error via warnings.warn(), and 'ignore'.
+        reports the error via ``warnings.warn()``, and 'ignore'.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -586,7 +591,7 @@ class path(unicode):
     def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
-        The optional argument, pattern, limits the results to files
+        The optional argument, `pattern`, limits the results to files
         with names that match the pattern.  For example,
         ``mydir.walkfiles('*.tmp')`` yields only files with the .tmp
         extension.
@@ -632,7 +637,7 @@ class path(unicode):
                     yield f
 
     def fnmatch(self, pattern):
-        """ Return True if self.name matches the given pattern.
+        """ Return ``True`` if `self.name` matches the given pattern.
 
         pattern - A filename pattern with wildcards,
             for example ``'*.py'``.
@@ -644,9 +649,9 @@ class path(unicode):
     def glob(self, pattern):
         """ Return a list of path objects that match the pattern.
 
-        pattern - a path relative to this directory, with wildcards.
+        `pattern` - a path relative to this directory, with wildcards.
 
-        For example, path('/users').glob('*/bin/*') returns a list
+        For example, ``path('/users').glob('*/bin/*')`` returns a list
         of all the files users have in their bin directories.
 
         .. seealso:: :func:`glob.glob`
@@ -693,7 +698,7 @@ class path(unicode):
         """ Open this file and write the given bytes to it.
 
         Default behavior is to overwrite any existing file.
-        Call p.write_bytes(bytes, append=True) to append instead.
+        Call ``p.write_bytes(bytes, append=True)`` to append instead.
         """
         if append:
             mode = 'ab'
@@ -705,17 +710,16 @@ class path(unicode):
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
 
-        This method uses 'U' mode, so '\r\n' and '\r' are automatically
-        translated to '\n'.
+        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
+        automatically translated to ``'\n'``.
 
         Optional arguments:
-
-        encoding - The Unicode encoding (or character set) of
-            the file.  If present, the content of the file is
-            decoded and returned as a unicode object; otherwise
-            it is returned as an 8-bit str.
-        errors - How to handle Unicode errors; see help(str.decode)
-            for the options.  Default is 'strict'.
+            `encoding` - The Unicode encoding (or character set) of
+                the file.  If present, the content of the file is
+                decoded and returned as a unicode object; otherwise
+                it is returned as an 8-bit str.
+            `errors` - How to handle Unicode errors; see :meth:`str.decode`
+                for the options.  Default is 'strict'.
 
         .. seealso:: :meth:`lines`
         """
@@ -740,7 +744,7 @@ class path(unicode):
         r""" Write the given text to this file.
 
         The default behavior is to overwrite any existing file;
-        to append instead, use the 'append=True' keyword argument.
+        to append instead, use the `append=True` keyword argument.
 
         There are two differences between :meth:`write_text` and
         :meth:`write_bytes`: newline handling and Unicode handling.
@@ -748,55 +752,55 @@ class path(unicode):
 
         Parameters:
 
-          - text - str/unicode - The text to be written.
+          `text` - str/unicode - The text to be written.
 
-          - encoding - str - The Unicode encoding that will be used.
-            This is ignored if 'text' isn't a Unicode string.
+          `encoding` - str - The Unicode encoding that will be used.
+              This is ignored if 'text' isn't a Unicode string.
 
-          - errors - str - How to handle Unicode encoding errors.
-            Default is 'strict'.  See help(unicode.encode) for the
-            options.  This is ignored if 'text' isn't a Unicode
-            string.
+          `errors` - str - How to handle Unicode encoding errors.
+              Default is 'strict'.  See help(unicode.encode) for the
+              options.  This is ignored if 'text' isn't a Unicode
+              string.
 
-          - linesep - keyword argument - str/unicode - The sequence of
-            characters to be used to mark end-of-line.  The default is
-            os.linesep.  You can also specify None; this means to
-            leave all newlines as they are in 'text'.
+          `linesep` - keyword argument - str/unicode - The sequence of
+              characters to be used to mark end-of-line.  The default is
+              :data:`os.linesep`.  You can also specify ``None``; this means to
+              leave all newlines as they are in `text`.
 
-          - append - keyword argument - bool - Specifies what to do if
-            the file already exists (True: append to the end of it;
-            False: overwrite it.)  The default is False.
+          `append` - keyword argument - bool - Specifies what to do if
+              the file already exists (``True``: append to the end of it;
+              ``False``: overwrite it.)  The default is ``False``.
 
 
         --- Newline handling.
 
         write_text() converts all standard end-of-line sequences
-        ('\n', '\r', and '\r\n') to your platform's default end-of-line
-        sequence (see :data:`os.linesep`; on Windows, for example, the
-        end-of-line marker is '\r\n').
+        (``'\n'``, ``'\r'``, and ``'\r\n'``) to your platform's default
+        end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
+        the end-of-line marker is ``'\r\n'``).
 
         If you don't like your platform's default, you can override it
-        using the 'linesep=' keyword argument.  If you specifically want
-        write_text() to preserve the newlines as-is, use 'linesep=None'.
+        using the `linesep=` keyword argument.  If you specifically want
+        write_text() to preserve the newlines as-is, use ``linesep=None``.
 
         This applies to Unicode text the same as to 8-bit text, except
         there are three additional standard Unicode end-of-line sequences:
-        u'\x85', u'\r\x85', and u'\u2028'.
+        ``u'\x85'``, ``u'\r\x85'``, and ``u'\u2028'``.
 
         (This is slightly different from when you open a file for
-        writing with fopen(filename, "w") in C or open(filename, 'w')
+        writing with ``fopen(filename, "w")`` in C or ``open(filename, 'w')``
         in Python.)
 
 
         --- Unicode
 
-        If 'text' isn't Unicode, then apart from newline handling, the
-        bytes are written verbatim to the file.  The 'encoding' and
-        'errors' arguments are not used and must be omitted.
+        If `text` isn't Unicode, then apart from newline handling, the
+        bytes are written verbatim to the file.  The `encoding` and
+        `errors` arguments are not used and must be omitted.
 
-        If 'text' is Unicode, it is first converted to bytes using the
-        specified 'encoding' (or the default encoding if 'encoding'
-        isn't specified).  The 'errors' argument applies only to this
+        If `text` is Unicode, it is first converted to bytes using the
+        specified 'encoding' (or the default encoding if `encoding`
+        isn't specified).  The `errors` argument applies only to this
         conversion.
 
         """
@@ -829,18 +833,18 @@ class path(unicode):
         r""" Open this file, read all lines, return them in a list.
 
         Optional arguments:
-            encoding - The Unicode encoding (or character set) of
+            `encoding` - The Unicode encoding (or character set) of
                 the file.  The default is None, meaning the content
                 of the file is read as 8-bit characters and returned
                 as a list of (non-Unicode) str objects.
-            errors - How to handle Unicode errors; see help(str.decode)
+            `errors` - How to handle Unicode errors; see help(str.decode)
                 for the options.  Default is 'strict'
-            retain - If true, retain newline characters; but all newline
-                character combinations ('\r', '\n', '\r\n') are
-                translated to '\n'.  If false, newline characters are
+            `retain` - If true, retain newline characters; but all newline
+                character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
+                translated to ``'\n'``.  If false, newline characters are
                 stripped off.  Default is True.
 
-        This uses 'U' mode.
+        This uses ``'U'`` mode.
 
         .. seealso:: :meth:`text`
         """
@@ -857,24 +861,25 @@ class path(unicode):
         By default this overwrites any existing file at this path.
 
         This puts a platform-specific newline sequence on every line.
-        See 'linesep' below.
+        See `linesep` below.
 
-        lines - A list of strings.
+            `lines` - A list of strings.
 
-        encoding - A Unicode encoding to use.  This applies only if
-            'lines' contains any Unicode strings.
+            `encoding` - A Unicode encoding to use.  This applies only if
+                `lines` contains any Unicode strings.
 
-        errors - How to handle errors in Unicode encoding.  This
-            also applies only to Unicode strings.
+            `errors` - How to handle errors in Unicode encoding.  This
+                also applies only to Unicode strings.
 
-        linesep - The desired line-ending.  This line-ending is
-            applied to every line.  If a line already has any
-            standard line ending ('\r', '\n', '\r\n', u'\x85',
-            u'\r\x85', u'\u2028'), that will be stripped off and
-            this will be used instead.  The default is os.linesep,
-            which is platform-dependent ('\r\n' on Windows, '\n' on
-            Unix, etc.)  Specify None to write the lines as-is,
-            like file.writelines().
+            linesep - The desired line-ending.  This line-ending is
+                applied to every line.  If a line already has any
+                standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
+                ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
+                be stripped off and this will be used instead.  The
+                default is os.linesep, which is platform-dependent
+                (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
+                Specify ``None`` to write the lines as-is, like
+                :meth:`file.writelines`.
 
         Use the keyword argument append=True to append lines to the
         file.  The default is to overwrite the file.  Warning:
@@ -1041,7 +1046,7 @@ class path(unicode):
             return os.access(self, mode)
 
     def stat(self):
-        """ Perform a stat() system call on this path.
+        """ Perform a ``stat()`` system call on this path.
 
         .. seealso:: :meth:`lstat`, :func:`os.stat`
         """
@@ -1059,7 +1064,7 @@ class path(unicode):
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ur'DOMAIN\User Name'; may be a group.
+        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
 
         .. seealso:: :attr:`owner`
         """
@@ -1097,7 +1102,7 @@ class path(unicode):
 
     if hasattr(os, 'statvfs'):
         def statvfs(self):
-            """ Perform a statvfs() system call on this path.
+            """ Perform a ``statvfs()`` system call on this path.
 
             .. seealso:: :func:`os.statvfs`
             """
@@ -1249,7 +1254,7 @@ class path(unicode):
 
     if hasattr(os, 'link'):
         def link(self, newpath):
-            """ Create a hard link at 'newpath', pointing to this file.
+            """ Create a hard link at `newpath`, pointing to this file.
 
             .. seealso:: :func:`os.link`
             """
@@ -1258,7 +1263,7 @@ class path(unicode):
 
     if hasattr(os, 'symlink'):
         def symlink(self, newlink):
-            """ Create a symbolic link at 'newlink', pointing here.
+            """ Create a symbolic link at `newlink`, pointing here.
 
             .. seealso:: :func:`os.symlink`
             """
