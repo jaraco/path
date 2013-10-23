@@ -220,27 +220,35 @@ class path(unicode):
     # --- Operations on path strings.
 
     def abspath(self):
+        """ See :func:`os.path.abspath`. """
         return self._next_class(self.module.abspath(self))
 
     def normcase(self):
+        """ See :func:`os.path.normcase`. """
         return self._next_class(self.module.normcase(self))
 
     def normpath(self):
+        """ See :func:`os.path.normpath`. """
         return self._next_class(self.module.normpath(self))
 
     def realpath(self):
+        """ See :func:`os.path.realpath`. """
         return self._next_class(self.module.realpath(self))
 
     def expanduser(self):
+        """ See :func:`os.path.expanduser`. """
         return self._next_class(self.module.expanduser(self))
 
     def expandvars(self):
+        """ See :func:`os.path.expandvars`. """
         return self._next_class(self.module.expandvars(self))
 
     def dirname(self):
+        """ See :func:`os.path.dirname`. """
         return self._next_class(self.module.dirname(self))
 
     def basename(self):
+        """ See :func:`os.path.basename`. """
         return self._next_class(self.module.basename(self))
 
     def expand(self):
@@ -328,6 +336,7 @@ class path(unicode):
         return self.splitext()[0]
 
     def splitunc(self):
+        """ See :func:`os.path.splitunc`. """
         unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
@@ -909,27 +918,35 @@ class path(unicode):
     # bound. Playing it safe and wrapping them all in method calls.
 
     def isabs(self):
+        """ See :func:`os.path.isabs`. """
         return self.module.isabs(self)
 
     def exists(self):
+        """ See :func:`os.path.exists`. """
         return self.module.exists(self)
 
     def isdir(self):
+        """ See :func:`os.path.isdir`. """
         return self.module.isdir(self)
 
     def isfile(self):
+        """ See :func:`os.path.isfile`. """
         return self.module.isfile(self)
 
     def islink(self):
+        """ See :func:`os.path.islink`. """
         return self.module.islink(self)
 
     def ismount(self):
+        """ See :func:`os.path.ismount`. """
         return self.module.ismount(self)
 
     def samefile(self, other):
+        """ See :func:`os.path.samefile`. """
         return self.module.samefile(self, other)
 
     def getatime(self):
+        """ See :func:`os.path.getatime`. """
         return self.module.getatime(self)
 
     atime = property(
@@ -937,6 +954,7 @@ class path(unicode):
         """ Last access time of the file. """)
 
     def getmtime(self):
+        """ See :func:`os.path.getmtime`. """
         return self.module.getmtime(self)
 
     mtime = property(
@@ -944,6 +962,7 @@ class path(unicode):
         """ Last-modified time of the file. """)
 
     def getctime(self):
+        """ See :func:`os.path.getctime`. """
         return self.module.getctime(self)
 
     ctime = property(
@@ -951,6 +970,7 @@ class path(unicode):
         """ Creation time of the file. """)
 
     def getsize(self):
+        """ See :func:`os.path.getsize`. """
         return self.module.getsize(self)
 
     size = property(
@@ -1015,6 +1035,7 @@ class path(unicode):
 
     if hasattr(os, 'pathconf'):
         def pathconf(self, name):
+            """ See :func:`os.pathconf`. """
             return os.pathconf(self, name)
 
     #
@@ -1026,19 +1047,23 @@ class path(unicode):
         return self
 
     def chmod(self, mode):
+        """ See :func:`os.chmod`. """
         os.chmod(self, mode)
         return self
 
     if hasattr(os, 'chown'):
         def chown(self, uid=-1, gid=-1):
+            """ See :func:`os.chown`. """
             os.chown(self, uid, gid)
             return self
 
     def rename(self, new):
+        """ See :func:`os.rename`. """
         os.rename(self, new)
         return self._next_class(new)
 
     def renames(self, new):
+        """ See :func:`os.renames`. """
         os.renames(self, new)
         return self._next_class(new)
 
@@ -1046,10 +1071,13 @@ class path(unicode):
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=o777):
+        """ See :func:`os.mkdir`. """
         os.mkdir(self, mode)
         return self
 
     def mkdir_p(self, mode=o777):
+        """ Like :meth:`mkdir`, but does not raise an exception if the
+        directory already exists. """
         try:
             self.mkdir(mode)
         except OSError:
@@ -1059,10 +1087,13 @@ class path(unicode):
         return self
 
     def makedirs(self, mode=o777):
+        """ See :func:`os.makedirs`. """
         os.makedirs(self, mode)
         return self
 
     def makedirs_p(self, mode=o777):
+        """ Like :meth:`makedirs`, but does not raise an exception if the
+        directory already exists. """
         try:
             self.makedirs(mode)
         except OSError:
@@ -1072,10 +1103,13 @@ class path(unicode):
         return self
 
     def rmdir(self):
+        """ See :func:`os.rmdir`. """
         os.rmdir(self)
         return self
 
     def rmdir_p(self):
+        """ Like :meth:`rmdir`, but does not raise an exception if the
+        directory is not empty or does not exist. """
         try:
             self.rmdir()
         except OSError:
@@ -1085,10 +1119,13 @@ class path(unicode):
         return self
 
     def removedirs(self):
+        """ See :func:`os.removedirs`. """
         os.removedirs(self)
         return self
 
     def removedirs_p(self):
+        """ Like :meth:`removedirs`, but does not raise an exception if the
+        directory is not empty or does not exist. """
         try:
             self.removedirs()
         except OSError:
@@ -1109,10 +1146,13 @@ class path(unicode):
         return self
 
     def remove(self):
+        """ See :func:`os.remove`. """
         os.remove(self)
         return self
 
     def remove_p(self):
+        """ Like :meth:`remove`, but does not raise an exception if the
+        file does not exist. """
         try:
             self.unlink()
         except OSError:
@@ -1122,10 +1162,13 @@ class path(unicode):
         return self
 
     def unlink(self):
+        """ See :func:`os.unlink`. """
         os.unlink(self)
         return self
 
     def unlink_p(self):
+        """ Like :meth:`unlink`, but does not raise an exception if the
+        file does not exist. """
         self.remove_p()
         return self
 
@@ -1176,6 +1219,8 @@ class path(unicode):
     rmtree = shutil.rmtree
 
     def rmtree_p(self):
+        """ Like :meth:`rmtree`, but does not raise an exception if the
+        directory does not exist. """
         try:
             self.rmtree()
         except OSError:
@@ -1185,6 +1230,7 @@ class path(unicode):
         return self
 
     def chdir(self):
+        """ See :func:`os.chdir`. """
         os.chdir(self)
 
     cd = chdir
@@ -1194,10 +1240,12 @@ class path(unicode):
 
     if hasattr(os, 'chroot'):
         def chroot(self):
+            """ See :func:`os.chroot`. """
             os.chroot(self)
 
     if hasattr(os, 'startfile'):
         def startfile(self):
+            """ See :func:`os.startfile`. """
             os.startfile(self)
             return self
 
