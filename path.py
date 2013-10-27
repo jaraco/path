@@ -883,7 +883,7 @@ class path(unicode):
             that's available in the `hashlib` module.
         """
         m = hashlib.new(hash_name)
-        for chunk in self.chunks(8192):
+        for chunk in self.chunks(8192, mode="rb"):
             m.update(chunk)
         return m
 
