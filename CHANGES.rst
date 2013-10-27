@@ -1,6 +1,16 @@
 Changes
 =======
 
+4.4
+---
+
+ - Issue #44: _hash method would open files in text mode, producing
+   invalid results on Windows. Now files are opened in binary mode, producing
+   consistent results.
+ - Issue #47: Documentation is dramatically improved with Intersphinx links
+   to the Python os.path functions and documentation for all methods and
+   properties.
+
 4.3
 ---
 
