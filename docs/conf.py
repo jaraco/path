@@ -14,4 +14,6 @@ exclude_patterns = ['_build']
 source_suffix = '.rst'
 master_doc = 'index'
 
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+
+intersphinx_mapping = {'python': ('http://docs.python.org/', None)}

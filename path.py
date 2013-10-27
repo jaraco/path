@@ -152,7 +152,10 @@ class path(unicode):
     """
 
     module = os.path
-    "The path module to use for path operations."
+    """ The path module to use for path operations.
+
+    .. seealso:: :mod:`os.path`
+    """
 
     def __init__(self, other=''):
         if other is None:
@@ -197,6 +200,8 @@ class path(unicode):
 
         Join two path components, adding a separator character if
         needed.
+
+        .. seealso:: :func:`os.path.join`
         """
         return self._next_class(self.module.join(self, rel))
 
@@ -213,39 +218,50 @@ class path(unicode):
 
     @classmethod
     def getcwd(cls):
-        """ Return the current working directory as a path object. """
+        """ Return the current working directory as a path object.
+
+        .. seealso:: :func:`os.getcwdu`
+        """
         return cls(os.getcwdu())
 
     #
     # --- Operations on path strings.
 
     def abspath(self):
+        """ .. seealso:: :func:`os.path.abspath` """
         return self._next_class(self.module.abspath(self))
 
     def normcase(self):
+        """ .. seealso:: :func:`os.path.normcase` """
         return self._next_class(self.module.normcase(self))
 
     def normpath(self):
+        """ .. seealso:: :func:`os.path.normpath` """
         return self._next_class(self.module.normpath(self))
 
     def realpath(self):
+        """ .. seealso:: :func:`os.path.realpath` """
         return self._next_class(self.module.realpath(self))
 
     def expanduser(self):
+        """ .. seealso:: :func:`os.path.expanduser` """
         return self._next_class(self.module.expanduser(self))
 
     def expandvars(self):
+        """ .. seealso:: :func:`os.path.expandvars` """
         return self._next_class(self.module.expandvars(self))
 
     def dirname(self):
+        """ .. seealso:: :attr:`parent`, :func:`os.path.dirname` """
         return self._next_class(self.module.dirname(self))
 
     def basename(self):
+        """ .. seealso:: :attr:`name`, :func:`os.path.basename` """
         return self._next_class(self.module.basename(self))
 
     def expand(self):
-        """ Clean up a filename by calling expandvars(),
-        expanduser(), and normpath() on it.
+        """ Clean up a filename by calling :meth:`expandvars()`,
+        :meth:`expanduser()`, and :meth:`normpath()` on it.
 
         This is commonly everything needed to clean up a filename
         read from a configuration file, for example.
@@ -254,23 +270,26 @@ class path(unicode):
 
     @property
     def namebase(self):
-        """ The same as path.name, but with one file extension stripped off.
+        """ The same as :meth:`name`, but with one file extension stripped off.
 
-        For example, path('/home/guido/python.tar.gz').name == 'python.tar.gz',
-        but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
+        For example,
+        ``path('/home/guido/python.tar.gz').name == 'python.tar.gz'``,
+        but
+        ``path('/home/guido/python.tar.gz').namebase == 'python.tar'``.
         """
         base, ext = self.module.splitext(self.name)
         return base
 
     @property
     def ext(self):
-        """ The file extension, for example '.py'. """
+        """ The file extension, for example ``'.py'``. """
         f, ext = self.module.splitext(self)
         return ext
 
     @property
     def drive(self):
-        """ The drive specifier, for example 'C:'.
+        """ The drive specifier, for example ``'C:'``.
+
         This is always empty on systems that don't use drive specifiers.
         """
         drive, r = self.module.splitdrive(self)
@@ -281,40 +300,53 @@ class path(unicode):
         """ This path's parent directory, as a new path object.
 
         For example,
-        path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
+        ``path('/usr/local/lib/libpython.so').parent ==
+        path('/usr/local/lib')``
+
+        .. seealso:: :meth:`dirname`, :func:`os.path.dirname`
         """)
 
     name = property(
         basename, None, None,
         """ The name of this file or directory without the full path.
 
-        For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
+        For example,
+        ``path('/usr/local/lib/libpython.so').name == 'libpython.so'``
+
+        .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """)
 
     def splitpath(self):
-        """ p.splitpath() -> Return (p.parent, p.name). """
+        """ p.splitpath() -> Return ``(p.parent, p.name)``.
+
+        .. seealso:: :attr:`parent`, :attr:`name`, :func:`os.path.split`
+        """
         parent, child = self.module.split(self)
         return self._next_class(parent), child
 
     def splitdrive(self):
-        """ p.splitdrive() -> Return (p.drive, <the rest of p>).
+        """ p.splitdrive() -> Return ``(p.drive, <the rest of p>)``.
 
         Split the drive specifier from this path.  If there is
         no drive specifier, p.drive is empty, so the return value
-        is simply (path(''), p).  This is always the case on Unix.
+        is simply ``(path(''), p)``.  This is always the case on Unix.
+
+        .. seealso:: :func:`os.path.splitdrive`
         """
         drive, rel = self.module.splitdrive(self)
         return self._next_class(drive), rel
 
     def splitext(self):
-        """ p.splitext() -> Return (p.stripext(), p.ext).
+        """ p.splitext() -> Return ``(p.stripext(), p.ext)``.
 
         Split the filename extension from this path and return
         the two parts.  Either part may be empty.
 
-        The extension is everything from '.' to the end of the
+        The extension is everything from ``'.'`` to the end of the
         last path segment.  This has the property that if
-        (a, b) == p.splitext(), then a + b == p.
+        ``(a, b) == p.splitext()``, then ``a + b == p``.
+
+        .. seealso:: :func:`os.path.splitext`
         """
         filename, ext = self.module.splitext(self)
         return self._next_class(filename), ext
@@ -322,12 +354,13 @@ class path(unicode):
     def stripext(self):
         """ p.stripext() -> Remove one file extension from the path.
 
-        For example, path('/home/guido/python.tar.gz').stripext()
-        returns path('/home/guido/python.tar').
+        For example, ``path('/home/guido/python.tar.gz').stripext()``
+        returns ``path('/home/guido/python.tar')``.
         """
         return self.splitext()[0]
 
     def splitunc(self):
+        """ .. seealso:: :func:`os.path.splitunc` """
         unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
@@ -344,8 +377,10 @@ class path(unicode):
     def joinpath(cls, first, *others):
         """
         Join first to zero or more path components, adding a separator
-        character (first.module.sep) if needed.  Returns a new instance of
-        first._next_class.
+        character (``first.module.sep``) if needed.  Returns a new instance of
+        ``first._next_class``.
+
+        .. seealso:: :func:`os.path.join`
         """
         if not isinstance(first, cls):
             first = cls(first)
@@ -355,9 +390,9 @@ class path(unicode):
         r""" Return a list of the path components in this path.
 
         The first item in the list will be a path.  Its value will be
-        either os.curdir, os.pardir, empty, or the root directory of
-        this path (for example, ``'/'`` or ``'C:\\'``).  The other items in
-        the list will be strings.
+        either :data:`os.curdir`, :data:`os.pardir`, empty, or the root
+        directory of this path (for example, ``'/'`` or ``'C:\\'``).  The
+        other items in the list will be strings.
 
         ``path.path.joinpath(*result)`` will yield the original path.
         """
@@ -375,17 +410,17 @@ class path(unicode):
 
     def relpath(self, start='.'):
         """ Return this path as a relative path,
-        based from start, which defaults to the current working directory.
+        based from `start`, which defaults to the current working directory.
         """
         cwd = self._next_class(start)
         return cwd.relpathto(self)
 
     def relpathto(self, dest):
-        """ Return a relative path from self to dest.
+        """ Return a relative path from `self` to `dest`.
 
-        If there is no relative path from self to dest, for example if
+        If there is no relative path from `self` to `dest`, for example if
         they reside on different drives in Windows, then this returns
-        dest.abspath().
+        ``dest.abspath()``.
         """
         origin = self.abspath()
         dest = self._next_class(dest).abspath()
@@ -423,13 +458,15 @@ class path(unicode):
     def listdir(self, pattern=None):
         """ D.listdir() -> List of items in this directory.
 
-        Use D.files() or D.dirs() instead if you want a listing
+        Use :meth:`files` or :meth:`dirs` instead if you want a listing
         of just files or just subdirectories.
 
         The elements of the list are path objects.
 
-        With the optional 'pattern' argument, this only lists
+        With the optional `pattern` argument, this only lists
         items whose names match the given pattern.
+
+        .. seealso:: :meth:`files`, :meth:`dirs`
         """
         names = os.listdir(self)
         if pattern is not None:
@@ -441,9 +478,9 @@ class path(unicode):
 
         The elements of the list are path objects.
         This does not walk recursively into subdirectories
-        (but see path.walkdirs).
+        (but see :meth:`walkdirs`).
 
-        With the optional 'pattern' argument, this only lists
+        With the optional `pattern` argument, this only lists
         directories whose names match the given pattern.  For
         example, ``d.dirs('build-*')``.
         """
@@ -453,9 +490,9 @@ class path(unicode):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are path objects.
-        This does not walk into subdirectories (see path.walkfiles).
+        This does not walk into subdirectories (see :meth:`walkfiles`).
 
-        With the optional 'pattern' argument, this only lists files
+        With the optional `pattern` argument, this only lists files
         whose names match the given pattern.  For example,
         ``d.files('*.pyc')``.
         """
@@ -472,10 +509,10 @@ class path(unicode):
         This performs a depth-first traversal of the directory tree.
         Each directory is returned just before all its children.
 
-        The errors= keyword argument controls behavior when an
+        The `errors=` keyword argument controls behavior when an
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
-        reports the error via warnings.warn(), and 'ignore'.
+        reports the error via ``warnings.warn()``, and 'ignore'.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -518,15 +555,15 @@ class path(unicode):
     def walkdirs(self, pattern=None, errors='strict'):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
-        With the optional 'pattern' argument, this yields only
+        With the optional `pattern` argument, this yields only
         directories whose names match the given pattern.  For
         example, ``mydir.walkdirs('*test')`` yields only directories
         with names ending in 'test'.
 
-        The errors= keyword argument controls behavior when an
+        The `errors=` keyword argument controls behavior when an
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
-        reports the error via warnings.warn(), and 'ignore'.
+        reports the error via ``warnings.warn()``, and 'ignore'.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -554,7 +591,7 @@ class path(unicode):
     def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
-        The optional argument, pattern, limits the results to files
+        The optional argument, `pattern`, limits the results to files
         with names that match the pattern.  For example,
         ``mydir.walkfiles('*.tmp')`` yields only files with the .tmp
         extension.
@@ -600,20 +637,24 @@ class path(unicode):
                     yield f
 
     def fnmatch(self, pattern):
-        """ Return True if self.name matches the given pattern.
+        """ Return ``True`` if `self.name` matches the given pattern.
 
         pattern - A filename pattern with wildcards,
             for example ``'*.py'``.
+
+        .. seealso:: :func:`fnmatch.fnmatch`
         """
         return fnmatch.fnmatch(self.name, pattern)
 
     def glob(self, pattern):
         """ Return a list of path objects that match the pattern.
 
-        pattern - a path relative to this directory, with wildcards.
+        `pattern` - a path relative to this directory, with wildcards.
 
-        For example, path('/users').glob('*/bin/*') returns a list
+        For example, ``path('/users').glob('*/bin/*')`` returns a list
         of all the files users have in their bin directories.
+
+        .. seealso:: :func:`glob.glob`
         """
         cls = self._next_class
         return [cls(s) for s in glob.glob(self / pattern)]
@@ -622,7 +663,10 @@ class path(unicode):
     # --- Reading or writing an entire file at once.
 
     def open(self, *args, **kwargs):
-        """ Open this file.  Return a file object. """
+        """ Open this file.  Return a file object.
+
+        .. seealso:: :func:`python:open`
+        """
         return open(self, *args, **kwargs)
 
     def bytes(self):
@@ -654,7 +698,7 @@ class path(unicode):
         """ Open this file and write the given bytes to it.
 
         Default behavior is to overwrite any existing file.
-        Call p.write_bytes(bytes, append=True) to append instead.
+        Call ``p.write_bytes(bytes, append=True)`` to append instead.
         """
         if append:
             mode = 'ab'
@@ -666,17 +710,18 @@ class path(unicode):
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
 
-        This method uses 'U' mode, so '\r\n' and '\r' are automatically
-        translated to '\n'.
+        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
+        automatically translated to ``'\n'``.
 
         Optional arguments:
+            `encoding` - The Unicode encoding (or character set) of
+                the file.  If present, the content of the file is
+                decoded and returned as a unicode object; otherwise
+                it is returned as an 8-bit str.
+            `errors` - How to handle Unicode errors; see :meth:`str.decode`
+                for the options.  Default is 'strict'.
 
-        encoding - The Unicode encoding (or character set) of
-            the file.  If present, the content of the file is
-            decoded and returned as a unicode object; otherwise
-            it is returned as an 8-bit str.
-        errors - How to handle Unicode errors; see help(str.decode)
-            for the options.  Default is 'strict'.
+        .. seealso:: :meth:`lines`
         """
         if encoding is None:
             # 8-bit
@@ -699,63 +744,63 @@ class path(unicode):
         r""" Write the given text to this file.
 
         The default behavior is to overwrite any existing file;
-        to append instead, use the 'append=True' keyword argument.
+        to append instead, use the `append=True` keyword argument.
 
-        There are two differences between path.write_text() and
-        path.write_bytes(): newline handling and Unicode handling.
+        There are two differences between :meth:`write_text` and
+        :meth:`write_bytes`: newline handling and Unicode handling.
         See below.
 
         Parameters:
 
-          - text - str/unicode - The text to be written.
+          `text` - str/unicode - The text to be written.
 
-          - encoding - str - The Unicode encoding that will be used.
-            This is ignored if 'text' isn't a Unicode string.
+          `encoding` - str - The Unicode encoding that will be used.
+              This is ignored if 'text' isn't a Unicode string.
 
-          - errors - str - How to handle Unicode encoding errors.
-            Default is 'strict'.  See help(unicode.encode) for the
-            options.  This is ignored if 'text' isn't a Unicode
-            string.
+          `errors` - str - How to handle Unicode encoding errors.
+              Default is 'strict'.  See help(unicode.encode) for the
+              options.  This is ignored if 'text' isn't a Unicode
+              string.
 
-          - linesep - keyword argument - str/unicode - The sequence of
-            characters to be used to mark end-of-line.  The default is
-            os.linesep.  You can also specify None; this means to
-            leave all newlines as they are in 'text'.
+          `linesep` - keyword argument - str/unicode - The sequence of
+              characters to be used to mark end-of-line.  The default is
+              :data:`os.linesep`.  You can also specify ``None``; this means to
+              leave all newlines as they are in `text`.
 
-          - append - keyword argument - bool - Specifies what to do if
-            the file already exists (True: append to the end of it;
-            False: overwrite it.)  The default is False.
+          `append` - keyword argument - bool - Specifies what to do if
+              the file already exists (``True``: append to the end of it;
+              ``False``: overwrite it.)  The default is ``False``.
 
 
         --- Newline handling.
 
         write_text() converts all standard end-of-line sequences
-        ('\n', '\r', and '\r\n') to your platform's default end-of-line
-        sequence (see os.linesep; on Windows, for example, the
-        end-of-line marker is '\r\n').
+        (``'\n'``, ``'\r'``, and ``'\r\n'``) to your platform's default
+        end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
+        the end-of-line marker is ``'\r\n'``).
 
         If you don't like your platform's default, you can override it
-        using the 'linesep=' keyword argument.  If you specifically want
-        write_text() to preserve the newlines as-is, use 'linesep=None'.
+        using the `linesep=` keyword argument.  If you specifically want
+        write_text() to preserve the newlines as-is, use ``linesep=None``.
 
         This applies to Unicode text the same as to 8-bit text, except
         there are three additional standard Unicode end-of-line sequences:
-        u'\x85', u'\r\x85', and u'\u2028'.
+        ``u'\x85'``, ``u'\r\x85'``, and ``u'\u2028'``.
 
         (This is slightly different from when you open a file for
-        writing with fopen(filename, "w") in C or open(filename, 'w')
+        writing with ``fopen(filename, "w")`` in C or ``open(filename, 'w')``
         in Python.)
 
 
         --- Unicode
 
-        If 'text' isn't Unicode, then apart from newline handling, the
-        bytes are written verbatim to the file.  The 'encoding' and
-        'errors' arguments are not used and must be omitted.
+        If `text` isn't Unicode, then apart from newline handling, the
+        bytes are written verbatim to the file.  The `encoding` and
+        `errors` arguments are not used and must be omitted.
 
-        If 'text' is Unicode, it is first converted to bytes using the
-        specified 'encoding' (or the default encoding if 'encoding'
-        isn't specified).  The 'errors' argument applies only to this
+        If `text` is Unicode, it is first converted to bytes using the
+        specified 'encoding' (or the default encoding if `encoding`
+        isn't specified).  The `errors` argument applies only to this
         conversion.
 
         """
@@ -788,18 +833,20 @@ class path(unicode):
         r""" Open this file, read all lines, return them in a list.
 
         Optional arguments:
-            encoding - The Unicode encoding (or character set) of
+            `encoding` - The Unicode encoding (or character set) of
                 the file.  The default is None, meaning the content
                 of the file is read as 8-bit characters and returned
                 as a list of (non-Unicode) str objects.
-            errors - How to handle Unicode errors; see help(str.decode)
+            `errors` - How to handle Unicode errors; see help(str.decode)
                 for the options.  Default is 'strict'
-            retain - If true, retain newline characters; but all newline
-                character combinations ('\r', '\n', '\r\n') are
-                translated to '\n'.  If false, newline characters are
+            `retain` - If true, retain newline characters; but all newline
+                character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
+                translated to ``'\n'``.  If false, newline characters are
                 stripped off.  Default is True.
 
-        This uses 'U' mode.
+        This uses ``'U'`` mode.
+
+        .. seealso:: :meth:`text`
         """
         if encoding is None and retain:
             with self.open('U') as f:
@@ -814,24 +861,25 @@ class path(unicode):
         By default this overwrites any existing file at this path.
 
         This puts a platform-specific newline sequence on every line.
-        See 'linesep' below.
+        See `linesep` below.
 
-        lines - A list of strings.
+            `lines` - A list of strings.
 
-        encoding - A Unicode encoding to use.  This applies only if
-            'lines' contains any Unicode strings.
+            `encoding` - A Unicode encoding to use.  This applies only if
+                `lines` contains any Unicode strings.
 
-        errors - How to handle errors in Unicode encoding.  This
-            also applies only to Unicode strings.
+            `errors` - How to handle errors in Unicode encoding.  This
+                also applies only to Unicode strings.
 
-        linesep - The desired line-ending.  This line-ending is
-            applied to every line.  If a line already has any
-            standard line ending ('\r', '\n', '\r\n', u'\x85',
-            u'\r\x85', u'\u2028'), that will be stripped off and
-            this will be used instead.  The default is os.linesep,
-            which is platform-dependent ('\r\n' on Windows, '\n' on
-            Unix, etc.)  Specify None to write the lines as-is,
-            like file.writelines().
+            linesep - The desired line-ending.  This line-ending is
+                applied to every line.  If a line already has any
+                standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
+                ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
+                be stripped off and this will be used instead.  The
+                default is os.linesep, which is platform-dependent
+                (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
+                Specify ``None`` to write the lines as-is, like
+                :meth:`file.writelines`.
 
         Use the keyword argument append=True to append lines to the
         file.  The default is to overwrite the file.  Warning:
@@ -873,6 +921,8 @@ class path(unicode):
         """ Calculate the md5 hash for this file.
 
         This reads through the entire file.
+
+        .. seealso:: :meth:`read_hash`
         """
         return self.read_hash('md5')
 
@@ -880,7 +930,7 @@ class path(unicode):
         """ Returns a hash object for the file at the current path.
 
             `hash_name` should be a hash algo name such as 'md5' or 'sha1'
-            that's available in the `hashlib` module.
+            that's available in the :mod:`hashlib` module.
         """
         m = hashlib.new(hash_name)
         for chunk in self.chunks(8192, mode="rb"):
@@ -890,16 +940,20 @@ class path(unicode):
     def read_hash(self, hash_name):
         """ Calculate given hash for this file.
 
-        List of supported hashes can be obtained from hashlib package. This
-        reads the entire file.
+        List of supported hashes can be obtained from :mod:`hashlib` package.
+        This reads the entire file.
+
+        .. seealso:: :meth:`hashlib.hash.digest`
         """
         return self._hash(hash_name).digest()
 
     def read_hexhash(self, hash_name):
         """ Calculate given hash for this file, returning hexdigest.
 
-        List of supported hashes can be obtained from hashlib package. This
-        reads the entire file.
+        List of supported hashes can be obtained from :mod:`hashlib` package.
+        This reads the entire file.
+
+        .. seealso:: :meth:`hashlib.hash.hexdigest`
         """
         return self._hash(hash_name).hexdigest()
 
@@ -909,68 +963,100 @@ class path(unicode):
     # bound. Playing it safe and wrapping them all in method calls.
 
     def isabs(self):
+        """ .. seealso:: :func:`os.path.isabs` """
         return self.module.isabs(self)
 
     def exists(self):
+        """ .. seealso:: :func:`os.path.exists` """
         return self.module.exists(self)
 
     def isdir(self):
+        """ .. seealso:: :func:`os.path.isdir` """
         return self.module.isdir(self)
 
     def isfile(self):
+        """ .. seealso:: :func:`os.path.isfile` """
         return self.module.isfile(self)
 
     def islink(self):
+        """ .. seealso:: :func:`os.path.islink` """
         return self.module.islink(self)
 
     def ismount(self):
+        """ .. seealso:: :func:`os.path.ismount` """
         return self.module.ismount(self)
 
     def samefile(self, other):
+        """ .. seealso:: :func:`os.path.samefile` """
         return self.module.samefile(self, other)
 
     def getatime(self):
+        """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
         return self.module.getatime(self)
 
     atime = property(
         getatime, None, None,
-        """ Last access time of the file. """)
+        """ Last access time of the file.
+
+        .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
+        """)
 
     def getmtime(self):
+        """ .. seealso:: :attr:`mtime`, :func:`os.path.getmtime` """
         return self.module.getmtime(self)
 
     mtime = property(
         getmtime, None, None,
-        """ Last-modified time of the file. """)
+        """ Last-modified time of the file.
+
+        .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
+        """)
 
     def getctime(self):
+        """ .. seealso:: :attr:`ctime`, :func:`os.path.getctime` """
         return self.module.getctime(self)
 
     ctime = property(
         getctime, None, None,
-        """ Creation time of the file. """)
+        """ Creation time of the file.
+
+        .. seealso:: :meth:`getctime`, :func:`os.path.getctime`
+        """)
 
     def getsize(self):
+        """ .. seealso:: :attr:`size`, :func:`os.path.getsize` """
         return self.module.getsize(self)
 
     size = property(
         getsize, None, None,
-        """ Size of the file, in bytes. """)
+        """ Size of the file, in bytes.
+
+        .. seealso:: :meth:`getsize`, :func:`os.path.getsize`
+        """)
 
     if hasattr(os, 'access'):
         def access(self, mode):
             """ Return true if current user has access to this path.
 
-            mode - One of the constants os.F_OK, os.R_OK, os.W_OK, os.X_OK
+            mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
+            :data:`os.W_OK`, :data:`os.X_OK`
+
+            .. seealso:: :func:`os.access`
             """
             return os.access(self, mode)
 
     def stat(self):
-        """ Perform a stat() system call on this path. """
+        """ Perform a ``stat()`` system call on this path.
+
+        .. seealso:: :meth:`lstat`, :func:`os.stat`
+        """
         return os.stat(self)
 
     def lstat(self):
-        """ Like path.stat(), but do not follow symbolic links. """
+        """ Like :meth:`stat`, but do not follow symbolic links.
+
+        .. seealso:: :meth:`stat`, :func:`os.lstat`
+        """
         return os.lstat(self)
 
     def __get_owner_windows(self):
@@ -978,7 +1064,9 @@ class path(unicode):
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ur'DOMAIN\User Name'; may be a group.
+        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
+
+        .. seealso:: :attr:`owner`
         """
         desc = win32security.GetFileSecurity(
             self, win32security.OWNER_SECURITY_INFORMATION)
@@ -990,6 +1078,8 @@ class path(unicode):
         """
         Return the name of the owner of this file or directory. Follow
         symbolic links.
+
+        .. seealso:: :attr:`owner`
         """
         st = self.stat()
         return pwd.getpwuid(st.st_uid).pw_name
@@ -1006,39 +1096,52 @@ class path(unicode):
 
     owner = property(
         get_owner, None, None,
-        """ Name of the owner of this file or directory. """)
+        """ Name of the owner of this file or directory.
+
+        .. seealso:: :meth:`get_owner`""")
 
     if hasattr(os, 'statvfs'):
         def statvfs(self):
-            """ Perform a statvfs() system call on this path. """
+            """ Perform a ``statvfs()`` system call on this path.
+
+            .. seealso:: :func:`os.statvfs`
+            """
             return os.statvfs(self)
 
     if hasattr(os, 'pathconf'):
         def pathconf(self, name):
+            """ .. seealso:: :func:`os.pathconf` """
             return os.pathconf(self, name)
 
     #
     # --- Modifying operations on files and directories
 
     def utime(self, times):
-        """ Set the access and modified times of this file. """
+        """ Set the access and modified times of this file.
+
+        .. seealso:: :func:`os.utime`
+        """
         os.utime(self, times)
         return self
 
     def chmod(self, mode):
+        """ .. seealso:: :func:`os.chmod` """
         os.chmod(self, mode)
         return self
 
     if hasattr(os, 'chown'):
         def chown(self, uid=-1, gid=-1):
+            """ .. seealso:: :func:`os.chown` """
             os.chown(self, uid, gid)
             return self
 
     def rename(self, new):
+        """ .. seealso:: :func:`os.rename` """
         os.rename(self, new)
         return self._next_class(new)
 
     def renames(self, new):
+        """ .. seealso:: :func:`os.renames` """
         os.renames(self, new)
         return self._next_class(new)
 
@@ -1046,10 +1149,13 @@ class path(unicode):
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=o777):
+        """ .. seealso:: :func:`os.mkdir` """
         os.mkdir(self, mode)
         return self
 
     def mkdir_p(self, mode=o777):
+        """ Like :meth:`mkdir`, but does not raise an exception if the
+        directory already exists. """
         try:
             self.mkdir(mode)
         except OSError:
@@ -1059,10 +1165,13 @@ class path(unicode):
         return self
 
     def makedirs(self, mode=o777):
+        """ .. seealso:: :func:`os.makedirs` """
         os.makedirs(self, mode)
         return self
 
     def makedirs_p(self, mode=o777):
+        """ Like :meth:`makedirs`, but does not raise an exception if the
+        directory already exists. """
         try:
             self.makedirs(mode)
         except OSError:
@@ -1072,10 +1181,13 @@ class path(unicode):
         return self
 
     def rmdir(self):
+        """ .. seealso:: :func:`os.rmdir` """
         os.rmdir(self)
         return self
 
     def rmdir_p(self):
+        """ Like :meth:`rmdir`, but does not raise an exception if the
+        directory is not empty or does not exist. """
         try:
             self.rmdir()
         except OSError:
@@ -1085,10 +1197,13 @@ class path(unicode):
         return self
 
     def removedirs(self):
+        """ .. seealso:: :func:`os.removedirs` """
         os.removedirs(self)
         return self
 
     def removedirs_p(self):
+        """ Like :meth:`removedirs`, but does not raise an exception if the
+        directory is not empty or does not exist. """
         try:
             self.removedirs()
         except OSError:
@@ -1109,10 +1224,13 @@ class path(unicode):
         return self
 
     def remove(self):
+        """ .. seealso:: :func:`os.remove` """
         os.remove(self)
         return self
 
     def remove_p(self):
+        """ Like :meth:`remove`, but does not raise an exception if the
+        file does not exist. """
         try:
             self.unlink()
         except OSError:
@@ -1122,10 +1240,13 @@ class path(unicode):
         return self
 
     def unlink(self):
+        """ .. seealso:: :func:`os.unlink` """
         os.unlink(self)
         return self
 
     def unlink_p(self):
+        """ Like :meth:`unlink`, but does not raise an exception if the
+        file does not exist. """
         self.remove_p()
         return self
 
@@ -1133,13 +1254,19 @@ class path(unicode):
 
     if hasattr(os, 'link'):
         def link(self, newpath):
-            """ Create a hard link at 'newpath', pointing to this file. """
+            """ Create a hard link at `newpath`, pointing to this file.
+
+            .. seealso:: :func:`os.link`
+            """
             os.link(self, newpath)
             return self._next_class(newpath)
 
     if hasattr(os, 'symlink'):
         def symlink(self, newlink):
-            """ Create a symbolic link at 'newlink', pointing here. """
+            """ Create a symbolic link at `newlink`, pointing here.
+
+            .. seealso:: :func:`os.symlink`
+            """
             os.symlink(self, newlink)
             return self._next_class(newlink)
 
@@ -1148,6 +1275,8 @@ class path(unicode):
             """ Return the path to which this symbolic link points.
 
             The result may be an absolute or a relative path.
+
+            .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
             """
             return self._next_class(os.readlink(self))
 
@@ -1155,6 +1284,8 @@ class path(unicode):
             """ Return the path to which this symbolic link points.
 
             The result is always an absolute path.
+
+            .. seealso:: :meth:`readlink`, :func:`os.readlink`
             """
             p = self.readlink()
             if p.isabs():
@@ -1176,6 +1307,8 @@ class path(unicode):
     rmtree = shutil.rmtree
 
     def rmtree_p(self):
+        """ Like :meth:`rmtree`, but does not raise an exception if the
+        directory does not exist. """
         try:
             self.rmtree()
         except OSError:
@@ -1185,6 +1318,7 @@ class path(unicode):
         return self
 
     def chdir(self):
+        """ .. seealso:: :func:`os.chdir` """
         os.chdir(self)
 
     cd = chdir
@@ -1194,10 +1328,12 @@ class path(unicode):
 
     if hasattr(os, 'chroot'):
         def chroot(self):
+            """ .. seealso:: :func:`os.chroot` """
             os.chroot(self)
 
     if hasattr(os, 'startfile'):
         def startfile(self):
+            """ .. seealso:: :func:`os.startfile` """
             os.startfile(self)
             return self
 
@@ -1213,6 +1349,8 @@ class tempdir(path):
             # do stuff with the path object "d"
 
         # here the directory is deleted automatically
+
+    .. seealso:: :func:`tempfile.mkdtemp`
     """
 
     @ClassProperty
