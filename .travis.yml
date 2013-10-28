@@ -9,5 +9,4 @@ python:
   - pypy
 
 script:
-  - python setup.py build --build-lib=build/lib
-  - py.test build/lib
+  - py.test
