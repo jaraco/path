@@ -9,8 +9,6 @@ try:
 except ImportError:
     import distutils.core as impl
 
-from distutils.command.build_py import build_py
-
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
 
@@ -32,7 +30,6 @@ kw = dict(
     url="http://github.com/jaraco/path.py",
     license="MIT License",
     py_modules=['path', 'test_path'],
-    cmdclass=dict(build_py=build_py),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
