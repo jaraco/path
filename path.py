@@ -84,9 +84,9 @@ except NameError:
     unicode = str
 
 try:
-    os.getcwdu
+    getcwdu = os.getcwdu
 except AttributeError:
-    os.getcwdu = os.getcwd
+    getcwdu = os.getcwd
 
 if sys.version < '3':
     def u(x):
@@ -222,7 +222,7 @@ class path(unicode):
 
         .. seealso:: :func:`os.getcwdu`
         """
-        return cls(os.getcwdu())
+        return cls(getcwdu())
 
     #
     # --- Operations on path strings.
