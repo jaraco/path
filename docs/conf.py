@@ -2,8 +2,12 @@
 
 project = u'path.py'
 copyright = u'2013, Mikhail Gusarov, Jason R. Coombs'
-version = '3.2'
-release = '3.2.0'
+
+import path
+import re
+
+release = path.__version__
+version = re.match('[^.]+[.][^.]+', release).group(0)
 
 pygments_style = 'sphinx'
 html_theme = 'default'
