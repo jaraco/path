@@ -18,7 +18,7 @@ with open('path.py') as path_mod:
     pattern = re.compile(r'''__version__ = ['"](?P<version>[\d.]+)['"]''')
     version = pattern.search(source).group('version')
 
-kw = dict(
+setup_params = dict(
     name="path.py",
     version=version,
     description="A module wrapper for os.path",
@@ -46,4 +46,4 @@ kw = dict(
 
 
 if __name__ == '__main__':
-    impl.setup(**kw)
+    impl.setup(**setup_params)
