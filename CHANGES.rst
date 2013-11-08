@@ -32,6 +32,9 @@ Changes
 
    For most use-cases, the default behavior should remain the same.
 
+ - ``path.listdir`` and (by extension) ``path.dirs`` and ``path.files`` now
+   use ``path.fnmatch`` for matching patterns.
+
 4.4
 ---
 

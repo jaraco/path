@@ -809,6 +809,37 @@ class TestPatternMatching(object):
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
 
+    def test_listdir_simple(self):
+        p = path('.')
+        assert len(p.listdir()) == len(os.listdir('.'))
+
+    def test_listdir_empty_pattern(self):
+        p = path('.')
+        assert p.listdir('') == []
+
+    def test_listdir_patterns(self, tmpdir):
+        p = path(tmpdir)
+        (p/'sub').mkdir()
+        (p/'File').touch()
+        assert p.listdir('s*') == [p / 'sub']
+        assert len(p.listdir('*')) == 2
+
+    def test_listdir_custom_module(self, tmpdir):
+        """
+        Listdir patterns should honor the case sensitivity of the path module
+        used by that path class.
+        """
+        always_unix = path.using_module(posixpath)
+        p = always_unix(tmpdir)
+        (p/'sub').mkdir()
+        (p/'File').touch()
+        assert p.listdir('S*') == []
+
+        always_win = path.using_module(ntpath)
+        p = always_win(tmpdir)
+        assert p.listdir('S*') == [p/'sub']
+        assert p.listdir('f*') == [p/'File']
+
 
 if __name__ == '__main__':
     unittest.main()

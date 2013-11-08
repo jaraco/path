@@ -468,10 +468,13 @@ class path(unicode):
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
-        names = os.listdir(self)
-        if pattern is not None:
-            names = fnmatch.filter(names, pattern)
-        return [self / child for child in names]
+        if pattern is None:
+            pattern = '*'
+        return [
+            self / child
+            for child in os.listdir(self)
+            if self._next_class(child).fnmatch(pattern)
+        ]
 
     def dirs(self, pattern=None):
         """ D.dirs() -> List of this directory's subdirectories.
