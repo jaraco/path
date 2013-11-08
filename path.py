@@ -455,7 +455,7 @@ class path(unicode):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None):
+    def listdir(self, pattern=None, ignorecase=False):
         """ D.listdir() -> List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -473,10 +473,10 @@ class path(unicode):
         return [
             self / child
             for child in os.listdir(self)
-            if self._next_class(child).fnmatch(pattern)
+            if self._next_class(child).fnmatch(pattern, ignorecase=ignorecase)
         ]
 
-    def dirs(self, pattern=None):
+    def dirs(self, pattern=None, ignorecase=False):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are path objects.
@@ -487,9 +487,9 @@ class path(unicode):
         directories whose names match the given pattern.  For
         example, ``d.dirs('build-*')``.
         """
-        return [p for p in self.listdir(pattern) if p.isdir()]
+        return [p for p in self.listdir(pattern, ignorecase=ignorecase) if p.isdir()]
 
-    def files(self, pattern=None):
+    def files(self, pattern=None, ignorecase=False):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are path objects.
@@ -500,9 +500,9 @@ class path(unicode):
         ``d.files('*.pyc')``.
         """
 
-        return [p for p in self.listdir(pattern) if p.isfile()]
+        return [p for p in self.listdir(pattern, ignorecase=ignorecase) if p.isfile()]
 
-    def walk(self, pattern=None, errors='strict'):
+    def walk(self, pattern=None, errors='strict', ignorecase=False):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -535,7 +535,7 @@ class path(unicode):
                 raise
 
         for child in childList:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child.fnmatch(pattern, ignorecase=ignorecase):
                 yield child
             try:
                 isdir = child.isdir()
@@ -555,7 +555,7 @@ class path(unicode):
                 for item in child.walk(pattern, errors):
                     yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', ignorecase=False):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional `pattern` argument, this yields only
@@ -586,12 +586,12 @@ class path(unicode):
                 raise
 
         for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child.fnmatch(pattern, ignorecase=ignorecase):
                 yield child
             for subsubdir in child.walkdirs(pattern, errors):
                 yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, pattern=None, errors='strict', ignorecase=False):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, `pattern`, limits the results to files
@@ -633,13 +633,13 @@ class path(unicode):
                     raise
 
             if isfile:
-                if pattern is None or child.fnmatch(pattern):
+                if pattern is None or child.fnmatch(pattern, ignorecase=ignorecase):
                     yield child
             elif isdir:
                 for f in child.walkfiles(pattern, errors):
                     yield f
 
-    def fnmatch(self, pattern, normcase=None):
+    def fnmatch(self, pattern, normcase=None, ignorecase=False):
         """ Return ``True`` if `self.name` matches the given pattern.
 
         pattern - A filename pattern with wildcards,
@@ -654,7 +654,9 @@ class path(unicode):
         normcase = normcase or self.module.normcase
         name = normcase(self.name)
         pattern = normcase(pattern)
-        return fnmatch.fnmatchcase(name, pattern)
+        regex = fnmatch.translate(pattern)
+        reobj = re.compile(regex, flags=re.IGNORECASE if ignorecase else 0)
+        return reobj.match(name) is not None
 
     def glob(self, pattern):
         """ Return a list of path objects that match the pattern.
