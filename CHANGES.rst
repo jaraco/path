@@ -25,7 +25,7 @@ Changes
        True
 
    To maintain the original behavior, either don't define the 'module' for the
-   path or pass an explicit normcase function::
+   path or supply explicit normcase function::
 
        >>> p.fnmatch('foo', normcase=os.path.normcase)
        # result always varies based on OS, same as fnmatch.fnmatch
