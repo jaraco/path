@@ -791,5 +791,24 @@ class TestUnicodePaths(unittest.TestCase):
             pass
 
 
+class TestPatternMatching(object):
+    def test_fnmatch_simple(self):
+        p = path('FooBar')
+        assert p.fnmatch('Foo*')
+        assert p.fnmatch('Foo[ABC]ar')
+
+    def test_fnmatch_custom_mod(self):
+        p = path('FooBar')
+        p.module = ntpath
+        assert p.fnmatch('foobar')
+        assert p.fnmatch('FOO[ABC]AR')
+
+    def test_fnmatch_custom_normcase(self):
+        normcase = lambda path: path.upper()
+        p = path('FooBar')
+        assert p.fnmatch('foobar', normcase=normcase)
+        assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
+
+
 if __name__ == '__main__':
     unittest.main()
