@@ -1,6 +1,37 @@
 Changes
 =======
 
+5.0
+---
+
+ - ``path.fnmatch`` now takes an optional parameter ``normcase`` and this
+   parameter defaults to self.module.normcase (using case normalization most
+   pertinent to the path object itself). Note that this change means that
+   any paths using a custom ntpath module on non-Windows systems will have
+   different fnmatch behavior. Before::
+
+       # on Unix
+       >>> p = path('Foo')
+       >>> p.module = ntpath
+       >>> p.fnmatch('foo')
+       False
+
+   After::
+
+       # on any OS
+       >>> p = path('Foo')
+       >>> p.module = ntpath
+       >>> p.fnmatch('foo')
+       True
+
+   To maintain the original behavior, either don't define the 'module' for the
+   path or pass an explicit normcase function::
+
+       >>> p.fnmatch('foo', normcase=os.path.normcase)
+       # result always varies based on OS, same as fnmatch.fnmatch
+
+   For most use-cases, the default behavior should remain the same.
+
 4.4
 ---
 
