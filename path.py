@@ -470,10 +470,11 @@ class path(unicode):
         """
         if pattern is None:
             pattern = '*'
+        normcase = getattr(pattern, 'normcase', None)
         return [
             self / child
             for child in os.listdir(self)
-            if self._next_class(child).fnmatch(pattern)
+            if self._next_class(child).fnmatch(pattern, normcase)
         ]
 
     def dirs(self, pattern=None):
@@ -1413,3 +1414,14 @@ def _permission_mask(mode):
 
     op_map = {'+': operator.or_, '-': operator.and_}
     return functools.partial(op_map[op], mask)
+
+
+class CaseInsensitivePattern(unicode):
+    """
+    A string with a 'normcase' property, suitable for passing to
+    :meth:`listdir`, :meth:`dirs`, or :meth:`files` to match case-insensitive.
+    """
+
+    @property
+    def normcase(self):
+        return __import__('ntpath').normcase
