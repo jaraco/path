@@ -32,11 +32,11 @@ Changes
 
    For most use-cases, the default behavior should remain the same.
 
- - Methods that accept patterns (``listdir``, ``files``, ``dirs``, ``walk``,
-   ``walkdirs``, ``walkfiles``, and ``fnmatch``) will now use a ``normcase``
-   attribute if it is present on the ``pattern`` parameter. The path module
-   now provides a ``CaseInsensitivePattern`` wrapper for strings suitable for
-   creating case-insensitive patterns for those methods.
+ - Issue #50: Methods that accept patterns (``listdir``, ``files``, ``dirs``,
+   ``walk``, ``walkdirs``, ``walkfiles``, and ``fnmatch``) will now use a
+   ``normcase`` attribute if it is present on the ``pattern`` parameter. The
+   path module now provides a ``CaseInsensitivePattern`` wrapper for strings
+   suitable for creating case-insensitive patterns for those methods.
 
 4.4
 ---
