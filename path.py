@@ -102,7 +102,7 @@ o554 = 364
 ################################
 
 __version__ = '4.4'
-__all__ = ['path']
+__all__ = ['path', 'CaseInsensitivePattern']
 
 
 class TreeWalkWarning(Warning):
@@ -1420,7 +1420,14 @@ def _permission_mask(mode):
 class CaseInsensitivePattern(unicode):
     """
     A string with a 'normcase' property, suitable for passing to
-    :meth:`listdir`, :meth:`dirs`, or :meth:`files` to match case-insensitive.
+    :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
+    :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
+
+    For example, to get all files ending in .py, .Py, .pY, or .PY in the
+    current directory::
+
+        from path import path, CaseInsensitivePattern as ci
+        path('.').files(ci('*.py'))
     """
 
     @property

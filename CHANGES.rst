@@ -32,8 +32,11 @@ Changes
 
    For most use-cases, the default behavior should remain the same.
 
- - ``path.listdir`` and (by extension) ``path.dirs`` and ``path.files`` now
-   use ``path.fnmatch`` for matching patterns.
+ - Methods that accept patterns (``listdir``, ``files``, ``dirs``, ``walk``,
+   ``walkdirs``, ``walkfiles``, and ``fnmatch``) will now use a ``normcase``
+   attribute if it is present on the ``pattern`` parameter. The path module
+   now provides a ``CaseInsensitivePattern`` wrapper for strings suitable for
+   creating case-insensitive patterns for those methods.
 
 4.4
 ---
