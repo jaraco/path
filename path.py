@@ -105,7 +105,7 @@ o554 = 364
 # Python 2.5 compatibility
 try:
     from functools import reduce
-except AttributeError:
+except ImportError:
     pass
 ##########################
 
@@ -702,7 +702,6 @@ class path(unicode):
 
            :example:
 
-               >>> import hashlib
                >>> hash = hashlib.md5()
                >>> for chunk in path("path.py").chunks(8192, mode='rb'):
                ...     hash.update(chunk)
