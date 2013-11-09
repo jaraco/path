@@ -101,6 +101,14 @@ o666 = 438
 o554 = 364
 ################################
 
+##########################
+# Python 2.5 compatibility
+try:
+    from functools import reduce
+except AttributeError:
+    pass
+##########################
+
 __version__ = '5.1'
 __all__ = ['path', 'CaseInsensitivePattern']
 
