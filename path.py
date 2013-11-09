@@ -101,7 +101,7 @@ o666 = 438
 o554 = 364
 ################################
 
-__version__ = '4.4'
+__version__ = '5.0'
 __all__ = ['path', 'CaseInsensitivePattern']
 
 
