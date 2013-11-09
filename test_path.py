@@ -33,6 +33,7 @@ import ntpath
 import posixpath
 
 from path import path, tempdir, u
+from path import CaseInsensitivePattern as ci
 
 # Octals for python 2 & 3 support
 o750 = 488
@@ -840,6 +841,30 @@ class TestPatternMatching(object):
         assert p.listdir('S*') == [p/'sub']
         assert p.listdir('f*') == [p/'File']
 
+    def test_listdir_case_insensitive(self, tmpdir):
+        """
+        Listdir patterns should honor the case sensitivity of the path module
+        used by that path class.
+        """
+        p = path(tmpdir)
+        (p/'sub').mkdir()
+        (p/'File').touch()
+        assert p.listdir(ci('S*')) == [p/'sub']
+        assert p.listdir(ci('f*')) == [p/'File']
+        assert p.files(ci('S*')) == []
+        assert p.dirs(ci('f*')) == []
+
+    def test_walk_case_insensitive(self, tmpdir):
+        p = path(tmpdir)
+        (p/'sub1'/'foo').makedirs_p()
+        (p/'sub2'/'foo').makedirs_p()
+        (p/'sub1'/'foo'/'bar.Txt').touch()
+        (p/'sub2'/'foo'/'bar.TXT').touch()
+        (p/'sub2'/'foo'/'bar.txt.bz2').touch()
+        files = list(p.walkfiles(ci('*.txt')))
+        assert len(files) == 2
+        assert p/'sub2'/'foo'/'bar.TXT' in files
+        assert p/'sub1'/'foo'/'bar.Txt' in files
 
 if __name__ == '__main__':
     unittest.main()
