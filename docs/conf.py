@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-project = u'path.py'
-copyright = u'2013, Mikhail Gusarov, Jason R. Coombs'
+project = 'path.py'
+copyright = '2013, Mikhail Gusarov, Jason R. Coombs'
 
 import path
 import re
