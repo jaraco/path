@@ -702,8 +702,10 @@ class path(unicode):
 
            :example:
 
-               >>> for chunk in path("file.txt").chunk(8192):
-               ...    print(chunk)
+               >>> import hashlib
+               >>> hash = hashlib.md5()
+               >>> for chunk in path("path.py").chunks(8192, mode='rb'):
+               ...     hash.update(chunk)
 
             This will read the file by chunks of 8192 bytes.
         """
