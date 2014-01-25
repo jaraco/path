@@ -1,7 +1,7 @@
 path.py
 =======
 
-`path.py` implements a path objects as first-class entities, allowing
+``path.py`` implements a path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For
 example::
 
@@ -10,9 +10,16 @@ example::
     for f in d.files('*.py'):
         f.chmod(0755)
 
-`path.py` is `hosted at Github <https://github.com/jaraco/path.py>`_.
+``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
 Documentation is `hosted with PyPI <https://pythonhosted.org/path.py/>`_.
+
+Guides and Testimonials
+=======================
+
+Yasoob has written the Python 101 `Writing a Cleanup Script
+<http://freepythontips.wordpress.com/2014/01/23/python-101-writing-a-cleanup-script/>`_
+based on ``path.py``.
 
 Installing
 ==========
