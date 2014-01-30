@@ -31,6 +31,10 @@ import tempfile
 import time
 import ntpath
 import posixpath
+import textwrap
+import platform
+
+import pytest
 
 from path import path, tempdir, u
 from path import CaseInsensitivePattern as ci
@@ -865,6 +869,56 @@ class TestPatternMatching(object):
         assert len(files) == 2
         assert p/'sub2'/'foo'/'bar.TXT' in files
         assert p/'sub1'/'foo'/'bar.Txt' in files
+
+class TestInPlace(object):
+    reference_content = textwrap.dedent("""
+        The quick brown fox jumped over the lazy dog.
+        """.lstrip())
+    reversed_content = textwrap.dedent("""
+        .god yzal eht revo depmuj xof nworb kciuq ehT
+        """.lstrip())
+    alternate_content = textwrap.dedent("""
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+        sed do eiusmod tempor incididunt ut labore et dolore magna
+        aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+        ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        Duis aute irure dolor in reprehenderit in voluptate velit
+        esse cillum dolore eu fugiat nulla pariatur. Excepteur
+        sint occaecat cupidatat non proident, sunt in culpa qui
+        officia deserunt mollit anim id est laborum.
+        """.lstrip())
+
+    @classmethod
+    def create_reference(cls, tmpdir):
+        p = path(tmpdir)/'document'
+        with p.open('w') as stream:
+            stream.write(cls.reference_content)
+        return p
+
+    def test_line_by_line_rewrite(self, tmpdir):
+        doc = self.create_reference(tmpdir)
+        # reverse all the text in the document, line by line
+        with doc.in_place() as (reader, writer):
+            for line in reader:
+                r_line = ''.join(reversed(line.strip())) + '\n'
+                writer.write(r_line)
+        with doc.open() as stream:
+            data = stream.read()
+        assert data == self.reversed_content
+
+    @pytest.mark.xfail(platform.system() == 'Windows',
+        reason="cannot rename open file on Windows")
+    def test_exception_in_context(self, tmpdir):
+        doc = self.create_reference(tmpdir)
+        with pytest.raises(RuntimeError) as exc:
+            with doc.in_place() as (reader, writer):
+                writer.write(self.alternate_content)
+                raise RuntimeError("some error")
+        assert str(exc) == "some error"
+        with doc.open() as stream:
+            data = stream.read()
+        assert not 'Lorem' in data
+        assert 'lazy dog' in data
 
 if __name__ == '__main__':
     unittest.main()
