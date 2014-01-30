@@ -1375,6 +1375,17 @@ class path(unicode):
 
         Mode *must not* use 'w', 'a' or '+'; only read-only-modes are
         allowed. A ValueError is raised on invalid modes.
+
+        For example, to add line numbers to a file::
+
+            p = path(filename)
+            assert p.isfile()
+            with p.in_place() as reader, writer:
+                for number, line in enumerate(reader, 1):
+                    writer.write('{0:3}: '.format(number)))
+                    writer.write(line)
+
+        Thereafter, the file at filename will have line numbers in it.
         """
         import io
 

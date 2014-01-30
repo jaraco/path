@@ -1,6 +1,11 @@
 Changes
 =======
 
+5.1
+---
+
+ - #53: Added ``path.in_place`` for editing files in place.
+
 5.0
 ---
 
