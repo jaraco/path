@@ -110,7 +110,7 @@ except ImportError:
     pass
 ##########################
 
-__version__ = '5.1'
+__version__ = '5.2'
 __all__ = ['path', 'CaseInsensitivePattern']
 
 
