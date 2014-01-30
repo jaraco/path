@@ -917,7 +917,7 @@ class TestInPlace(object):
             with doc.in_place() as (reader, writer):
                 writer.write(self.alternate_content)
                 raise RuntimeError("some error")
-        assert str(exc) == "some error"
+        assert "some error" in str(exc)
         with doc.open() as stream:
             data = stream.read()
         assert not 'Lorem' in data
