@@ -874,13 +874,13 @@ class TestPatternMatching(object):
 @pytest.mark.skipif(sys.version_info < (2, 6),
     reason="in_place requires io module in Python 2.6")
 class TestInPlace(object):
-    reference_content = textwrap.dedent("""
+    reference_content = u(textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
-        """.lstrip())
-    reversed_content = textwrap.dedent("""
+        """.lstrip()))
+    reversed_content = u(textwrap.dedent("""
         .god yzal eht revo depmuj xof nworb kciuq ehT
-        """.lstrip())
-    alternate_content = textwrap.dedent("""
+        """.lstrip()))
+    alternate_content = u(textwrap.dedent("""
           Lorem ipsum dolor sit amet, consectetur adipisicing elit,
         sed do eiusmod tempor incididunt ut labore et dolore magna
         aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -889,7 +889,7 @@ class TestInPlace(object):
         esse cillum dolore eu fugiat nulla pariatur. Excepteur
         sint occaecat cupidatat non proident, sunt in culpa qui
         officia deserunt mollit anim id est laborum.
-        """.lstrip())
+        """.lstrip()))
 
     @classmethod
     def create_reference(cls, tmpdir):
