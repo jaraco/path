@@ -1362,50 +1362,52 @@ class path(unicode):
     # in-place re-writing, courtesy of Martijn Pieters
     # http://www.zopatista.com/python/2013/11/26/inplace-file-rewriting/
     @contextlib.contextmanager
-    def inplace(filename, mode='r', buffering=-1, encoding=None, errors=None,
-                newline=None, backup_extension=None):
-        """Allow for a file to be replaced with new content.
+    def in_place(self, mode='r', buffering=-1, encoding=None, errors=None,
+            newline=None, backup_extension=None):
+        """
+        A context in which a file may be re-written in-place with new content.
 
-        yields a tuple of (readable, writable) file objects, where writable
+        Yields a tuple of (readable, writable) file objects, where writable
         replaces readable.
 
         If an exception occurs, the old file is restored, removing the
         written data.
 
-        mode should *not* use 'w', 'a' or '+'; only read-only-modes are supported.
-
+        Mode *must not* use 'w', 'a' or '+'; only read-only-modes are
+        allowed. A ValueError is raised on invalid modes.
         """
         import io
 
-        # move existing file to backup, create new file with same permissions
-        # borrowed extensively from the fileinput module
         if set(mode).intersection('wa+'):
             raise ValueError('Only read-only file modes can be used')
 
-        backupfilename = filename + (backup_extension or os.extsep + 'bak')
+        # move existing file to backup, create new file with same permissions
+        # borrowed extensively from the fileinput module
+        backup_fn = self + (backup_extension or os.extsep + 'bak')
         try:
-            os.unlink(backupfilename)
+            os.unlink(backup_fn)
         except os.error:
             pass
-        os.rename(filename, backupfilename)
-        readable = io.open(backupfilename, mode, buffering=buffering,
-                           encoding=encoding, errors=errors, newline=newline)
+        os.rename(self, backup_fn)
+        readable = io.open(backup_fn, mode, buffering=buffering,
+            encoding=encoding, errors=errors, newline=newline)
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
-            writable = open(filename, 'w' + mode.replace('r', ''),
-                            buffering=buffering, encoding=encoding, errors=errors,
-                            newline=newline)
+            writable = open(self, 'w' + mode.replace('r', ''),
+                buffering=buffering, encoding=encoding, errors=errors,
+                newline=newline)
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             if hasattr(os, 'O_BINARY'):
                 os_mode |= os.O_BINARY
-            fd = os.open(filename, os_mode, perm)
-            writable = io.open(fd, "w" + mode.replace('r', ''), buffering=buffering,
-                               encoding=encoding, errors=errors, newline=newline)
+            fd = os.open(self, os_mode, perm)
+            writable = io.open(fd, "w" + mode.replace('r', ''),
+                buffering=buffering, encoding=encoding, errors=errors,
+                newline=newline)
             try:
                 if hasattr(os, 'chmod'):
-                    os.chmod(filename, perm)
+                    os.chmod(self, perm)
             except OSError:
                 pass
         try:
@@ -1413,16 +1415,16 @@ class path(unicode):
         except Exception:
             # move backup back
             try:
-                os.unlink(filename)
+                os.unlink(self)
             except os.error:
                 pass
-            os.rename(backupfilename, filename)
+            os.rename(backup_fn, self)
             raise
         finally:
             readable.close()
             writable.close()
             try:
-                os.unlink(backupfilename)
+                os.unlink(backup_fn)
             except os.error:
                 pass
 
