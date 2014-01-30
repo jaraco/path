@@ -1425,15 +1425,18 @@ class path(unicode):
             yield readable, writable
         except Exception:
             # move backup back
+            readable.close()
+            writable.close()
             try:
                 os.unlink(self)
             except os.error:
                 pass
             os.rename(backup_fn, self)
             raise
-        finally:
+        else:
             readable.close()
             writable.close()
+        finally:
             try:
                 os.unlink(backup_fn)
             except os.error:

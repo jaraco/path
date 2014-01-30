@@ -909,8 +909,6 @@ class TestInPlace(object):
             data = stream.read()
         assert data == self.reversed_content
 
-    @pytest.mark.xfail(platform.system() == 'Windows',
-        reason="cannot rename open file on Windows")
     def test_exception_in_context(self, tmpdir):
         doc = self.create_reference(tmpdir)
         with pytest.raises(RuntimeError) as exc:
