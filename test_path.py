@@ -300,10 +300,10 @@ class ScratchDirTestCase(unittest.TestCase):
         try:
             self.assert_(f.exists())
             self.assert_(f.isfile())
-            self.assertEqual(f.size, 0)
-            self.assert_(t0 <= f.mtime <= t1)
+            self.assertEqual(f.file.size, 0)
+            self.assert_(t0 <= f.file.mtime <= t1)
             if hasattr(os.path, 'getctime'):
-                ct = f.ctime
+                ct = f.file.ctime
                 self.assert_(t0 <= ct <= t1)
 
             time.sleep(5)
@@ -320,10 +320,10 @@ class ScratchDirTestCase(unittest.TestCase):
 
             self.assert_(f.exists())
             self.assert_(f.isfile())
-            self.assertEqual(f.size, 10)
-            self.assert_(t2 <= f.mtime <= t3)
+            self.assertEqual(f.file.size, 10)
+            self.assert_(t2 <= f.file.mtime <= t3)
             if hasattr(os.path, 'getctime'):
-                ct2 = f.ctime
+                ct2 = f.file.ctime
                 if os.name == 'nt':
                     # On Windows, "ctime" is CREATION time
                     self.assertEqual(ct, ct2)
@@ -331,7 +331,7 @@ class ScratchDirTestCase(unittest.TestCase):
                 else:
                     # On other systems, it might be the CHANGE time
                     # (especially on Unix, time of inode changes)
-                    self.failUnless(ct == ct2 or ct2 == f.mtime)
+                    self.failUnless(ct == ct2 or ct2 == f.file.mtime)
         finally:
             f.remove()
 
@@ -446,13 +446,13 @@ class ScratchDirTestCase(unittest.TestCase):
         # Test simple file copying.
         testFile.copyfile(testCopy)
         self.assert_(testCopy.isfile())
-        self.assert_(testFile.bytes() == testCopy.bytes())
+        self.assert_(testFile.file.bytes() == testCopy.file.bytes())
 
         # Test copying into a directory.
         testCopy2 = testA / testFile.name
         testFile.copy(testA)
         self.assert_(testCopy2.isfile())
-        self.assert_(testFile.bytes() == testCopy2.bytes())
+        self.assert_(testFile.file.bytes() == testCopy2.file.bytes())
 
         # Make a link for the next test to use.
         if hasattr(os, 'symlink'):
@@ -571,10 +571,10 @@ class ScratchDirTestCase(unittest.TestCase):
 
             # test all 3 path read-fully functions, including
             # path.lines() in unicode mode.
-            self.assertEqual(p.bytes(), given.encode(enc))
-            self.assertEqual(p.text(enc), clean)
-            self.assertEqual(p.lines(enc), expectedLines)
-            self.assertEqual(p.lines(enc, retain=False), expectedLines2)
+            self.assertEqual(p.file.bytes(), given.encode(enc))
+            self.assertEqual(p.file.text(enc), clean)
+            self.assertEqual(p.file.lines(enc), expectedLines)
+            self.assertEqual(p.file.lines(enc, retain=False), expectedLines2)
 
             # If this is UTF-16, that's enough.
             # The rest of these will unfortunately fail because append=True
@@ -586,40 +586,40 @@ class ScratchDirTestCase(unittest.TestCase):
             # Write Unicode to file using path.write_text().
             cleanNoHanging = clean + u('\n')  # This test doesn't work with a
                                               # hanging line.
-            p.write_text(cleanNoHanging, enc)
-            p.write_text(cleanNoHanging, enc, append=True)
+            p.file.write_text(cleanNoHanging, enc)
+            p.file.write_text(cleanNoHanging, enc, append=True)
             # Check the result.
             expectedBytes = 2 * cleanNoHanging.replace('\n',
                                                        os.linesep).encode(enc)
             expectedLinesNoHanging = expectedLines[:]
             expectedLinesNoHanging[-1] += '\n'
-            self.assertEqual(p.bytes(), expectedBytes)
-            self.assertEqual(p.text(enc), 2 * cleanNoHanging)
-            self.assertEqual(p.lines(enc), 2 * expectedLinesNoHanging)
-            self.assertEqual(p.lines(enc, retain=False), 2 * expectedLines2)
+            self.assertEqual(p.file.bytes(), expectedBytes)
+            self.assertEqual(p.file.text(enc), 2 * cleanNoHanging)
+            self.assertEqual(p.file.lines(enc), 2 * expectedLinesNoHanging)
+            self.assertEqual(p.file.lines(enc, retain=False), 2 * expectedLines2)
 
             # Write Unicode to file using path.write_lines().
             # The output in the file should be exactly the same as last time.
-            p.write_lines(expectedLines, enc)
-            p.write_lines(expectedLines2, enc, append=True)
+            p.file.write_lines(expectedLines, enc)
+            p.file.write_lines(expectedLines2, enc, append=True)
             # Check the result.
-            self.assertEqual(p.bytes(), expectedBytes)
+            self.assertEqual(p.file.bytes(), expectedBytes)
 
             # Now: same test, but using various newline sequences.
             # If linesep is being properly applied, these will be converted
             # to the platform standard newline sequence.
-            p.write_lines(givenLines, enc)
-            p.write_lines(givenLines, enc, append=True)
+            p.file.write_lines(givenLines, enc)
+            p.file.write_lines(givenLines, enc, append=True)
             # Check the result.
-            self.assertEqual(p.bytes(), expectedBytes)
+            self.assertEqual(p.file.bytes(), expectedBytes)
 
             # Same test, using newline sequences that are different
             # from the platform default.
             def testLinesep(eol):
-                p.write_lines(givenLines, enc, linesep=eol)
-                p.write_lines(givenLines, enc, linesep=eol, append=True)
+                p.file.write_lines(givenLines, enc, linesep=eol)
+                p.file.write_lines(givenLines, enc, linesep=eol, append=True)
                 expected = 2 * cleanNoHanging.replace(u('\n'), eol).encode(enc)
-                self.assertEqual(p.bytes(), expected)
+                self.assertEqual(p.file.bytes(), expected)
 
             testLinesep(u('\n'))
             testLinesep(u('\r'))
@@ -627,16 +627,16 @@ class ScratchDirTestCase(unittest.TestCase):
             testLinesep(u('\x0d\x85'))
 
             # Again, but with linesep=None.
-            p.write_lines(givenLines, enc, linesep=None)
-            p.write_lines(givenLines, enc, linesep=None, append=True)
+            p.file.write_lines(givenLines, enc, linesep=None)
+            p.file.write_lines(givenLines, enc, linesep=None, append=True)
             # Check the result.
             expectedBytes = 2 * given.encode(enc)
-            self.assertEqual(p.bytes(), expectedBytes)
-            self.assertEqual(p.text(enc), 2 * clean)
+            self.assertEqual(p.file.bytes(), expectedBytes)
+            self.assertEqual(p.file.text(enc), 2 * clean)
             expectedResultLines = expectedLines[:]
             expectedResultLines[-1] += expectedLines[0]
             expectedResultLines += expectedLines[1:]
-            self.assertEqual(p.lines(enc), expectedResultLines)
+            self.assertEqual(p.file.lines(enc), expectedResultLines)
 
         test('UTF-8')
         test('UTF-16BE')
@@ -647,19 +647,19 @@ class ScratchDirTestCase(unittest.TestCase):
         p = (tempdir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
-        p.write_text(txt)
-        for i, chunk in enumerate(p.chunks(size)):
+        p.file.write_text(txt)
+        for i, chunk in enumerate(p.file.chunks(size)):
             self.assertEqual(chunk, txt[i * size:i * size + size])
 
         self.assertEqual(i, len(txt) / size - 1)
 
     def testSameFile(self):
         f1 = (tempdir() / '1.txt').touch()
-        f1.write_text('foo')
+        f1.file.write_text('foo')
         f2 = (tempdir() / '2.txt').touch()
-        f1.write_text('foo')
+        f1.file.write_text('foo')
         f3 = (tempdir() / '3.txt').touch()
-        f1.write_text('bar')
+        f1.file.write_text('bar')
         f4 = (tempdir() / '4.txt')
         f1.copyfile(f4)
 
@@ -679,7 +679,7 @@ class ScratchDirTestCase(unittest.TestCase):
         d = path(self.tempdir)
         sub = d / 'subfolder'
         sub.mkdir()
-        (sub / 'afile').write_text('something')
+        (sub / 'afile').file.write_text('something')
         sub.rmtree_p()
         self.assertFalse(sub.exists())
         try:
@@ -781,6 +781,8 @@ class TempDirTestCase(unittest.TestCase):
 
 
 class TestUnicodePaths(unittest.TestCase):
+
+
     def setup_method(self, method):
         # Create a temporary directory.
         self.tempdir = tempfile.mkdtemp()
@@ -894,12 +896,12 @@ class TestInPlace(object):
     @classmethod
     def create_reference(cls, tmpdir):
         p = path(tmpdir)/'document'
-        with p.open('w') as stream:
+        with p.file.open('w') as stream:
             stream.write(cls.reference_content)
         return p
 
     def test_line_by_line_rewrite(self, tmpdir):
-        doc = self.create_reference(tmpdir)
+        doc = self.create_reference(tmpdir).file
         # reverse all the text in the document, line by line
         with doc.in_place() as (reader, writer):
             for line in reader:
@@ -910,7 +912,7 @@ class TestInPlace(object):
         assert data == self.reversed_content
 
     def test_exception_in_context(self, tmpdir):
-        doc = self.create_reference(tmpdir)
+        doc = self.create_reference(tmpdir).file
         with pytest.raises(RuntimeError) as exc:
             with doc.in_place() as (reader, writer):
                 writer.write(self.alternate_content)

@@ -50,6 +50,7 @@ from __future__ import with_statement
 import sys
 import warnings
 import os
+import io
 import fnmatch
 import glob
 import shutil
@@ -153,6 +154,541 @@ class multimethod(object):
         )
 
 
+class File(object):
+    """
+        Class used as a namespace to group file related operation.
+    """
+    def __init__(self, path):
+        self.path = path
+
+    #
+    # --- Reading or writing an entire file at once.
+
+    def open(self, *args, **kwargs):
+        """ Open this file.  Return a file object.
+
+        .. seealso:: :func:`python:open`
+        """
+        return open(self.path, *args, **kwargs)
+
+    def bytes(self):
+        """ Open this file, read all bytes, return them as a string. """
+        with self.open('rb') as f:
+            return f.read()
+
+    def chunks(self, size, *args, **kwargs):
+        """ Returns a generator yielding chunks of the file, so it can
+            be read piece by piece with a simple for loop.
+
+           Any argument you pass after `size` will be passed to `open()`.
+
+           :example:
+
+               >>> hash = hashlib.md5()
+               >>> for chunk in path("path.py").chunks(8192, mode='rb'):
+               ...     hash.update(chunk)
+
+            This will read the file by chunks of 8192 bytes.
+        """
+        with self.open(*args, **kwargs) as f:
+            while True:
+                d = f.read(size)
+                if not d:
+                    break
+                yield d
+
+    def write_bytes(self, bytes, append=False):
+        """ Open this file and write the given bytes to it.
+
+        Default behavior is to overwrite any existing file.
+        Call ``p.write_bytes(bytes, append=True)`` to append instead.
+        """
+        if append:
+            mode = 'ab'
+        else:
+            mode = 'wb'
+        with self.open(mode) as f:
+            f.write(bytes)
+
+    def text(self, encoding=None, errors='strict'):
+        r""" Open this file, read it in, return the content as a string.
+
+        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
+        automatically translated to ``'\n'``.
+
+        Optional arguments:
+            `encoding` - The Unicode encoding (or character set) of
+                the file.  If present, the content of the file is
+                decoded and returned as a unicode object; otherwise
+                it is returned as an 8-bit str.
+            `errors` - How to handle Unicode errors; see :meth:`str.decode`
+                for the options.  Default is 'strict'.
+
+        .. seealso:: :meth:`lines`
+        """
+        if encoding is None:
+            # 8-bit
+            with self.open('U') as f:
+                return f.read()
+        else:
+            # Unicode
+            with codecs.open(self.path, 'r', encoding, errors) as f:
+                # (Note - Can't use 'U' mode here, since codecs.open
+                # doesn't support 'U' mode.)
+                t = f.read()
+            return (t.replace(u('\r\n'), u('\n'))
+                     .replace(u('\r\x85'), u('\n'))
+                     .replace(u('\r'), u('\n'))
+                     .replace(u('\x85'), u('\n'))
+                     .replace(u('\u2028'), u('\n')))
+
+    def write_text(self, text, encoding=None, errors='strict',
+                   linesep=os.linesep, append=False):
+        r""" Write the given text to this file.
+
+        The default behavior is to overwrite any existing file;
+        to append instead, use the `append=True` keyword argument.
+
+        There are two differences between :meth:`write_text` and
+        :meth:`write_bytes`: newline handling and Unicode handling.
+        See below.
+
+        Parameters:
+
+          `text` - str/unicode - The text to be written.
+
+          `encoding` - str - The Unicode encoding that will be used.
+              This is ignored if 'text' isn't a Unicode string.
+
+          `errors` - str - How to handle Unicode encoding errors.
+              Default is 'strict'.  See help(unicode.encode) for the
+              options.  This is ignored if 'text' isn't a Unicode
+              string.
+
+          `linesep` - keyword argument - str/unicode - The sequence of
+              characters to be used to mark end-of-line.  The default is
+              :data:`os.linesep`.  You can also specify ``None``; this means to
+              leave all newlines as they are in `text`.
+
+          `append` - keyword argument - bool - Specifies what to do if
+              the file already exists (``True``: append to the end of it;
+              ``False``: overwrite it.)  The default is ``False``.
+
+
+        --- Newline handling.
+
+        write_text() converts all standard end-of-line sequences
+        (``'\n'``, ``'\r'``, and ``'\r\n'``) to your platform's default
+        end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
+        the end-of-line marker is ``'\r\n'``).
+
+        If you don't like your platform's default, you can override it
+        using the `linesep=` keyword argument.  If you specifically want
+        write_text() to preserve the newlines as-is, use ``linesep=None``.
+
+        This applies to Unicode text the same as to 8-bit text, except
+        there are three additional standard Unicode end-of-line sequences:
+        ``u'\x85'``, ``u'\r\x85'``, and ``u'\u2028'``.
+
+        (This is slightly different from when you open a file for
+        writing with ``fopen(filename, "w")`` in C or ``open(filename, 'w')``
+        in Python.)
+
+
+        --- Unicode
+
+        If `text` isn't Unicode, then apart from newline handling, the
+        bytes are written verbatim to the file.  The `encoding` and
+        `errors` arguments are not used and must be omitted.
+
+        If `text` is Unicode, it is first converted to bytes using the
+        specified 'encoding' (or the default encoding if `encoding`
+        isn't specified).  The `errors` argument applies only to this
+        conversion.
+
+        """
+        if isinstance(text, unicode):
+            if linesep is not None:
+                # Convert all standard end-of-line sequences to
+                # ordinary newline characters.
+                text = (text.replace(u('\r\n'), u('\n'))
+                            .replace(u('\r\x85'), u('\n'))
+                            .replace(u('\r'), u('\n'))
+                            .replace(u('\x85'), u('\n'))
+                            .replace(u('\u2028'), u('\n')))
+                text = text.replace(u('\n'), linesep)
+            if encoding is None:
+                encoding = sys.getdefaultencoding()
+            bytes = text.encode(encoding, errors)
+        else:
+            # It is an error to specify an encoding if 'text' is
+            # an 8-bit string.
+            assert encoding is None
+
+            if linesep is not None:
+                text = (text.replace('\r\n', '\n')
+                            .replace('\r', '\n'))
+                bytes = text.replace('\n', linesep)
+
+        self.write_bytes(bytes, append)
+
+    def lines(self, encoding=None, errors='strict', retain=True):
+        r""" Open this file, read all lines, return them in a list.
+
+        Optional arguments:
+            `encoding` - The Unicode encoding (or character set) of
+                the file.  The default is None, meaning the content
+                of the file is read as 8-bit characters and returned
+                as a list of (non-Unicode) str objects.
+            `errors` - How to handle Unicode errors; see help(str.decode)
+                for the options.  Default is 'strict'
+            `retain` - If true, retain newline characters; but all newline
+                character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
+                translated to ``'\n'``.  If false, newline characters are
+                stripped off.  Default is True.
+
+        This uses ``'U'`` mode.
+
+        .. seealso:: :meth:`text`
+        """
+        if encoding is None and retain:
+            with self.open('U') as f:
+                return f.readlines()
+        else:
+            return self.text(encoding, errors).splitlines(retain)
+
+    def write_lines(self, lines, encoding=None, errors='strict',
+                    linesep=os.linesep, append=False):
+        r""" Write the given lines of text to this file.
+
+        By default this overwrites any existing file at this path.
+
+        This puts a platform-specific newline sequence on every line.
+        See `linesep` below.
+
+            `lines` - A list of strings.
+
+            `encoding` - A Unicode encoding to use.  This applies only if
+                `lines` contains any Unicode strings.
+
+            `errors` - How to handle errors in Unicode encoding.  This
+                also applies only to Unicode strings.
+
+            linesep - The desired line-ending.  This line-ending is
+                applied to every line.  If a line already has any
+                standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
+                ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
+                be stripped off and this will be used instead.  The
+                default is os.linesep, which is platform-dependent
+                (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
+                Specify ``None`` to write the lines as-is, like
+                :meth:`file.writelines`.
+
+        Use the keyword argument append=True to append lines to the
+        file.  The default is to overwrite the file.  Warning:
+        When you use this with Unicode data, if the encoding of the
+        existing data in the file is different from the encoding
+        you specify with the encoding= parameter, the result is
+        mixed-encoding data, which can really confuse someone trying
+        to read the file later.
+        """
+        if append:
+            mode = 'ab'
+        else:
+            mode = 'wb'
+        with self.open(mode) as f:
+            for line in lines:
+                is_unicode = isinstance(line, unicode)
+                if linesep is not None:
+                    # Strip off any existing line-end and add the
+                    # specified linesep string.
+                    if is_unicode:
+                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
+                            line = line[:-2]
+                        elif line[-1:] in (u('\r'), u('\n'),
+                                           u('\x85'), u('\u2028')):
+                            line = line[:-1]
+                    else:
+                        if line[-2:] == '\r\n':
+                            line = line[:-2]
+                        elif line[-1:] in ('\r', '\n'):
+                            line = line[:-1]
+                    line += linesep
+                if is_unicode:
+                    if encoding is None:
+                        encoding = sys.getdefaultencoding()
+                    line = line.encode(encoding, errors)
+                f.write(line)
+
+    def read_md5(self):
+        """ Calculate the md5 hash for this file.
+
+        This reads through the entire file.
+
+        .. seealso:: :meth:`read_hash`
+        """
+        return self.read_hash('md5')
+
+    def _hash(self, hash_name):
+        """ Returns a hash object for the file at the current path.
+
+            `hash_name` should be a hash algo name such as 'md5' or 'sha1'
+            that's available in the :mod:`hashlib` module.
+        """
+        m = hashlib.new(hash_name)
+        for chunk in self.chunks(8192, mode="rb"):
+            m.update(chunk)
+        return m
+
+    def read_hash(self, hash_name):
+        """ Calculate given hash for this file.
+
+        List of supported hashes can be obtained from :mod:`hashlib` package.
+        This reads the entire file.
+
+        .. seealso:: :meth:`hashlib.hash.digest`
+        """
+        return self._hash(hash_name).digest()
+
+    def read_hexhash(self, hash_name):
+        """ Calculate given hash for this file, returning hexdigest.
+
+        List of supported hashes can be obtained from :mod:`hashlib` package.
+        This reads the entire file.
+
+        .. seealso:: :meth:`hashlib.hash.hexdigest`
+        """
+        return self._hash(hash_name).hexdigest()
+
+
+    def getatime(self):
+        """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
+        return self.module.getatime(self.path)
+
+    atime = property(
+        getatime, None, None,
+        """ Last access time of the file.
+
+        .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
+        """)
+
+    def getmtime(self):
+        """ .. seealso:: :attr:`mtime`, :func:`os.path.getmtime` """
+        return self.path.module.getmtime(self.path)
+
+    mtime = property(
+        getmtime, None, None,
+        """ Last-modified time of the file.
+
+        .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
+        """)
+
+    def getctime(self):
+        """ .. seealso:: :attr:`ctime`, :func:`os.path.getctime` """
+        return self.path.module.getctime(self.path)
+
+    ctime = property(
+        getctime, None, None,
+        """ Creation time of the file.
+
+        .. seealso:: :meth:`getctime`, :func:`os.path.getctime`
+        """)
+
+    def getsize(self):
+        """ .. seealso:: :attr:`size`, :func:`os.path.getsize` """
+        return self.path.module.getsize(self.path)
+
+    size = property(
+        getsize, None, None,
+        """ Size of the file, in bytes.
+
+        .. seealso:: :meth:`getsize`, :func:`os.path.getsize`
+        """)
+
+    if hasattr(os, 'access'):
+        def access(self, mode):
+            """ Return true if current user has access to this path.
+
+            mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
+            :data:`os.W_OK`, :data:`os.X_OK`
+
+            .. seealso:: :func:`os.access`
+            """
+            return os.access(self.path, mode)
+
+    def stat(self):
+        """ Perform a ``stat()`` system call on this path.
+
+        .. seealso:: :meth:`lstat`, :func:`os.stat`
+        """
+        return os.stat(self.path)
+
+    def lstat(self):
+        """ Like :meth:`stat`, but do not follow symbolic links.
+
+        .. seealso:: :meth:`stat`, :func:`os.lstat`
+        """
+        return os.lstat(self.path)
+
+    def __get_owner_windows(self):
+        r"""
+        Return the name of the owner of this file or directory. Follow
+        symbolic links.
+
+        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
+
+        .. seealso:: :attr:`owner`
+        """
+        desc = win32security.GetFileSecurity(
+            self.path, win32security.OWNER_SECURITY_INFORMATION)
+        sid = desc.GetSecurityDescriptorOwner()
+        account, domain, typecode = win32security.LookupAccountSid(None, sid)
+        return domain + u('\\') + account
+
+    def __get_owner_unix(self):
+        """
+        Return the name of the owner of this file or directory. Follow
+        symbolic links.
+
+        .. seealso:: :attr:`owner`
+        """
+        st = self.stat()
+        return pwd.getpwuid(st.st_uid).pw_name
+
+    def __get_owner_not_implemented(self):
+        raise NotImplementedError("Ownership not available on this platform.")
+
+    if 'win32security' in globals():
+        get_owner = __get_owner_windows
+    elif 'pwd' in globals():
+        get_owner = __get_owner_unix
+    else:
+        get_owner = __get_owner_not_implemented
+
+    owner = property(
+        get_owner, None, None,
+        """ Name of the owner of this file or directory.
+
+        .. seealso:: :meth:`get_owner`""")
+
+    if hasattr(os, 'statvfs'):
+        def statvfs(self):
+            """ Perform a ``statvfs()`` system call on this path.
+
+            .. seealso:: :func:`os.statvfs`
+            """
+            return os.statvfs(self.path)
+
+    if hasattr(os, 'pathconf'):
+        def pathconf(self, name):
+            """ .. seealso:: :func:`os.pathconf` """
+            return os.pathconf(self.path, name)
+
+    #
+    # --- Modifying operations on files and directories
+
+    def utime(self, times):
+        """ Set the access and modified times of this file.
+
+        .. seealso:: :func:`os.utime`
+        """
+        os.utime(self.path, times)
+        return self
+
+    def chmod(self, mode):
+        """ .. seealso:: :func:`os.chmod` """
+        os.chmod(self.path, mode)
+        return self
+
+    if hasattr(os, 'chown'):
+        def chown(self, uid=-1, gid=-1):
+            """ .. seealso:: :func:`os.chown` """
+            os.chown(self.path, uid, gid)
+            return self
+
+    # in-place re-writing, courtesy of Martijn Pieters
+    # http://www.zopatista.com/python/2013/11/26/inplace-file-rewriting/
+    @contextlib.contextmanager
+    def in_place(self, mode='r', buffering=-1, encoding=None, errors=None,
+            newline=None, backup_extension=None):
+        """
+        A context in which a file may be re-written in-place with new content.
+
+        Yields a tuple of (readable, writable) file objects, where writable
+        replaces readable.
+
+        If an exception occurs, the old file is restored, removing the
+        written data.
+
+        Mode *must not* use 'w', 'a' or '+'; only read-only-modes are
+        allowed. A ValueError is raised on invalid modes.
+
+        For example, to add line numbers to a file::
+
+            p = path(filename)
+            assert p.isfile()
+            with p.in_place() as reader, writer:
+                for number, line in enumerate(reader, 1):
+                    writer.write('{0:3}: '.format(number)))
+                    writer.write(line)
+
+        Thereafter, the file at filename will have line numbers in it.
+        """
+
+        if set(mode).intersection('wa+'):
+            raise ValueError('Only read-only file modes can be used')
+
+        # move existing file to backup, create new file with same permissions
+        # borrowed extensively from the fileinput module
+        backup_fn = self.path + (backup_extension or os.extsep + 'bak')
+        try:
+            os.unlink(backup_fn)
+        except os.error:
+            pass
+        os.rename(self.path, backup_fn)
+        readable = io.open(backup_fn, mode, buffering=buffering,
+            encoding=encoding, errors=errors, newline=newline)
+        try:
+            perm = os.fstat(readable.fileno()).st_mode
+        except OSError:
+            writable = open(self.path, 'w' + mode.replace('r', ''),
+                buffering=buffering, encoding=encoding, errors=errors,
+                newline=newline)
+        else:
+            os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
+            if hasattr(os, 'O_BINARY'):
+                os_mode |= os.O_BINARY
+            fd = os.open(self.path, os_mode, perm)
+            writable = io.open(fd, "w" + mode.replace('r', ''),
+                buffering=buffering, encoding=encoding, errors=errors,
+                newline=newline)
+            try:
+                if hasattr(os, 'chmod'):
+                    os.chmod(self.path, perm)
+            except OSError:
+                pass
+        try:
+            yield readable, writable
+        except Exception:
+            # move backup back
+            readable.close()
+            writable.close()
+            try:
+                os.unlink(self.path)
+            except os.error:
+                pass
+            os.rename(backup_fn, self.path)
+            raise
+        else:
+            readable.close()
+            writable.close()
+        finally:
+            try:
+                os.unlink(backup_fn)
+            except os.error:
+                pass
+
+
 class path(unicode):
     """ Represents a filesystem path.
 
@@ -166,9 +702,12 @@ class path(unicode):
     .. seealso:: :mod:`os.path`
     """
 
+
     def __init__(self, other=''):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
+
+        self.file = File(self)
 
     @classmethod
     @simple_cache
@@ -680,304 +1219,6 @@ class path(unicode):
         cls = self._next_class
         return [cls(s) for s in glob.glob(self / pattern)]
 
-    #
-    # --- Reading or writing an entire file at once.
-
-    def open(self, *args, **kwargs):
-        """ Open this file.  Return a file object.
-
-        .. seealso:: :func:`python:open`
-        """
-        return open(self, *args, **kwargs)
-
-    def bytes(self):
-        """ Open this file, read all bytes, return them as a string. """
-        with self.open('rb') as f:
-            return f.read()
-
-    def chunks(self, size, *args, **kwargs):
-        """ Returns a generator yielding chunks of the file, so it can
-            be read piece by piece with a simple for loop.
-
-           Any argument you pass after `size` will be passed to `open()`.
-
-           :example:
-
-               >>> hash = hashlib.md5()
-               >>> for chunk in path("path.py").chunks(8192, mode='rb'):
-               ...     hash.update(chunk)
-
-            This will read the file by chunks of 8192 bytes.
-        """
-        with open(self, *args, **kwargs) as f:
-            while True:
-                d = f.read(size)
-                if not d:
-                    break
-                yield d
-
-    def write_bytes(self, bytes, append=False):
-        """ Open this file and write the given bytes to it.
-
-        Default behavior is to overwrite any existing file.
-        Call ``p.write_bytes(bytes, append=True)`` to append instead.
-        """
-        if append:
-            mode = 'ab'
-        else:
-            mode = 'wb'
-        with self.open(mode) as f:
-            f.write(bytes)
-
-    def text(self, encoding=None, errors='strict'):
-        r""" Open this file, read it in, return the content as a string.
-
-        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
-        automatically translated to ``'\n'``.
-
-        Optional arguments:
-            `encoding` - The Unicode encoding (or character set) of
-                the file.  If present, the content of the file is
-                decoded and returned as a unicode object; otherwise
-                it is returned as an 8-bit str.
-            `errors` - How to handle Unicode errors; see :meth:`str.decode`
-                for the options.  Default is 'strict'.
-
-        .. seealso:: :meth:`lines`
-        """
-        if encoding is None:
-            # 8-bit
-            with self.open('U') as f:
-                return f.read()
-        else:
-            # Unicode
-            with codecs.open(self, 'r', encoding, errors) as f:
-                # (Note - Can't use 'U' mode here, since codecs.open
-                # doesn't support 'U' mode.)
-                t = f.read()
-            return (t.replace(u('\r\n'), u('\n'))
-                     .replace(u('\r\x85'), u('\n'))
-                     .replace(u('\r'), u('\n'))
-                     .replace(u('\x85'), u('\n'))
-                     .replace(u('\u2028'), u('\n')))
-
-    def write_text(self, text, encoding=None, errors='strict',
-                   linesep=os.linesep, append=False):
-        r""" Write the given text to this file.
-
-        The default behavior is to overwrite any existing file;
-        to append instead, use the `append=True` keyword argument.
-
-        There are two differences between :meth:`write_text` and
-        :meth:`write_bytes`: newline handling and Unicode handling.
-        See below.
-
-        Parameters:
-
-          `text` - str/unicode - The text to be written.
-
-          `encoding` - str - The Unicode encoding that will be used.
-              This is ignored if 'text' isn't a Unicode string.
-
-          `errors` - str - How to handle Unicode encoding errors.
-              Default is 'strict'.  See help(unicode.encode) for the
-              options.  This is ignored if 'text' isn't a Unicode
-              string.
-
-          `linesep` - keyword argument - str/unicode - The sequence of
-              characters to be used to mark end-of-line.  The default is
-              :data:`os.linesep`.  You can also specify ``None``; this means to
-              leave all newlines as they are in `text`.
-
-          `append` - keyword argument - bool - Specifies what to do if
-              the file already exists (``True``: append to the end of it;
-              ``False``: overwrite it.)  The default is ``False``.
-
-
-        --- Newline handling.
-
-        write_text() converts all standard end-of-line sequences
-        (``'\n'``, ``'\r'``, and ``'\r\n'``) to your platform's default
-        end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
-        the end-of-line marker is ``'\r\n'``).
-
-        If you don't like your platform's default, you can override it
-        using the `linesep=` keyword argument.  If you specifically want
-        write_text() to preserve the newlines as-is, use ``linesep=None``.
-
-        This applies to Unicode text the same as to 8-bit text, except
-        there are three additional standard Unicode end-of-line sequences:
-        ``u'\x85'``, ``u'\r\x85'``, and ``u'\u2028'``.
-
-        (This is slightly different from when you open a file for
-        writing with ``fopen(filename, "w")`` in C or ``open(filename, 'w')``
-        in Python.)
-
-
-        --- Unicode
-
-        If `text` isn't Unicode, then apart from newline handling, the
-        bytes are written verbatim to the file.  The `encoding` and
-        `errors` arguments are not used and must be omitted.
-
-        If `text` is Unicode, it is first converted to bytes using the
-        specified 'encoding' (or the default encoding if `encoding`
-        isn't specified).  The `errors` argument applies only to this
-        conversion.
-
-        """
-        if isinstance(text, unicode):
-            if linesep is not None:
-                # Convert all standard end-of-line sequences to
-                # ordinary newline characters.
-                text = (text.replace(u('\r\n'), u('\n'))
-                            .replace(u('\r\x85'), u('\n'))
-                            .replace(u('\r'), u('\n'))
-                            .replace(u('\x85'), u('\n'))
-                            .replace(u('\u2028'), u('\n')))
-                text = text.replace(u('\n'), linesep)
-            if encoding is None:
-                encoding = sys.getdefaultencoding()
-            bytes = text.encode(encoding, errors)
-        else:
-            # It is an error to specify an encoding if 'text' is
-            # an 8-bit string.
-            assert encoding is None
-
-            if linesep is not None:
-                text = (text.replace('\r\n', '\n')
-                            .replace('\r', '\n'))
-                bytes = text.replace('\n', linesep)
-
-        self.write_bytes(bytes, append)
-
-    def lines(self, encoding=None, errors='strict', retain=True):
-        r""" Open this file, read all lines, return them in a list.
-
-        Optional arguments:
-            `encoding` - The Unicode encoding (or character set) of
-                the file.  The default is None, meaning the content
-                of the file is read as 8-bit characters and returned
-                as a list of (non-Unicode) str objects.
-            `errors` - How to handle Unicode errors; see help(str.decode)
-                for the options.  Default is 'strict'
-            `retain` - If true, retain newline characters; but all newline
-                character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
-                translated to ``'\n'``.  If false, newline characters are
-                stripped off.  Default is True.
-
-        This uses ``'U'`` mode.
-
-        .. seealso:: :meth:`text`
-        """
-        if encoding is None and retain:
-            with self.open('U') as f:
-                return f.readlines()
-        else:
-            return self.text(encoding, errors).splitlines(retain)
-
-    def write_lines(self, lines, encoding=None, errors='strict',
-                    linesep=os.linesep, append=False):
-        r""" Write the given lines of text to this file.
-
-        By default this overwrites any existing file at this path.
-
-        This puts a platform-specific newline sequence on every line.
-        See `linesep` below.
-
-            `lines` - A list of strings.
-
-            `encoding` - A Unicode encoding to use.  This applies only if
-                `lines` contains any Unicode strings.
-
-            `errors` - How to handle errors in Unicode encoding.  This
-                also applies only to Unicode strings.
-
-            linesep - The desired line-ending.  This line-ending is
-                applied to every line.  If a line already has any
-                standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
-                ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
-                be stripped off and this will be used instead.  The
-                default is os.linesep, which is platform-dependent
-                (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
-                Specify ``None`` to write the lines as-is, like
-                :meth:`file.writelines`.
-
-        Use the keyword argument append=True to append lines to the
-        file.  The default is to overwrite the file.  Warning:
-        When you use this with Unicode data, if the encoding of the
-        existing data in the file is different from the encoding
-        you specify with the encoding= parameter, the result is
-        mixed-encoding data, which can really confuse someone trying
-        to read the file later.
-        """
-        if append:
-            mode = 'ab'
-        else:
-            mode = 'wb'
-        with self.open(mode) as f:
-            for line in lines:
-                isUnicode = isinstance(line, unicode)
-                if linesep is not None:
-                    # Strip off any existing line-end and add the
-                    # specified linesep string.
-                    if isUnicode:
-                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
-                            line = line[:-2]
-                        elif line[-1:] in (u('\r'), u('\n'),
-                                           u('\x85'), u('\u2028')):
-                            line = line[:-1]
-                    else:
-                        if line[-2:] == '\r\n':
-                            line = line[:-2]
-                        elif line[-1:] in ('\r', '\n'):
-                            line = line[:-1]
-                    line += linesep
-                if isUnicode:
-                    if encoding is None:
-                        encoding = sys.getdefaultencoding()
-                    line = line.encode(encoding, errors)
-                f.write(line)
-
-    def read_md5(self):
-        """ Calculate the md5 hash for this file.
-
-        This reads through the entire file.
-
-        .. seealso:: :meth:`read_hash`
-        """
-        return self.read_hash('md5')
-
-    def _hash(self, hash_name):
-        """ Returns a hash object for the file at the current path.
-
-            `hash_name` should be a hash algo name such as 'md5' or 'sha1'
-            that's available in the :mod:`hashlib` module.
-        """
-        m = hashlib.new(hash_name)
-        for chunk in self.chunks(8192, mode="rb"):
-            m.update(chunk)
-        return m
-
-    def read_hash(self, hash_name):
-        """ Calculate given hash for this file.
-
-        List of supported hashes can be obtained from :mod:`hashlib` package.
-        This reads the entire file.
-
-        .. seealso:: :meth:`hashlib.hash.digest`
-        """
-        return self._hash(hash_name).digest()
-
-    def read_hexhash(self, hash_name):
-        """ Calculate given hash for this file, returning hexdigest.
-
-        List of supported hashes can be obtained from :mod:`hashlib` package.
-        This reads the entire file.
-
-        .. seealso:: :meth:`hashlib.hash.hexdigest`
-        """
-        return self._hash(hash_name).hexdigest()
 
     # --- Methods for querying the filesystem.
     # N.B. On some platforms, the os.path functions may be implemented in C
@@ -1012,150 +1253,7 @@ class path(unicode):
         """ .. seealso:: :func:`os.path.samefile` """
         return self.module.samefile(self, other)
 
-    def getatime(self):
-        """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
-        return self.module.getatime(self)
 
-    atime = property(
-        getatime, None, None,
-        """ Last access time of the file.
-
-        .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
-        """)
-
-    def getmtime(self):
-        """ .. seealso:: :attr:`mtime`, :func:`os.path.getmtime` """
-        return self.module.getmtime(self)
-
-    mtime = property(
-        getmtime, None, None,
-        """ Last-modified time of the file.
-
-        .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
-        """)
-
-    def getctime(self):
-        """ .. seealso:: :attr:`ctime`, :func:`os.path.getctime` """
-        return self.module.getctime(self)
-
-    ctime = property(
-        getctime, None, None,
-        """ Creation time of the file.
-
-        .. seealso:: :meth:`getctime`, :func:`os.path.getctime`
-        """)
-
-    def getsize(self):
-        """ .. seealso:: :attr:`size`, :func:`os.path.getsize` """
-        return self.module.getsize(self)
-
-    size = property(
-        getsize, None, None,
-        """ Size of the file, in bytes.
-
-        .. seealso:: :meth:`getsize`, :func:`os.path.getsize`
-        """)
-
-    if hasattr(os, 'access'):
-        def access(self, mode):
-            """ Return true if current user has access to this path.
-
-            mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
-            :data:`os.W_OK`, :data:`os.X_OK`
-
-            .. seealso:: :func:`os.access`
-            """
-            return os.access(self, mode)
-
-    def stat(self):
-        """ Perform a ``stat()`` system call on this path.
-
-        .. seealso:: :meth:`lstat`, :func:`os.stat`
-        """
-        return os.stat(self)
-
-    def lstat(self):
-        """ Like :meth:`stat`, but do not follow symbolic links.
-
-        .. seealso:: :meth:`stat`, :func:`os.lstat`
-        """
-        return os.lstat(self)
-
-    def __get_owner_windows(self):
-        r"""
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
-
-        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
-
-        .. seealso:: :attr:`owner`
-        """
-        desc = win32security.GetFileSecurity(
-            self, win32security.OWNER_SECURITY_INFORMATION)
-        sid = desc.GetSecurityDescriptorOwner()
-        account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + u('\\') + account
-
-    def __get_owner_unix(self):
-        """
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
-
-        .. seealso:: :attr:`owner`
-        """
-        st = self.stat()
-        return pwd.getpwuid(st.st_uid).pw_name
-
-    def __get_owner_not_implemented(self):
-        raise NotImplementedError("Ownership not available on this platform.")
-
-    if 'win32security' in globals():
-        get_owner = __get_owner_windows
-    elif 'pwd' in globals():
-        get_owner = __get_owner_unix
-    else:
-        get_owner = __get_owner_not_implemented
-
-    owner = property(
-        get_owner, None, None,
-        """ Name of the owner of this file or directory.
-
-        .. seealso:: :meth:`get_owner`""")
-
-    if hasattr(os, 'statvfs'):
-        def statvfs(self):
-            """ Perform a ``statvfs()`` system call on this path.
-
-            .. seealso:: :func:`os.statvfs`
-            """
-            return os.statvfs(self)
-
-    if hasattr(os, 'pathconf'):
-        def pathconf(self, name):
-            """ .. seealso:: :func:`os.pathconf` """
-            return os.pathconf(self, name)
-
-    #
-    # --- Modifying operations on files and directories
-
-    def utime(self, times):
-        """ Set the access and modified times of this file.
-
-        .. seealso:: :func:`os.utime`
-        """
-        os.utime(self, times)
-        return self
-
-    def chmod(self, mode):
-        """ .. seealso:: :func:`os.chmod` """
-        os.chmod(self, mode)
-        return self
-
-    if hasattr(os, 'chown'):
-        def chown(self, uid=-1, gid=-1):
-            """ .. seealso:: :func:`os.chown` """
-            os.chown(self, uid, gid)
-            return self
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
@@ -1387,7 +1485,6 @@ class path(unicode):
 
         Thereafter, the file at filename will have line numbers in it.
         """
-        import io
 
         if set(mode).intersection('wa+'):
             raise ValueError('Only read-only file modes can be used')
