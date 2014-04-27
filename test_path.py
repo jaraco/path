@@ -871,8 +871,9 @@ class TestPatternMatching(object):
         assert p/'sub2'/'foo'/'bar.TXT' in files
         assert p/'sub1'/'foo'/'bar.Txt' in files
 
+
 @pytest.mark.skipif(sys.version_info < (2, 6),
-    reason="in_place requires io module in Python 2.6")
+                    reason="in_place requires io module in Python 2.6")
 class TestInPlace(object):
     reference_content = u(textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
