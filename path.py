@@ -1363,7 +1363,7 @@ class path(unicode):
     # http://www.zopatista.com/python/2013/11/26/inplace-file-rewriting/
     @contextlib.contextmanager
     def in_place(self, mode='r', buffering=-1, encoding=None, errors=None,
-            newline=None, backup_extension=None):
+                 newline=None, backup_extension=None):
         """
         A context in which a file may be re-written in-place with new content.
 
@@ -1401,21 +1401,21 @@ class path(unicode):
             pass
         os.rename(self, backup_fn)
         readable = io.open(backup_fn, mode, buffering=buffering,
-            encoding=encoding, errors=errors, newline=newline)
+                           encoding=encoding, errors=errors, newline=newline)
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
             writable = open(self, 'w' + mode.replace('r', ''),
-                buffering=buffering, encoding=encoding, errors=errors,
-                newline=newline)
+                            buffering=buffering, encoding=encoding,
+                            errors=errors, newline=newline)
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             if hasattr(os, 'O_BINARY'):
                 os_mode |= os.O_BINARY
             fd = os.open(self, os_mode, perm)
             writable = io.open(fd, "w" + mode.replace('r', ''),
-                buffering=buffering, encoding=encoding, errors=errors,
-                newline=newline)
+                               buffering=buffering, encoding=encoding,
+                               errors=errors, newline=newline)
             try:
                 if hasattr(os, 'chmod'):
                     os.chmod(self, perm)
