@@ -20,7 +20,7 @@ Authors:
 
 """
 
-from __future__ import with_statement  # Needed for Python 2.5
+from __future__ import with_statement
 
 import unittest
 import codecs
