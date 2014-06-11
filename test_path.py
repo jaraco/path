@@ -33,7 +33,6 @@ import time
 import ntpath
 import posixpath
 import textwrap
-import platform
 
 import pytest
 
