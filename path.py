@@ -89,7 +89,8 @@ try:
 except AttributeError:
     getcwdu = os.getcwd
 
-if sys.version < '3':
+PY3 = sys.version_info[0] >= 3
+if PY3:
     def u(x):
         return codecs.unicode_escape_decode(x)[0]
 else:
