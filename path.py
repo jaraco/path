@@ -20,20 +20,10 @@
 # SOFTWARE.
 #
 
-""" path.py - An object representing a path to a file or directory.
+"""
+path.py - An object representing a path to a file or directory.
 
-Original author:
- Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
-
-Current maintainer:
- Jason R. Coombs <jaraco@jaraco.com>
-
-Contributors:
- Mikhail Gusarov <dottedmag@dottedmag.net>
- Marc Abramowitz <marc@marc-abramowitz.com>
- Jason R. Coombs <jaraco@jaraco.com>
- Jason Chu <jchu@xentac.net>
- Vojislav Stojkovic <vstojkovic@syntertainment.com>
+https://github.com/jaraco/path.py
 
 Example::
 
