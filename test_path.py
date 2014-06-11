@@ -6,8 +6,8 @@ This only runs on Posix and Windows right now.  I would like to have more
 tests.  You can help!  Just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
 Then send me the result.  If you can't get the test to run at all on
-your platform, there's probably a bug in path.py -- please let me
-know!
+your platform, there's probably a bug in path.py -- please report the issue
+in the issue tracker at https://github.com/jaraco/path.py.
 
 TempDirTestCase.testTouch() takes a while to run.  It sleeps a few
 seconds to allow some time to pass between calls to check the modify
@@ -369,6 +369,32 @@ class ScratchDirTestCase(unittest.TestCase):
                     f.remove()
                 except:
                     pass
+
+    def test_listdir_other_encoding(self):
+        """
+        Some filesystems allow non-character sequences in path names.
+        ``.listdir`` should still function in this case.
+        See issue #61 for details.
+        """
+        self.assertEqual(path(self.tempdir).listdir(), [])
+        _tempdir = self.tempdir
+
+        filename = 'r\xe9emi'
+        PY3 = sys.version_info[0] >= 3
+        if PY3:
+            filename = filename.encode('latin-1')
+            _tempdir = _tempdir.encode('ascii')
+        pathname = os.path.join(_tempdir, filename)
+        with open(pathname, 'wb'):
+            pass
+        # first demonstrate that os.listdir works
+        self.assert_(os.listdir(_tempdir))
+
+        # now try with path.py
+        results = path(_tempdir).listdir()
+        self.assert_(len(results) == 1)
+        res, = results
+        self.assert_(isinstance(res, path))
 
     def testMakeDirs(self):
         d = path(self.tempdir)
