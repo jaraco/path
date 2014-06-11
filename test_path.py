@@ -2,7 +2,7 @@
 
 """ test_path.py - Test the path module.
 
-This only runs on Posix and NT right now.  I would like to have more
+This only runs on Posix and Windows right now.  I would like to have more
 tests.  You can help!  Just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
 Then send me the result.  If you can't get the test to run at all on
