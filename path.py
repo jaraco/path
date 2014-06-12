@@ -177,6 +177,16 @@ class path(unicode):
         """
         return cls
 
+    @classmethod
+    def _always_unicode(cls, path):
+        """
+        Ensure the path as retrieved from a Python API, such as os.listdir,
+        is a proper Unicode string.
+        """
+        if PY3 or isinstance(path, unicode):
+            return path
+        return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
+
     # --- Special Python methods.
 
     def __repr__(self):
