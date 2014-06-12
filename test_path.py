@@ -391,7 +391,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assert_(os.listdir(_tempdir))
 
         # now try with path.py
-        results = path(_tempdir).listdir()
+        results = path(self.tempdir).listdir()
         self.assert_(len(results) == 1)
         res, = results
         self.assert_(isinstance(res, path))
