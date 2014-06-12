@@ -672,6 +672,8 @@ class ScratchDirTestCase(unittest.TestCase):
 
         self.assertEqual(i, len(txt) / size - 1)
 
+    @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
+        reason="samefile not present")
     def testSameFile(self):
         f1 = (tempdir() / '1.txt').touch()
         f1.write_text('foo')
