@@ -395,6 +395,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assert_(len(results) == 1)
         res, = results
         self.assert_(isinstance(res, path))
+        assert len(res.basename()) == len(filename)
 
     def testMakeDirs(self):
         d = path(self.tempdir)
