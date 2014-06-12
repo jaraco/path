@@ -101,6 +101,23 @@ except ImportError:
     pass
 ##########################
 
+##############################################################
+# Support for surrogateescape
+
+def surrogate_escape(error):
+    """
+    Simulate the Python 3 surrogateescape handler, but for Python 2 only.
+    """
+    chars = error.object[error.start:error.end]
+    assert len(chars) == 1
+    val = ord(chars)
+    val += 0xdc00
+    return unichr(val), error.end
+
+if not PY3:
+    codecs.register_error('surrogateescape', surrogate_escape)
+###############################################################
+
 __version__ = '5.2'
 __all__ = ['path', 'CaseInsensitivePattern']
 
