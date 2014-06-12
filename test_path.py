@@ -379,7 +379,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assertEqual(path(self.tempdir).listdir(), [])
         tmpdir_bytes = self.tempdir
 
-        filename = 'r\xe9emi'
+        filename = 'r\xe9\xf1emi'
         PY3 = sys.version_info[0] >= 3
         if PY3:
             filename = filename.encode('latin-1')
