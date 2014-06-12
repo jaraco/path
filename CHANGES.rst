@@ -1,6 +1,16 @@
 Changes
 =======
 
+5.2
+---
+
+ - #61: path.listdir now decodes filenames from os.listdir when loading
+   characters from a file. On Python 3, the behavior is unchanged. On Python
+   2, the behavior will now mimick that of Python 3, attempting to decode
+   all filenames and paths using the encoding indicated by
+   ``sys.getfilesystemencoding()``, and escaping any undecodable characters
+   using the 'surrogateescape' handler.
+
 5.1
 ---
 

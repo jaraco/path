@@ -499,7 +499,7 @@ class path(unicode):
             pattern = '*'
         return [
             self / child
-            for child in os.listdir(self)
+            for child in map(self._always_unicode, os.listdir(self))
             if self._next_class(child).fnmatch(pattern)
         ]
 
