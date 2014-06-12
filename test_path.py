@@ -377,18 +377,18 @@ class ScratchDirTestCase(unittest.TestCase):
         See issue #61 for details.
         """
         self.assertEqual(path(self.tempdir).listdir(), [])
-        _tempdir = self.tempdir
+        tmpdir_bytes = self.tempdir
 
         filename = 'r\xe9emi'
         PY3 = sys.version_info[0] >= 3
         if PY3:
             filename = filename.encode('latin-1')
-            _tempdir = _tempdir.encode('ascii')
-        pathname = os.path.join(_tempdir, filename)
+            tmpdir_bytes = tmpdir_bytes.encode('ascii')
+        pathname = os.path.join(tmpdir_bytes, filename)
         with open(pathname, 'wb'):
             pass
         # first demonstrate that os.listdir works
-        self.assert_(os.listdir(_tempdir))
+        self.assert_(os.listdir(tmpdir_bytes))
 
         # now try with path.py
         results = path(self.tempdir).listdir()
