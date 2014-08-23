@@ -3,6 +3,7 @@
 from __future__ import with_statement
 
 import re
+import sys
 
 try:
     import setuptools as impl
@@ -17,6 +18,8 @@ with open('path.py') as path_mod:
     source = path_mod.read()
     pattern = re.compile(r'''__version__ = ['"](?P<version>[\d.]+)['"]''')
     version = pattern.search(source).group('version')
+
+sphinx_req = ['sphinx'] if 'build_sphinx' in sys.argv else []
 
 setup_params = dict(
     name="path.py",
@@ -42,6 +45,7 @@ setup_params = dict(
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
+    setup_requires=sphinx_req,
 )
 
 
