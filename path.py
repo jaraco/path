@@ -106,7 +106,7 @@ except ImportError:
 
 def surrogate_escape(error):
     """
-    Simulate the Python 3 surrogateescape handler, but for Python 2 only.
+    Simulate the Python 3 ``surrogateescape`` handler, but for Python 2 only.
     """
     chars = error.object[error.start:error.end]
     assert len(chars) == 1
@@ -128,7 +128,7 @@ class TreeWalkWarning(Warning):
 
 def simple_cache(func):
     """
-    Save results for the 'using_module' classmethod.
+    Save results for the :meth:'path.using_module' classmethod.
     When Python 3.2 is available, use functools.lru_cache instead.
     """
     saved_results = {}
@@ -165,7 +165,7 @@ class path(unicode):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
-    counterparts in os.path.
+    counterparts in :mod:`os.path`.
     """
 
     module = os.path
@@ -197,7 +197,7 @@ class path(unicode):
     @classmethod
     def _always_unicode(cls, path):
         """
-        Ensure the path as retrieved from a Python API, such as os.listdir,
+        Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
         if PY3 or isinstance(path, unicode):
@@ -355,7 +355,7 @@ class path(unicode):
         """ p.splitdrive() -> Return ``(p.drive, <the rest of p>)``.
 
         Split the drive specifier from this path.  If there is
-        no drive specifier, p.drive is empty, so the return value
+        no drive specifier, :samp:`{p.drive}` is empty, so the return value
         is simply ``(path(''), p)``.  This is always the case on Unix.
 
         .. seealso:: :func:`os.path.splitdrive`
@@ -403,9 +403,9 @@ class path(unicode):
     @multimethod
     def joinpath(cls, first, *others):
         """
-        Join first to zero or more path components, adding a separator
-        character (``first.module.sep``) if needed.  Returns a new instance of
-        ``first._next_class``.
+        Join first to zero or more :class:`path` components, adding a separator
+        character (:samp:`{first}.module.sep`) if needed.  Returns a new instance of
+        :samp:`{first}._next_class`.
 
         .. seealso:: :func:`os.path.join`
         """
@@ -534,15 +534,15 @@ class path(unicode):
 
         The iterator yields path objects naming each child item of
         this directory and its descendants.  This requires that
-        D.isdir().
+        ``D.isdir()``.
 
         This performs a depth-first traversal of the directory tree.
         Each directory is returned just before all its children.
 
         The `errors=` keyword argument controls behavior when an
-        error occurs.  The default is 'strict', which causes an
-        exception.  The other allowed values are 'warn', which
-        reports the error via ``warnings.warn()``, and 'ignore'.
+        error occurs.  The default is ``'strict'``, which causes an
+        exception.  The other allowed values are ``'warn'`` (which
+        reports the error via :func:`warnings.warn()`), and ``'ignore'``.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -588,12 +588,12 @@ class path(unicode):
         With the optional `pattern` argument, this yields only
         directories whose names match the given pattern.  For
         example, ``mydir.walkdirs('*test')`` yields only directories
-        with names ending in 'test'.
+        with names ending in ``'test'``.
 
         The `errors=` keyword argument controls behavior when an
-        error occurs.  The default is 'strict', which causes an
-        exception.  The other allowed values are 'warn', which
-        reports the error via ``warnings.warn()``, and 'ignore'.
+        error occurs.  The default is ``'strict'``, which causes an
+        exception.  The other allowed values are ``'warn'`` (which
+        reports the error via :func:`warnings.warn()`), and ``'ignore'``.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -621,9 +621,9 @@ class path(unicode):
     def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
-        The optional argument, `pattern`, limits the results to files
+        The optional argument `pattern` limits the results to files
         with names that match the pattern.  For example,
-        ``mydir.walkfiles('*.tmp')`` yields only files with the .tmp
+        ``mydir.walkfiles('*.tmp')`` yields only files with the ``.tmp``
         extension.
         """
         if errors not in ('strict', 'warn', 'ignore'):
@@ -667,15 +667,15 @@ class path(unicode):
                     yield f
 
     def fnmatch(self, pattern, normcase=None):
-        """ Return ``True`` if `self.name` matches the given pattern.
+        """ Return ``True`` if `self.name` matches the given `pattern`.
 
-        pattern - A filename pattern with wildcards,
+        `pattern` - A filename pattern with wildcards,
             for example ``'*.py'``. If the pattern contains a `normcase`
             attribute, it is applied to the name and path prior to comparison.
 
-        normcase - (optional) A function used to normalize the pattern and
-            filename before matching. Defaults to self.module which defaults
-            to os.path.normcase.
+        `normcase` - (optional) A function used to normalize the pattern and
+            filename before matching. Defaults to :meth:`self.module`, which defaults
+            to :meth:`os.path.normcase`.
 
         .. seealso:: :func:`fnmatch.fnmatch`
         """
@@ -691,7 +691,7 @@ class path(unicode):
         `pattern` - a path relative to this directory, with wildcards.
 
         For example, ``path('/users').glob('*/bin/*')`` returns a list
-        of all the files users have in their bin directories.
+        of all the files users have in their :file:`bin` directories.
 
         .. seealso:: :func:`glob.glob`
         """
@@ -702,7 +702,7 @@ class path(unicode):
     # --- Reading or writing an entire file at once.
 
     def open(self, *args, **kwargs):
-        """ Open this file.  Return a file object.
+        """ Open this file.  Return a :class:`file` object.
 
         .. seealso:: :func:`python:open`
         """
@@ -795,16 +795,16 @@ class path(unicode):
           `text` - str/unicode - The text to be written.
 
           `encoding` - str - The Unicode encoding that will be used.
-              This is ignored if 'text' isn't a Unicode string.
+              This is ignored if `text` isn't a Unicode string.
 
           `errors` - str - How to handle Unicode encoding errors.
-              Default is 'strict'.  See help(unicode.encode) for the
-              options.  This is ignored if 'text' isn't a Unicode
+              Default is ``'strict'``.  See ``help(unicode.encode)`` for the
+              options.  This is ignored if `text` isn't a Unicode
               string.
 
           `linesep` - keyword argument - str/unicode - The sequence of
               characters to be used to mark end-of-line.  The default is
-              :data:`os.linesep`.  You can also specify ``None``; this means to
+              :data:`os.linesep`.  You can also specify ``None`` to
               leave all newlines as they are in `text`.
 
           `append` - keyword argument - bool - Specifies what to do if
@@ -814,14 +814,14 @@ class path(unicode):
 
         --- Newline handling.
 
-        write_text() converts all standard end-of-line sequences
+        ``write_text()`` converts all standard end-of-line sequences
         (``'\n'``, ``'\r'``, and ``'\r\n'``) to your platform's default
         end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
         the end-of-line marker is ``'\r\n'``).
 
         If you don't like your platform's default, you can override it
         using the `linesep=` keyword argument.  If you specifically want
-        write_text() to preserve the newlines as-is, use ``linesep=None``.
+        ``write_text()`` to preserve the newlines as-is, use ``linesep=None``.
 
         This applies to Unicode text the same as to 8-bit text, except
         there are three additional standard Unicode end-of-line sequences:
@@ -838,8 +838,8 @@ class path(unicode):
         bytes are written verbatim to the file.  The `encoding` and
         `errors` arguments are not used and must be omitted.
 
-        If `text` is Unicode, it is first converted to bytes using the
-        specified 'encoding' (or the default encoding if `encoding`
+        If `text` is Unicode, it is first converted to :func:`bytes` using the
+        specified `encoding` (or the default encoding if `encoding`
         isn't specified).  The `errors` argument applies only to this
         conversion.
 
@@ -874,15 +874,15 @@ class path(unicode):
 
         Optional arguments:
             `encoding` - The Unicode encoding (or character set) of
-                the file.  The default is None, meaning the content
+                the file.  The default is ``None``, meaning the content
                 of the file is read as 8-bit characters and returned
                 as a list of (non-Unicode) str objects.
             `errors` - How to handle Unicode errors; see help(str.decode)
-                for the options.  Default is 'strict'
-            `retain` - If true, retain newline characters; but all newline
+                for the options.  Default is ``'strict'``.
+            `retain` - If ``True``, retain newline characters; but all newline
                 character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
-                translated to ``'\n'``.  If false, newline characters are
-                stripped off.  Default is True.
+                translated to ``'\n'``.  If ``False``, newline characters are
+                stripped off.  Default is ``True``.
 
         This uses ``'U'`` mode.
 
@@ -921,13 +921,16 @@ class path(unicode):
                 Specify ``None`` to write the lines as-is, like
                 :meth:`file.writelines`.
 
-        Use the keyword argument append=True to append lines to the
-        file.  The default is to overwrite the file.  Warning:
-        When you use this with Unicode data, if the encoding of the
-        existing data in the file is different from the encoding
-        you specify with the encoding= parameter, the result is
-        mixed-encoding data, which can really confuse someone trying
-        to read the file later.
+        Use the keyword argument ``append=True`` to append lines to the
+        file.  The default is to overwrite the file.  
+        
+        .. warning ::
+        
+            When you use this with Unicode data, if the encoding of the
+            existing data in the file is different from the encoding
+            you specify with the `encoding=` parameter, the result is
+            mixed-encoding data, which can really confuse someone trying
+            to read the file later.
         """
         if append:
             mode = 'ab'
@@ -969,7 +972,7 @@ class path(unicode):
     def _hash(self, hash_name):
         """ Returns a hash object for the file at the current path.
 
-            `hash_name` should be a hash algo name such as 'md5' or 'sha1'
+            `hash_name` should be a hash algo name (such as ``'md5'`` or ``'sha1'``)
             that's available in the :mod:`hashlib` module.
         """
         m = hashlib.new(hash_name)
@@ -1076,7 +1079,7 @@ class path(unicode):
 
     if hasattr(os, 'access'):
         def access(self, mode):
-            """ Return true if current user has access to this path.
+            """ Return ``True`` if current user has access to this path.
 
             mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
             :data:`os.W_OK`, :data:`os.X_OK`
@@ -1385,14 +1388,14 @@ class path(unicode):
         """
         A context in which a file may be re-written in-place with new content.
 
-        Yields a tuple of (readable, writable) file objects, where writable
-        replaces readable.
+        Yields a tuple of :samp:`({readable}, {writable})` file objects, where `writable`
+        replaces `readable`.
 
         If an exception occurs, the old file is restored, removing the
         written data.
 
-        Mode *must not* use 'w', 'a' or '+'; only read-only-modes are
-        allowed. A ValueError is raised on invalid modes.
+        Mode *must not* use ``'w'``, ``'a'``, or ``'+'``; only read-only-modes are
+        allowed. A :exc:`ValueError` is raised on invalid modes.
 
         For example, to add line numbers to a file::
 
@@ -1403,7 +1406,7 @@ class path(unicode):
                     writer.write('{0:3}: '.format(number)))
                     writer.write(line)
 
-        Thereafter, the file at filename will have line numbers in it.
+        Thereafter, the file at `filename` will have line numbers in it.
         """
         import io
 
@@ -1463,7 +1466,7 @@ class path(unicode):
 
 class tempdir(path):
     """
-    A temporary directory via tempfile.mkdtemp, and constructed with the
+    A temporary directory via :func:`tempfile.mkdtemp`, and constructed with the
     same parameters that you can use as a context manager.
 
     Example:
@@ -1498,7 +1501,7 @@ class tempdir(path):
 
 def _permission_mask(mode):
     """
-    Convert a Unix chmod symbolic mode like 'ugo+rwx' to a function
+    Convert a Unix chmod symbolic mode like ``'ugo+rwx'`` to a function
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
@@ -1530,7 +1533,7 @@ def _permission_mask(mode):
 
 class CaseInsensitivePattern(unicode):
     """
-    A string with a 'normcase' property, suitable for passing to
+    A string with a ``'normcase'`` property, suitable for passing to
     :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
     :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
 
