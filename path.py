@@ -727,7 +727,7 @@ class path(unicode):
 
             This will read the file by chunks of 8192 bytes.
         """
-        with open(self, *args, **kwargs) as f:
+        with self.open(*args, **kwargs) as f:
             while True:
                 d = f.read(size)
                 if not d:
