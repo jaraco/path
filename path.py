@@ -769,7 +769,8 @@ class path(unicode):
             with self.open('U') as f:
                 return f.read()
         else:
-            # Unicode
+            # Unicode. The file *must* be opened in binary mode to
+            # avoid data loss (see the docs for codecs.open)
             with self.open('rb') as f:
                 # (Note - Can't use 'U' mode here, since codecs.open
                 # doesn't support 'U' mode.)
