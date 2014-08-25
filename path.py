@@ -717,7 +717,8 @@ class path(unicode):
         """ Returns a generator yielding chunks of the file, so it can
             be read piece by piece with a simple for loop.
 
-           Any argument you pass after `size` will be passed to `open()`.
+           Any argument you pass after ``size`` will be passed to
+           :meth:`open()`.
 
            :example:
 
