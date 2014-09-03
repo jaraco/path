@@ -116,12 +116,23 @@ class BasicTestCase(unittest.TestCase):
     def testProperties(self):
         # Create sample path object.
         f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
-              posix='/usr/local/python/lib/xyzzy.py')
+              posix='/usr/python/lib/xyzzy.py')
         f = path(f)
 
         # .parent
         self.assertEqual(f.parent, p(nt='C:\\Program Files\\Python\\Lib',
-                                     posix='/usr/local/python/lib'))
+                                     posix='/usr/python/lib'))
+
+        # .parents
+        self.assertEqual(f.parents, [path(p(nt='C:\\Program Files\\Python\\Lib',
+                                            posix='/usr/python/lib')),
+                                     path(p(nt='C:\\Program Files\\Python',
+                                            posix='/usr/python')),
+                                     path(p(nt='C:\\Program Files',
+                                            posix='/usr')),
+                                     path(p(nt='C:\\',
+                                            posix='/')),
+                                     ])
 
         # .name
         self.assertEqual(f.name, 'xyzzy.py')
