@@ -343,6 +343,27 @@ class path(unicode):
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """)
 
+    @property
+    def parents(self):
+        """A list of this path's parents. This is useful to find the n-th
+        parent of this path.
+
+        For example,
+        ``path('/usr/local/lib/libpython.so').parent[0] ==
+        path('/usr/local/lib')``,
+        ``path('/usr/local/lib/libpython.so').parent[1] ==
+        path('/usr/local')``,
+        ``path('/usr/local/lib/libpython.so').parent[2] == path('/usr')``
+        """
+        parents = [self.dirname()]
+        while parents[-1]:
+            next_parent = parents[-1].dirname()
+            if next_parent == parents[-1]:
+                # dirname("/") == "/"
+                break
+            parents.append(next_parent)
+        return parents
+
     def splitpath(self):
         """ p.splitpath() -> Return ``(p.parent, p.name)``.
 
