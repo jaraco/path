@@ -544,22 +544,27 @@ class path(unicode):
         exception.  The other allowed values are ``'warn'`` (which
         reports the error via :func:`warnings.warn()`), and ``'ignore'``.
         """
-        if errors not in ('strict', 'warn', 'ignore'):
+        class Handlers:
+            def strict(msg):
+                raise
+
+            def warn(msg):
+                warnings.warn(msg, TreeWalkWarning)
+
+            def ignore(msg):
+                pass
+
+        if errors not in vars(Handlers):
             raise ValueError("invalid errors parameter")
 
         try:
             childList = self.listdir()
         except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-                return
-            else:
-                raise
+            exc = sys.exc_info()[1]
+            tmpl = "Unable to list directory '%(self)s': %(exc)s"
+            msg = tmpl % locals()
+            vars(Handlers)[errors](msg)
+            return
 
         for child in childList:
             if pattern is None or child.fnmatch(pattern):
@@ -567,16 +572,11 @@ class path(unicode):
             try:
                 isdir = child.isdir()
             except Exception:
-                if errors == 'ignore':
-                    isdir = False
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (child, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    isdir = False
-                else:
-                    raise
+                exc = sys.exc_info()[1]
+                tmpl = "Unable to access '%(child)s': %(exc)s"
+                msg = tmpl % locals()
+                vars(Handlers)[errors](msg)
+                isdir = False
 
             if isdir:
                 for item in child.walk(pattern, errors):
