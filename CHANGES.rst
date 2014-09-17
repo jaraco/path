@@ -1,6 +1,12 @@
 Changes
 =======
 
+5.3
+---
+
+ - Allow arbitrary callables to be passed to path.walk ``errors`` parameter.
+   Enables workaround for issues such as #73.
+
 5.2
 ---
 
