@@ -541,8 +541,9 @@ class path(unicode):
 
         The `errors=` keyword argument controls behavior when an
         error occurs.  The default is ``'strict'``, which causes an
-        exception.  The other allowed values are ``'warn'`` (which
+        exception.  Other allowed values are ``'warn'`` (which
         reports the error via :func:`warnings.warn()`), and ``'ignore'``.
+        `errors` may also be an arbitrary callable taking a msg parameter.
         """
         class Handlers:
             def strict(msg):
@@ -554,8 +555,9 @@ class path(unicode):
             def ignore(msg):
                 pass
 
-        if errors not in vars(Handlers):
+        if not callable(errors) and errors not in vars(Handlers):
             raise ValueError("invalid errors parameter")
+        errors = vars(Handlers).get(errors, errors)
 
         try:
             childList = self.listdir()
@@ -563,7 +565,7 @@ class path(unicode):
             exc = sys.exc_info()[1]
             tmpl = "Unable to list directory '%(self)s': %(exc)s"
             msg = tmpl % locals()
-            vars(Handlers)[errors](msg)
+            errors(msg)
             return
 
         for child in childList:
@@ -575,7 +577,7 @@ class path(unicode):
                 exc = sys.exc_info()[1]
                 tmpl = "Unable to access '%(child)s': %(exc)s"
                 msg = tmpl % locals()
-                vars(Handlers)[errors](msg)
+                errors(msg)
                 isdir = False
 
             if isdir:
