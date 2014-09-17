@@ -922,10 +922,10 @@ class path(unicode):
                 :meth:`file.writelines`.
 
         Use the keyword argument ``append=True`` to append lines to the
-        file.  The default is to overwrite the file.  
-        
+        file.  The default is to overwrite the file.
+
         .. warning ::
-        
+
             When you use this with Unicode data, if the encoding of the
             existing data in the file is different from the encoding
             you specify with the `encoding=` parameter, the result is
