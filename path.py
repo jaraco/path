@@ -118,7 +118,7 @@ if not PY3:
     codecs.register_error('surrogateescape', surrogate_escape)
 ###############################################################
 
-__version__ = '5.3'
+__version__ = '5.4'
 __all__ = ['path', 'CaseInsensitivePattern']
 
 
