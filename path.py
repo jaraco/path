@@ -75,7 +75,7 @@ try:
 except AttributeError:
     getcwdu = os.getcwd
 
-PY3 = sys.version_info[0] >= 3
+PY3 = sys.version_info >= (3,)
 if PY3:
     def u(x):
         return x
