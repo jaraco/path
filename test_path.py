@@ -14,8 +14,6 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-from __future__ import with_statement
-
 import unittest
 import codecs
 import os
@@ -32,10 +30,6 @@ import pytest
 
 from path import path, tempdir, u
 from path import CaseInsensitivePattern as ci
-
-# Octals for python 2 & 3 support
-o750 = 488
-o700 = 448
 
 
 def p(**choices):
@@ -415,8 +409,8 @@ class ScratchDirTestCase(unittest.TestCase):
             self.failIf(foo.exists())
             self.assert_(d.exists())
 
-            foo.mkdir(o750)
-            boz.makedirs(o700)
+            foo.mkdir(0o750)
+            boz.makedirs(0o700)
             try:
                 self.assert_(boz.isdir())
             finally:

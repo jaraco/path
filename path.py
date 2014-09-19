@@ -31,11 +31,7 @@ Example::
     d = path('/home/guido/bin')
     for f in d.files('*.py'):
         f.chmod(0755)
-
-path.py requires Python 2.5 or later.
 """
-
-from __future__ import with_statement
 
 import sys
 import warnings
@@ -87,19 +83,7 @@ else:
     def u(x):
         return codecs.unicode_escape_decode(x)[0]
 
-o777 = 511
-o766 = 502
-o666 = 438
-o554 = 364
 ################################
-
-##########################
-# Python 2.5 compatibility
-try:
-    from functools import reduce
-except ImportError:
-    pass
-##########################
 
 ##############################################################
 # Support for surrogateescape
@@ -1193,12 +1177,12 @@ class path(unicode):
     #
     # --- Create/delete operations on directories
 
-    def mkdir(self, mode=o777):
+    def mkdir(self, mode=0o777):
         """ .. seealso:: :func:`os.mkdir` """
         os.mkdir(self, mode)
         return self
 
-    def mkdir_p(self, mode=o777):
+    def mkdir_p(self, mode=0o777):
         """ Like :meth:`mkdir`, but does not raise an exception if the
         directory already exists. """
         try:
@@ -1209,12 +1193,12 @@ class path(unicode):
                 raise
         return self
 
-    def makedirs(self, mode=o777):
+    def makedirs(self, mode=0o777):
         """ .. seealso:: :func:`os.makedirs` """
         os.makedirs(self, mode)
         return self
 
-    def makedirs_p(self, mode=o777):
+    def makedirs_p(self, mode=0o777):
         """ Like :meth:`makedirs`, but does not raise an exception if the
         directory already exists. """
         try:
@@ -1263,7 +1247,7 @@ class path(unicode):
         """ Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, o666)
+        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0o666)
         os.close(fd)
         os.utime(self, None)
         return self
@@ -1507,27 +1491,27 @@ def _permission_mask(mode):
     suitable for applying to a mask to affect that change.
 
     >>> mask = _permission_mask('ugo+rwx')
-    >>> mask(o554) == o777
+    >>> mask(0o554) == 0o777
     True
 
-    >>> _permission_mask('go-x')(o777) == o766
+    >>> _permission_mask('go-x')(0o777) == 0o766
     True
     """
     parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:
         raise ValueError("Unrecognized symbolic mode", mode)
     spec_map = dict(r=4, w=2, x=1)
-    spec = reduce(operator.or_, [spec_map[perm]
+    spec = functools.reduce(operator.or_, [spec_map[perm]
                   for perm in parsed.group('what')])
     # now apply spec to each in who
     shift_map = dict(u=6, g=3, o=0)
-    mask = reduce(operator.or_, [spec << shift_map[subj]
+    mask = functools.reduce(operator.or_, [spec << shift_map[subj]
                   for subj in parsed.group('who')])
 
     op = parsed.group('op')
     # if op is -, invert the mask
     if op == '-':
-        mask ^= o777
+        mask ^= 0o777
 
     op_map = {'+': operator.or_, '-': operator.and_}
     return functools.partial(op_map[op], mask)
