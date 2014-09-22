@@ -58,7 +58,7 @@ try:
 except ImportError:
     pass
 
-################################
+##############################################################################
 # Python 2/3 support
 PY3 = sys.version_info >= (3,)
 PY2 = not PY3
@@ -67,16 +67,6 @@ string_types = str,
 text_type = str
 getcwdu = os.getcwd
 u = lambda x: x
-
-if PY2:
-    string_types = __builtins__.basestring,
-    text_type = __builtins__.unicode
-    getcwdu = os.getcwdu
-    u = lambda x: codecs.unicode_escape_decode(x)[0]
-################################
-
-##############################################################
-# Support for surrogateescape
 
 def surrogate_escape(error):
     """
@@ -88,9 +78,13 @@ def surrogate_escape(error):
     val += 0xdc00
     return __builtins__.unichr(val), error.end
 
-if not PY3:
+if PY2:
+    string_types = __builtins__.basestring,
+    text_type = __builtins__.unicode
+    getcwdu = os.getcwdu
+    u = lambda x: codecs.unicode_escape_decode(x)[0]
     codecs.register_error('surrogateescape', surrogate_escape)
-###############################################################
+##############################################################################
 
 __version__ = '5.4'
 __all__ = ['path', 'CaseInsensitivePattern']
