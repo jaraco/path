@@ -60,22 +60,20 @@ except ImportError:
 
 ################################
 # Monkey patchy python 3 support
-try:
-    basestring
-except NameError:
-    basestring = str
+PY3 = sys.version_info >= (3,)
+PY2 = not PY3
 
-try:
-    unicode
-except NameError:
-    unicode = str
+string_types = str,
+text_type = str
+if PY2:
+    string_types = __builtins__.basestring,
+    text_type = __builtins__.unicode
 
 try:
     getcwdu = os.getcwdu
 except AttributeError:
     getcwdu = os.getcwd
 
-PY3 = sys.version_info >= (3,)
 if PY3:
     def u(x):
         return x
@@ -145,7 +143,7 @@ class multimethod(object):
         )
 
 
-class path(unicode):
+class path(text_type):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -184,7 +182,7 @@ class path(unicode):
         Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
-        if PY3 or isinstance(path, unicode):
+        if PY3 or isinstance(path, text_type):
             return path
         return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
 
@@ -201,7 +199,7 @@ class path(unicode):
             return NotImplemented
 
     def __radd__(self, other):
-        if not isinstance(other, basestring):
+        if not isinstance(other, string_types):
             return NotImplemented
         return self._next_class(other.__add__(self))
 
@@ -830,7 +828,7 @@ class path(unicode):
         conversion.
 
         """
-        if isinstance(text, unicode):
+        if isinstance(text, text_type):
             if linesep is not None:
                 # Convert all standard end-of-line sequences to
                 # ordinary newline characters.
@@ -924,7 +922,7 @@ class path(unicode):
             mode = 'wb'
         with self.open(mode) as f:
             for line in lines:
-                isUnicode = isinstance(line, unicode)
+                isUnicode = isinstance(line, text_type)
                 if linesep is not None:
                     # Strip off any existing line-end and add the
                     # specified linesep string.
@@ -1517,7 +1515,7 @@ def _permission_mask(mode):
     return functools.partial(op_map[op], mask)
 
 
-class CaseInsensitivePattern(unicode):
+class CaseInsensitivePattern(text_type):
     """
     A string with a ``'normcase'`` property, suitable for passing to
     :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
