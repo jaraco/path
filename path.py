@@ -59,26 +59,20 @@ except ImportError:
     pass
 
 ################################
-# Monkey patchy python 3 support
+# Python 2/3 support
 PY3 = sys.version_info >= (3,)
 PY2 = not PY3
 
 string_types = str,
 text_type = str
 getcwdu = os.getcwd
+u = lambda x: x
 
 if PY2:
     string_types = __builtins__.basestring,
     text_type = __builtins__.unicode
     getcwdu = os.getcwdu
-
-if PY3:
-    def u(x):
-        return x
-else:
-    def u(x):
-        return codecs.unicode_escape_decode(x)[0]
-
+    u = lambda x: codecs.unicode_escape_decode(x)[0]
 ################################
 
 ##############################################################
