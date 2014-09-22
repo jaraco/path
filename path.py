@@ -65,14 +65,12 @@ PY2 = not PY3
 
 string_types = str,
 text_type = str
+getcwdu = os.getcwd
+
 if PY2:
     string_types = __builtins__.basestring,
     text_type = __builtins__.unicode
-
-try:
     getcwdu = os.getcwdu
-except AttributeError:
-    getcwdu = os.getcwd
 
 if PY3:
     def u(x):
