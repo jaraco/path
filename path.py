@@ -86,7 +86,7 @@ def surrogate_escape(error):
     assert len(chars) == 1
     val = ord(chars)
     val += 0xdc00
-    return unichr(val), error.end
+    return __builtins__.unichr(val), error.end
 
 if not PY3:
     codecs.register_error('surrogateescape', surrogate_escape)
