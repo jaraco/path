@@ -87,7 +87,7 @@ if PY2:
     codecs.register_error('surrogateescape', surrogate_escape)
 ##############################################################################
 
-__version__ = '5.4'
+__version__ = '6.0'
 __all__ = ['path', 'CaseInsensitivePattern']
 
 
