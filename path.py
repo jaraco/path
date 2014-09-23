@@ -76,11 +76,12 @@ def surrogate_escape(error):
     assert len(chars) == 1
     val = ord(chars)
     val += 0xdc00
-    return __builtins__.unichr(val), error.end
+    return __builtin__.unichr(val), error.end
 
 if PY2:
-    string_types = __builtins__.basestring,
-    text_type = __builtins__.unicode
+    import __builtin__
+    string_types = __builtin__.basestring,
+    text_type = __builtin__.unicode
     getcwdu = os.getcwdu
     u = lambda x: codecs.unicode_escape_decode(x)[0]
     codecs.register_error('surrogateescape', surrogate_escape)
