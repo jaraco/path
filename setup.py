@@ -18,6 +18,7 @@ with open('path.py') as path_mod:
     version = pattern.search(source).group('version')
 
 sphinx_req = ['sphinx'] if 'build_sphinx' in sys.argv else []
+ptr_req = ['pytest-runner'] if 'ptr' in sys.argv else []
 
 setup_params = dict(
     name="path.py",
@@ -42,7 +43,7 @@ setup_params = dict(
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    setup_requires=sphinx_req,
+    setup_requires=sphinx_req + ptr_req,
     tests_require=['pytest']
 )
 
