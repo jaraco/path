@@ -44,7 +44,7 @@ setup_params = dict(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     setup_requires=sphinx_req + ptr_req,
-    tests_require=['pytest']
+    tests_require=['pytest'],
 )
 
 
