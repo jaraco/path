@@ -3,10 +3,7 @@
 import re
 import sys
 
-try:
-    import setuptools as impl
-except ImportError:
-    import distutils.core as impl
+import setuptools
 
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
@@ -49,4 +46,4 @@ setup_params = dict(
 
 
 if __name__ == '__main__':
-    impl.setup(**setup_params)
+    setuptools.setup(**setup_params)
