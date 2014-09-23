@@ -11,7 +11,7 @@ Changes
 ---
 
  - Allow arbitrary callables to be passed to path.walk ``errors`` parameter.
-   Enables workaround for issues such as #73.
+   Enables workaround for issues such as #73 and #56.
 
 5.2
 ---
