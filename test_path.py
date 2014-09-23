@@ -16,6 +16,7 @@ time on files.
 
 import unittest
 import codecs
+import contextlib
 import os
 import sys
 import random
@@ -35,6 +36,17 @@ from path import CaseInsensitivePattern as ci
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
+
+
+@contextlib.contextmanager
+def set_fsencoding(enc):
+    """ Context manager to mock filesystemencoding being set to `enc` """
+    orig_fsencoding = sys.getfilesystemencoding
+    sys.getfilesystemencoding = lambda: enc
+    try:
+        yield
+    finally:
+        sys.getfilesystemencoding = orig_fsencoding
 
 
 class BasicTestCase(unittest.TestCase):
@@ -811,6 +823,39 @@ class TestUnicodePaths(unittest.TestCase):
         p = Path(self.tempdir)
         for res in p.walkdirs():
             pass
+
+
+@pytest.fixture
+def wack_dirs(request):
+    """ Provides a temp dirwith subdirs encoded with different encodings """
+    dirnames = [
+        b'b\xe1z',
+        b'\xcd\xbd',
+        b'\xff\xfe}\x03'
+    ]
+    # Create a temporary directory.
+    tempdir = tempfile.mkdtemp()
+    tempbytes = tempdir.encode('ascii')
+    # maxes some dirs in different encodings in the temp dir
+    for dirname in dirnames:
+        os.mkdir(os.path.join(tempbytes, dirname))
+    def fin():
+        shutil.rmtree(tempdir)
+    request.addfinalizer(fin)
+    return tempdir
+
+
+@pytest.mark.skipif(os.path.supports_unicode_filenames,
+                    reason='os does not support byte filenames')
+@pytest.mark.parametrize('enc', ['ascii', 'latin1', 'utf8', 'utf16'])
+def test_undecodable_names(wack_dirs, enc):
+    """ Test original fs names retrievable once they pass through path.py """
+    with set_fsencoding(enc):
+        p = path(wack_dirs)
+        path_names = set(name.fs_name for name in p.listdir())
+        os_names = set(os.path.join(wack_dirs, name)
+                    for name in os.listdir(wack_dirs))
+        assert os_names == path_names
 
 
 class TestPatternMatching(object):

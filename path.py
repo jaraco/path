@@ -187,6 +187,14 @@ class Path(text_type):
             return path
         return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
 
+    @property
+    def fs_name(self):
+        """ Filename usable by os functions """
+        if PY3 or os.path.supports_unicode_filenames:
+            return self
+        # TODO: This does not work on python 2
+        return self.encode(sys.getfilesystemencoding(), 'surrogateescape')
+
     # --- Special Python methods.
 
     def __repr__(self):
