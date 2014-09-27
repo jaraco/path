@@ -164,7 +164,7 @@ class BasicTestCase(unittest.TestCase):
         """
         nt_path = path.using_module(ntpath)
         self.assert_(nt_path is path.using_module(ntpath))
-        self.assertEqual(nt_path.__name__, 'path_ntpath')
+        self.assertEqual(nt_path.__name__, 'Path_ntpath')
 
     def test_joinpath_on_instance(self):
         res = path('foo')
