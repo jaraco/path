@@ -1,6 +1,12 @@
 Changes
 =======
 
+6.2
+---
+
+ - ``path`` class renamed to ``Path``. The ``path`` name remains as an alias
+   for compatibility.
+
 6.1
 ---
 
