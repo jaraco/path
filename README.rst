@@ -5,8 +5,8 @@ path.py
 common operations on files to be invoked on those path objects directly. For
 example::
 
-    from path import path
-    d = path('/home/guido/bin')
+    from path import Path
+    d = Path('/home/guido/bin')
     for f in d.files('*.py'):
         f.chmod(0755)
 

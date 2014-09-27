@@ -27,8 +27,8 @@ https://github.com/jaraco/path.py
 
 Example::
 
-    from path import path
-    d = path('/home/guido/bin')
+    from path import Path
+    d = Path('/home/guido/bin')
     for f in d.files('*.py'):
         f.chmod(0o755)
 """
@@ -93,7 +93,7 @@ if PY2:
 ##############################################################################
 
 __version__ = '6.2'
-__all__ = ['path', 'CaseInsensitivePattern']
+__all__ = ['Path', 'path', 'CaseInsensitivePattern']
 
 
 class TreeWalkWarning(Warning):
@@ -135,7 +135,16 @@ class multimethod(object):
         )
 
 
-class path(text_type):
+def alias(name):
+    "Create a decorator which will make an alias of the decorated item"
+    def decorate(item):
+        globals()[name] = item
+        return item
+    return decorate
+
+
+@alias('path')
+class Path(text_type):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -181,12 +190,12 @@ class path(text_type):
     # --- Special Python methods.
 
     def __repr__(self):
-        return '%s(%s)' % (type(self).__name__, super(path, self).__repr__())
+        return '%s(%s)' % (type(self).__name__, super(Path, self).__repr__())
 
-    # Adding a path and a string yields a path.
+    # Adding a Path and a string yields a Path.
     def __add__(self, more):
         try:
-            return self._next_class(super(path, self).__add__(more))
+            return self._next_class(super(Path, self).__add__(more))
         except TypeError:  # Python bug
             return NotImplemented
 
@@ -195,7 +204,7 @@ class path(text_type):
             return NotImplemented
         return self._next_class(other.__add__(self))
 
-    # The / operator joins paths.
+    # The / operator joins Paths.
     def __div__(self, rel):
         """ fp.__div__(rel) == fp / rel == fp.joinpath(rel)
 
@@ -226,7 +235,7 @@ class path(text_type):
         return cls(getcwdu())
 
     #
-    # --- Operations on path strings.
+    # --- Operations on Path strings.
 
     def abspath(self):
         """ .. seealso:: :func:`os.path.abspath` """
@@ -274,9 +283,9 @@ class path(text_type):
         """ The same as :meth:`name`, but with one file extension stripped off.
 
         For example,
-        ``path('/home/guido/python.tar.gz').name == 'python.tar.gz'``,
+        ``Path('/home/guido/python.tar.gz').name == 'python.tar.gz'``,
         but
-        ``path('/home/guido/python.tar.gz').namebase == 'python.tar'``.
+        ``Path('/home/guido/python.tar.gz').namebase == 'python.tar'``.
         """
         base, ext = self.module.splitext(self.name)
         return base
@@ -298,11 +307,11 @@ class path(text_type):
 
     parent = property(
         dirname, None, None,
-        """ This path's parent directory, as a new path object.
+        """ This path's parent directory, as a new Path object.
 
         For example,
-        ``path('/usr/local/lib/libpython.so').parent ==
-        path('/usr/local/lib')``
+        ``Path('/usr/local/lib/libpython.so').parent ==
+        Path('/usr/local/lib')``
 
         .. seealso:: :meth:`dirname`, :func:`os.path.dirname`
         """)
@@ -312,7 +321,7 @@ class path(text_type):
         """ The name of this file or directory without the full path.
 
         For example,
-        ``path('/usr/local/lib/libpython.so').name == 'libpython.so'``
+        ``Path('/usr/local/lib/libpython.so').name == 'libpython.so'``
 
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """)
@@ -330,7 +339,7 @@ class path(text_type):
 
         Split the drive specifier from this path.  If there is
         no drive specifier, :samp:`{p.drive}` is empty, so the return value
-        is simply ``(path(''), p)``.  This is always the case on Unix.
+        is simply ``(Path(''), p)``.  This is always the case on Unix.
 
         .. seealso:: :func:`os.path.splitdrive`
         """
@@ -355,8 +364,8 @@ class path(text_type):
     def stripext(self):
         """ p.stripext() -> Remove one file extension from the path.
 
-        For example, ``path('/home/guido/python.tar.gz').stripext()``
-        returns ``path('/home/guido/python.tar')``.
+        For example, ``Path('/home/guido/python.tar.gz').stripext()``
+        returns ``Path('/home/guido/python.tar')``.
         """
         return self.splitext()[0]
 
@@ -377,7 +386,7 @@ class path(text_type):
     @multimethod
     def joinpath(cls, first, *others):
         """
-        Join first to zero or more :class:`path` components, adding a separator
+        Join first to zero or more :class:`Path` components, adding a separator
         character (:samp:`{first}.module.sep`) if needed.  Returns a new instance of
         :samp:`{first}._next_class`.
 
@@ -390,12 +399,12 @@ class path(text_type):
     def splitall(self):
         r""" Return a list of the path components in this path.
 
-        The first item in the list will be a path.  Its value will be
+        The first item in the list will be a Path.  Its value will be
         either :data:`os.curdir`, :data:`os.pardir`, empty, or the root
         directory of this path (for example, ``'/'`` or ``'C:\\'``).  The
         other items in the list will be strings.
 
-        ``path.path.joinpath(*result)`` will yield the original path.
+        ``path.Path.joinpath(*result)`` will yield the original path.
         """
         parts = []
         loc = self
@@ -462,7 +471,7 @@ class path(text_type):
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
         of just files or just subdirectories.
 
-        The elements of the list are path objects.
+        The elements of the list are Path objects.
 
         With the optional `pattern` argument, this only lists
         items whose names match the given pattern.
@@ -480,7 +489,7 @@ class path(text_type):
     def dirs(self, pattern=None):
         """ D.dirs() -> List of this directory's subdirectories.
 
-        The elements of the list are path objects.
+        The elements of the list are Path objects.
         This does not walk recursively into subdirectories
         (but see :meth:`walkdirs`).
 
@@ -493,7 +502,7 @@ class path(text_type):
     def files(self, pattern=None):
         """ D.files() -> List of the files in this directory.
 
-        The elements of the list are path objects.
+        The elements of the list are Path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
 
         With the optional `pattern` argument, this only lists files
@@ -506,7 +515,7 @@ class path(text_type):
     def walk(self, pattern=None, errors='strict'):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
-        The iterator yields path objects naming each child item of
+        The iterator yields Path objects naming each child item of
         this directory and its descendants.  This requires that
         ``D.isdir()``.
 
@@ -662,11 +671,11 @@ class path(text_type):
         return fnmatch.fnmatchcase(name, pattern)
 
     def glob(self, pattern):
-        """ Return a list of path objects that match the pattern.
+        """ Return a list of Path objects that match the pattern.
 
         `pattern` - a path relative to this directory, with wildcards.
 
-        For example, ``path('/users').glob('*/bin/*')`` returns a list
+        For example, ``Path('/users').glob('*/bin/*')`` returns a list
         of all the files users have in their :file:`bin` directories.
 
         .. seealso:: :func:`glob.glob`
@@ -698,7 +707,7 @@ class path(text_type):
            :example:
 
                >>> hash = hashlib.md5()
-               >>> for chunk in path("path.py").chunks(8192, mode='rb'):
+               >>> for chunk in Path("path.py").chunks(8192, mode='rb'):
                ...     hash.update(chunk)
 
             This will read the file by chunks of 8192 bytes.
@@ -1379,7 +1388,7 @@ class path(text_type):
 
         For example, to add line numbers to a file::
 
-            p = path(filename)
+            p = Path(filename)
             assert p.isfile()
             with p.in_place() as reader, writer:
                 for number, line in enumerate(reader, 1):
@@ -1444,7 +1453,7 @@ class path(text_type):
                 pass
 
 
-class tempdir(path):
+class tempdir(Path):
     """
     A temporary directory via :func:`tempfile.mkdtemp`, and constructed with the
     same parameters that you can use as a context manager.
@@ -1452,7 +1461,7 @@ class tempdir(path):
     Example:
 
         with tempdir() as d:
-            # do stuff with the path object "d"
+            # do stuff with the Path object "d"
 
         # here the directory is deleted automatically
 
@@ -1462,7 +1471,7 @@ class tempdir(path):
     @ClassProperty
     @classmethod
     def _next_class(cls):
-        return path
+        return Path
 
     def __new__(cls, *args, **kwargs):
         dirname = tempfile.mkdtemp(*args, **kwargs)
@@ -1520,8 +1529,8 @@ class CaseInsensitivePattern(text_type):
     For example, to get all files ending in .py, .Py, .pY, or .PY in the
     current directory::
 
-        from path import path, CaseInsensitivePattern as ci
-        path('.').files(ci('*.py'))
+        from path import Path, CaseInsensitivePattern as ci
+        Path('.').files(ci('*.py'))
     """
 
     @property
