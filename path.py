@@ -58,6 +58,11 @@ try:
 except ImportError:
     pass
 
+try:
+    import grp
+except ImportError:
+    pass
+
 ##############################################################################
 # Python 2/3 support
 PY3 = sys.version_info >= (3,)
@@ -1146,6 +1151,10 @@ class path(text_type):
     if hasattr(os, 'chown'):
         def chown(self, uid=-1, gid=-1):
             """ .. seealso:: :func:`os.chown` """
+            if 'pwd' in globals() and isinstance(uid, basestring):
+                uid = pwd.getpwnam(uid).pw_uid
+            if 'grp' in globals() and isinstance(gid, basestring):
+                gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
             return self
 
