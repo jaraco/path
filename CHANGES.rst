@@ -1,6 +1,11 @@
 Changes
 =======
 
+6.1
+---
+
+ - ``chown`` now accepts names in addition to numeric IDs.
+
 6.0
 ---
 
