@@ -28,7 +28,7 @@ import textwrap
 
 import pytest
 
-from path import path, tempdir, u
+from path import Path, tempdir, u
 from path import CaseInsensitivePattern as ci
 
 
@@ -39,16 +39,16 @@ def p(**choices):
 
 class BasicTestCase(unittest.TestCase):
     def testRelpath(self):
-        root = path(p(nt='C:\\', posix='/'))
+        root = Path(p(nt='C:\\', posix='/'))
         foo = root / 'foo'
         quux = foo / 'quux'
         bar = foo / 'bar'
         boz = bar / 'Baz' / 'Boz'
-        up = path(os.pardir)
+        up = Path(os.pardir)
 
         # basics
-        self.assertEqual(root.relpathto(boz), path('foo')/'bar'/'Baz'/'Boz')
-        self.assertEqual(bar.relpathto(boz), path('Baz')/'Boz')
+        self.assertEqual(root.relpathto(boz), Path('foo')/'bar'/'Baz'/'Boz')
+        self.assertEqual(bar.relpathto(boz), Path('Baz')/'Boz')
         self.assertEqual(quux.relpathto(boz), up/'bar'/'Baz'/'Boz')
         self.assertEqual(boz.relpathto(quux), up/up/up/'quux')
         self.assertEqual(boz.relpathto(bar), up/up)
@@ -60,12 +60,12 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(boz.relpathto(boz.normcase()), os.curdir)
 
         # relpath()
-        cwd = path(os.getcwd())
+        cwd = Path(os.getcwd())
         self.assertEqual(boz.relpath(), cwd.relpathto(boz))
 
         if os.name == 'nt':
             # Check relpath across drives.
-            d = path('D:\\')
+            d = Path('D:\\')
             self.assertEqual(d.relpathto(boz), boz)
 
     def testConstructionFromNone(self):
@@ -73,7 +73,7 @@ class BasicTestCase(unittest.TestCase):
 
         """
         try:
-            path(None)
+            Path(None)
         except TypeError:
             pass
         else:
@@ -81,37 +81,37 @@ class BasicTestCase(unittest.TestCase):
 
     def testConstructionFromInt(self):
         """
-        path class will construct a path as a string of the number
+        Path class will construct a path as a string of the number
         """
-        self.assert_(path(1) == '1')
+        self.assert_(Path(1) == '1')
 
     def testStringCompatibility(self):
         """ Test compatibility with ordinary strings. """
-        x = path('xyzzy')
+        x = Path('xyzzy')
         self.assert_(x == 'xyzzy')
         self.assert_(x == u('xyzzy'))
 
         # sorting
-        items = [path('fhj'),
-                 path('fgh'),
+        items = [Path('fhj'),
+                 Path('fgh'),
                  'E',
-                 path('d'),
+                 Path('d'),
                  'A',
-                 path('B'),
+                 Path('B'),
                  'c']
         items.sort()
         self.assert_(items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj'])
 
         # Test p1/p1.
-        p1 = path("foo")
-        p2 = path("bar")
+        p1 = Path("foo")
+        p2 = Path("bar")
         self.assertEqual(p1/p2, p(nt='foo\\bar', posix='foo/bar'))
 
     def testProperties(self):
         # Create sample path object.
         f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
               posix='/usr/local/python/lib/xyzzy.py')
-        f = path(f)
+        f = Path(f)
 
         # .parent
         self.assertEqual(f.parent, p(nt='C:\\Program Files\\Python\\Lib',
@@ -130,16 +130,16 @@ class BasicTestCase(unittest.TestCase):
 
     def testMethods(self):
         # .abspath()
-        self.assertEqual(path(os.curdir).abspath(), os.getcwd())
+        self.assertEqual(Path(os.curdir).abspath(), os.getcwd())
 
         # .getcwd()
-        cwd = path.getcwd()
-        self.assert_(isinstance(cwd, path))
+        cwd = Path.getcwd()
+        self.assert_(isinstance(cwd, Path))
         self.assertEqual(cwd, os.getcwd())
 
     def testUNC(self):
         if hasattr(os.path, 'splitunc'):
-            p = path(r'\\python1\share1\dir1\file1.txt')
+            p = Path(r'\\python1\share1\dir1\file1.txt')
             self.assert_(p.uncshare == r'\\python1\share1')
             self.assert_(p.splitunc() == os.path.splitunc(str(p)))
 
@@ -147,9 +147,9 @@ class BasicTestCase(unittest.TestCase):
         """
         The user may specify an explicit path module to use.
         """
-        nt_ok = path.using_module(ntpath)(r'foo\bar\baz')
-        posix_ok = path.using_module(posixpath)(r'foo/bar/baz')
-        posix_wrong = path.using_module(posixpath)(r'foo\bar\baz')
+        nt_ok = Path.using_module(ntpath)(r'foo\bar\baz')
+        posix_ok = Path.using_module(posixpath)(r'foo/bar/baz')
+        posix_wrong = Path.using_module(posixpath)(r'foo\bar\baz')
 
         self.assertEqual(nt_ok.dirname(), r'foo\bar')
         self.assertEqual(posix_ok.dirname(), r'foo/bar')
@@ -162,35 +162,35 @@ class BasicTestCase(unittest.TestCase):
         """
         Multiple calls to path.using_module should produce the same class.
         """
-        nt_path = path.using_module(ntpath)
-        self.assert_(nt_path is path.using_module(ntpath))
+        nt_path = Path.using_module(ntpath)
+        self.assert_(nt_path is Path.using_module(ntpath))
         self.assertEqual(nt_path.__name__, 'Path_ntpath')
 
     def test_joinpath_on_instance(self):
-        res = path('foo')
+        res = Path('foo')
         foo_bar = res.joinpath('bar')
         assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
 
     def test_joinpath_to_nothing(self):
-        res = path('foo')
+        res = Path('foo')
         assert res.joinpath() == res
 
     def test_joinpath_on_class(self):
         "Construct a path from a series of strings"
-        foo_bar = path.joinpath('foo', 'bar')
+        foo_bar = Path.joinpath('foo', 'bar')
         assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
 
     def test_joinpath_fails_on_empty(self):
         "It doesn't make sense to join nothing at all"
         try:
-            path.joinpath()
+            Path.joinpath()
         except TypeError:
             pass
         else:
             raise Exception("did not raise")
 
     def test_joinpath_returns_same_type(self):
-        path_posix = path.using_module(posixpath)
+        path_posix = Path.using_module(posixpath)
         res = path_posix.joinpath('foo')
         assert isinstance(res, path_posix)
         res2 = res.joinpath('bar')
@@ -217,31 +217,31 @@ class ReturnSelfTestCase(unittest.TestCase):
 
     def testMakedirs_pReturnsSelf(self):
         """
-        path('foo').makedirs_p() == path('foo')
+        Path('foo').makedirs_p() == Path('foo')
         """
-        p = path(self.tempdir) / "newpath"
+        p = Path(self.tempdir) / "newpath"
         ret = p.makedirs_p()
         self.assertEquals(p, ret)
 
     def testMakedirs_pReturnsSelfEvenIfExists(self):
-        p = path(self.tempdir)
+        p = Path(self.tempdir)
         ret = p.makedirs_p()
         self.assertEquals(p, ret)
 
     def testRenameReturnsSelf(self):
-        p = path(self.tempdir) / "somefile"
+        p = Path(self.tempdir) / "somefile"
         p.touch()
-        target = path(self.tempdir) / "otherfile"
+        target = Path(self.tempdir) / "otherfile"
         ret = p.rename(target)
         self.assertEquals(target, ret)
 
     def testMkdirReturnsSelf(self):
-        p = path(self.tempdir) / "newdir"
+        p = Path(self.tempdir) / "newdir"
         ret = p.mkdir()
         self.assertEquals(p, ret)
 
     def testTouchReturnsSelf(self):
-        p = path(self.tempdir) / "empty file"
+        p = Path(self.tempdir) / "empty file"
         ret = p.touch()
         self.assertEquals(p, ret)
 
@@ -263,7 +263,7 @@ class ScratchDirTestCase(unittest.TestCase):
 
     def testContextManager(self):
         """Can be used as context manager for chdir."""
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         subdir = d / 'subdir'
         subdir.makedirs()
         old_dir = os.getcwd()
@@ -279,7 +279,7 @@ class ScratchDirTestCase(unittest.TestCase):
         # atime isn't tested because on Windows the resolution of atime
         # is something like 24 hours.
 
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         f = d / 'test.txt'
         t0 = time.time() - 3
         f.touch()
@@ -323,7 +323,7 @@ class ScratchDirTestCase(unittest.TestCase):
             f.remove()
 
     def testListing(self):
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         self.assertEqual(d.listdir(), [])
 
         f = 'testfile.txt'
@@ -370,7 +370,7 @@ class ScratchDirTestCase(unittest.TestCase):
         ``.listdir`` should still function in this case.
         See issue #61 for details.
         """
-        self.assertEqual(path(self.tempdir).listdir(), [])
+        self.assertEqual(Path(self.tempdir).listdir(), [])
         tmpdir_bytes = self.tempdir
 
         filename = 'r\xe9\xf1emi'
@@ -385,14 +385,14 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assert_(os.listdir(tmpdir_bytes))
 
         # now try with path.py
-        results = path(self.tempdir).listdir()
+        results = Path(self.tempdir).listdir()
         self.assert_(len(results) == 1)
         res, = results
-        self.assert_(isinstance(res, path))
+        self.assert_(isinstance(res, Path))
         assert len(res.basename()) == len(filename)
 
     def testMakeDirs(self):
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
 
         # Placeholder file so that when removedirs() is called,
         # it doesn't remove the temporary directory itself.
@@ -438,7 +438,7 @@ class ScratchDirTestCase(unittest.TestCase):
         # they should, neglecting the details as they are shutil's
         # responsibility.
 
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         testDir = d / 'testdir'
         testFile = testDir / 'testfile.txt'
         testA = testDir / 'A'
@@ -513,7 +513,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assertEqual(listing, expected)
 
     def testPatterns(self):
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
 
@@ -535,7 +535,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assertList(d.walkdirs('*.tmp'), [d/'xdir.tmp'])
 
     def testUnicode(self):
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         p = d/'unicode.txt'
 
         def test(enc):
@@ -692,7 +692,7 @@ class ScratchDirTestCase(unittest.TestCase):
                          f1.samefile(f1))
 
     def testRmtreeP(self):
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         sub = d / 'subfolder'
         sub.mkdir()
         (sub / 'afile').write_text('something')
@@ -706,7 +706,7 @@ class ScratchDirTestCase(unittest.TestCase):
 
     def test_chdir_or_cd(self):
         """ tests the chdir or cd method """
-        d = path(self.tempdir)
+        d = Path(self.tempdir)
         cwd = d.getcwd()
 
         assert str(d) != str(cwd)  # ensure the cwd isn't our tempdir
@@ -714,7 +714,7 @@ class ScratchDirTestCase(unittest.TestCase):
 
         assert str(d.getcwd()) == str(self.tempdir)  # we now ensure that our
                                                      # cwd is the tempdir
-        d = path(cwd)  # we're resetting our path
+        d = Path(cwd)  # we're resetting our path
 
         assert str(d.getcwd()) == str(self.tempdir)  # we ensure that our cwd
                                                      # is still set to tempdir
@@ -725,7 +725,7 @@ class ScratchDirTestCase(unittest.TestCase):
 
 
 class SubclassTestCase(unittest.TestCase):
-    class PathSubclass(path):
+    class PathSubclass(Path):
         pass
 
     def test_subclass_produces_same_class(self):
@@ -745,7 +745,7 @@ class TempDirTestCase(unittest.TestCase):
         One should be able to readily construct a temporary directory
         """
         d = tempdir()
-        assert isinstance(d, path)
+        assert isinstance(d, Path)
         assert d.exists()
         assert d.isdir()
         d.rmdir()
@@ -754,11 +754,11 @@ class TempDirTestCase(unittest.TestCase):
     def test_next_class(self):
         """
         It should be possible to invoke operations on a tempdir and get
-        path classes.
+        Path classes.
         """
         d = tempdir()
         sub = d / 'subdir'
-        assert isinstance(sub, path)
+        assert isinstance(sub, Path)
         d.rmdir()
 
     def test_context_manager(self):
@@ -808,39 +808,39 @@ class TestUnicodePaths(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def test_walkdirs_with_unicode_name(self):
-        p = path(self.tempdir)
+        p = Path(self.tempdir)
         for res in p.walkdirs():
             pass
 
 
 class TestPatternMatching(object):
     def test_fnmatch_simple(self):
-        p = path('FooBar')
+        p = Path('FooBar')
         assert p.fnmatch('Foo*')
         assert p.fnmatch('Foo[ABC]ar')
 
     def test_fnmatch_custom_mod(self):
-        p = path('FooBar')
+        p = Path('FooBar')
         p.module = ntpath
         assert p.fnmatch('foobar')
         assert p.fnmatch('FOO[ABC]AR')
 
     def test_fnmatch_custom_normcase(self):
         normcase = lambda path: path.upper()
-        p = path('FooBar')
+        p = Path('FooBar')
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
 
     def test_listdir_simple(self):
-        p = path('.')
+        p = Path('.')
         assert len(p.listdir()) == len(os.listdir('.'))
 
     def test_listdir_empty_pattern(self):
-        p = path('.')
+        p = Path('.')
         assert p.listdir('') == []
 
     def test_listdir_patterns(self, tmpdir):
-        p = path(tmpdir)
+        p = Path(tmpdir)
         (p/'sub').mkdir()
         (p/'File').touch()
         assert p.listdir('s*') == [p / 'sub']
@@ -849,15 +849,15 @@ class TestPatternMatching(object):
     def test_listdir_custom_module(self, tmpdir):
         """
         Listdir patterns should honor the case sensitivity of the path module
-        used by that path class.
+        used by that Path class.
         """
-        always_unix = path.using_module(posixpath)
+        always_unix = Path.using_module(posixpath)
         p = always_unix(tmpdir)
         (p/'sub').mkdir()
         (p/'File').touch()
         assert p.listdir('S*') == []
 
-        always_win = path.using_module(ntpath)
+        always_win = Path.using_module(ntpath)
         p = always_win(tmpdir)
         assert p.listdir('S*') == [p/'sub']
         assert p.listdir('f*') == [p/'File']
@@ -865,9 +865,9 @@ class TestPatternMatching(object):
     def test_listdir_case_insensitive(self, tmpdir):
         """
         Listdir patterns should honor the case sensitivity of the path module
-        used by that path class.
+        used by that Path class.
         """
-        p = path(tmpdir)
+        p = Path(tmpdir)
         (p/'sub').mkdir()
         (p/'File').touch()
         assert p.listdir(ci('S*')) == [p/'sub']
@@ -876,7 +876,7 @@ class TestPatternMatching(object):
         assert p.dirs(ci('f*')) == []
 
     def test_walk_case_insensitive(self, tmpdir):
-        p = path(tmpdir)
+        p = Path(tmpdir)
         (p/'sub1'/'foo').makedirs_p()
         (p/'sub2'/'foo').makedirs_p()
         (p/'sub1'/'foo'/'bar.Txt').touch()
@@ -909,7 +909,7 @@ class TestInPlace(object):
 
     @classmethod
     def create_reference(cls, tmpdir):
-        p = path(tmpdir)/'document'
+        p = Path(tmpdir)/'document'
         with p.open('w') as stream:
             stream.write(cls.reference_content)
         return p
