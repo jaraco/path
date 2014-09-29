@@ -47,6 +47,7 @@ import functools
 import operator
 import re
 import contextlib
+import io
 
 try:
     import win32security
@@ -62,6 +63,10 @@ try:
     import grp
 except ImportError:
     pass
+
+NEW_LINES = re.compile('|'.join(
+    ['\r\n', '\r', '\n', '\f', '\v', u'\u0085', u'\u2028', u'\u2029']
+))
 
 ##############################################################################
 # Python 2/3 support
@@ -686,12 +691,20 @@ class Path(text_type):
     #
     # --- Reading or writing an entire file at once.
 
-    def open(self, *args, **kwargs):
-        """ Open this file.  Return a :class:`file` object.
+    def open(self, mode='r', buffering=-1, encoding=None, errors=None,
+             newline=None):
+        """ Open this file and return a corresponding :class:`file` object.
 
-        .. seealso:: :func:`python:open`
+        Keywords arguments work as in io.open.  If the file cannot be
+        opened, an OSError is raised.
         """
-        return open(self, *args, **kwargs)
+        try:
+            return io.open(self, mode=mode, buffering=buffering,
+                           encoding=encoding, errors=errors, newline=newline)
+        except IOError as io_err:  # Python 2
+            os_err = OSError(*io_err.args)
+            os_err.filename = getattr(io_err, 'filename', None)
+            raise os_err
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -702,7 +715,7 @@ class Path(text_type):
         """ Returns a generator yielding chunks of the file, so it can
             be read piece by piece with a simple for loop.
 
-           Any argument you pass after `size` will be passed to `open()`.
+           Any argument you pass after `size` will be passed to :meth:`open`.
 
            :example:
 
@@ -712,7 +725,7 @@ class Path(text_type):
 
             This will read the file by chunks of 8192 bytes.
         """
-        with open(self, *args, **kwargs) as f:
+        with self.open(*args, **kwargs) as f:
             while True:
                 d = f.read(size)
                 if not d:
@@ -734,35 +747,12 @@ class Path(text_type):
 
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
-
-        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
-        automatically translated to ``'\n'``.
-
-        Optional arguments:
-            `encoding` - The Unicode encoding (or character set) of
-                the file.  If present, the content of the file is
-                decoded and returned as a unicode object; otherwise
-                it is returned as an 8-bit str.
-            `errors` - How to handle Unicode errors; see :meth:`str.decode`
-                for the options.  Default is 'strict'.
+             All newline sequences are converted to ``'\n'``.
 
         .. seealso:: :meth:`lines`
         """
-        if encoding is None:
-            # 8-bit
-            with self.open('U') as f:
-                return f.read()
-        else:
-            # Unicode
-            with codecs.open(self, 'r', encoding, errors) as f:
-                # (Note - Can't use 'U' mode here, since codecs.open
-                # doesn't support 'U' mode.)
-                t = f.read()
-            return (t.replace(u('\r\n'), u('\n'))
-                     .replace(u('\r\x85'), u('\n'))
-                     .replace(u('\r'), u('\n'))
-                     .replace(u('\x85'), u('\n'))
-                     .replace(u('\u2028'), u('\n')))
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+            return NEW_LINES.sub('\n', f.read())
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
