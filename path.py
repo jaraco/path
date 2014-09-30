@@ -64,10 +64,6 @@ try:
 except ImportError:
     pass
 
-NEW_LINES = re.compile('|'.join(
-    ['\r\n', '\r', '\n', '\f', '\v', u'\u0085', u'\u2028', u'\u2029']
-))
-
 ##############################################################################
 # Python 2/3 support
 PY3 = sys.version_info >= (3,)
@@ -99,6 +95,12 @@ if PY2:
 
 __version__ = '6.3'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
+
+
+NEWLINE = re.compile('|'.join([
+    u('\r\n'), u('\r'), u('\n'), u('\f'), u('\v'),
+    u('\u0085'), u('\u2028'), u('\u2029'),
+]))
 
 
 class TreeWalkWarning(Warning):
@@ -752,7 +754,7 @@ class Path(text_type):
         .. seealso:: :meth:`lines`
         """
         with self.open(mode='r', encoding=encoding, errors=errors) as f:
-            return NEW_LINES.sub('\n', f.read())
+            return NEWLINE.sub('\n', f.read())
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
