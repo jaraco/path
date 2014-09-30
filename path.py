@@ -97,10 +97,10 @@ __version__ = '6.3'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
 
 
-NEWLINE = re.compile('|'.join([
-    u('\r\n'), u('\r'), u('\n'), u('\f'), u('\v'),
-    u('\u0085'), u('\u2028'), u('\u2029'),
-]))
+LINESEPS = [u('\r\n'), u('\r'), u('\n')]
+U_LINESEPS = LINESEPS + [u('\u0085'), u('\u2028'), u('\u2029')]
+NEWLINE = re.compile('|'.join(LINESEPS))
+U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 
 
 class TreeWalkWarning(Warning):
@@ -754,7 +754,7 @@ class Path(text_type):
         .. seealso:: :meth:`lines`
         """
         with self.open(mode='r', encoding=encoding, errors=errors) as f:
-            return NEWLINE.sub('\n', f.read())
+            return U_NEWLINE.sub('\n', f.read())
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
@@ -823,28 +823,13 @@ class Path(text_type):
         """
         if isinstance(text, text_type):
             if linesep is not None:
-                # Convert all standard end-of-line sequences to
-                # ordinary newline characters.
-                text = (text.replace(u('\r\n'), u('\n'))
-                            .replace(u('\r\x85'), u('\n'))
-                            .replace(u('\r'), u('\n'))
-                            .replace(u('\x85'), u('\n'))
-                            .replace(u('\u2028'), u('\n')))
-                text = text.replace(u('\n'), linesep)
-            if encoding is None:
-                encoding = sys.getdefaultencoding()
-            bytes = text.encode(encoding, errors)
+                text = U_NEWLINE.sub(linesep, text)
+            text = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
-            # It is an error to specify an encoding if 'text' is
-            # an 8-bit string.
             assert encoding is None
-
-            if linesep is not None:
-                text = (text.replace('\r\n', '\n')
-                            .replace('\r', '\n'))
-                bytes = text.replace('\n', linesep)
-
-        self.write_bytes(bytes, append)
+            PATTERN = re.compile('|'.join([u('\r\n'), u('\r'), u('\n')]))
+            text = NEWLINE.sub(linesep, text)
+        self.write_bytes(text, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
         r""" Open this file, read all lines, return them in a list.
