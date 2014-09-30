@@ -699,8 +699,8 @@ class Path(text_type):
              newline=None):
         """ Open this file and return a corresponding :class:`file` object.
 
-        Keywords arguments work as in io.open.  If the file cannot be
-        opened, an OSError is raised.
+        Keyword arguments work as in :func:`io.open`.  If the file cannot be
+        opened, an :class:`~exceptions.OSError` is raised.
         """
         try:
             return io.open(self, mode=mode, buffering=buffering,
@@ -751,7 +751,9 @@ class Path(text_type):
 
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
-             All newline sequences are converted to ``'\n'``.
+
+        All newline sequences are converted to ``'\n'``.  Keyword arguments
+        will be passed to :meth:`open`.
 
         .. seealso:: :meth:`lines`
         """
