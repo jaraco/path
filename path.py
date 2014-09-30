@@ -827,7 +827,6 @@ class Path(text_type):
             text = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
             assert encoding is None
-            PATTERN = re.compile('|'.join([u('\r\n'), u('\r'), u('\n')]))
             text = NEWLINE.sub(linesep, text)
         self.write_bytes(text, append=append)
 
