@@ -101,6 +101,8 @@ LINESEPS = [u('\r\n'), u('\r'), u('\n')]
 U_LINESEPS = LINESEPS + [u('\u0085'), u('\u2028'), u('\u2029')]
 NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
+NL_END = re.compile(u(r'(?:{0})$').format(NEWLINE.pattern))
+U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
 
 
 class TreeWalkWarning(Warning):
@@ -893,33 +895,15 @@ class Path(text_type):
             mixed-encoding data, which can really confuse someone trying
             to read the file later.
         """
-        if append:
-            mode = 'ab'
-        else:
-            mode = 'wb'
-        with self.open(mode) as f:
-            for line in lines:
-                isUnicode = isinstance(line, text_type)
+        with self.open('ab' if append else 'wb') as f:
+            for l in lines:
+                isUnicode = isinstance(l, text_type)
                 if linesep is not None:
-                    # Strip off any existing line-end and add the
-                    # specified linesep string.
-                    if isUnicode:
-                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
-                            line = line[:-2]
-                        elif line[-1:] in (u('\r'), u('\n'),
-                                           u('\x85'), u('\u2028')):
-                            line = line[:-1]
-                    else:
-                        if line[-2:] == '\r\n':
-                            line = line[:-2]
-                        elif line[-1:] in ('\r', '\n'):
-                            line = line[:-1]
-                    line += linesep
+                    pattern = U_NL_END if isUnicode else NL_END
+                    l = pattern.sub('', l) + linesep
                 if isUnicode:
-                    if encoding is None:
-                        encoding = sys.getdefaultencoding()
-                    line = line.encode(encoding, errors)
-                f.write(line)
+                    l = l.encode(encoding or sys.getdefaultencoding(), errors)
+                f.write(l)
 
     def read_md5(self):
         """ Calculate the md5 hash for this file.
