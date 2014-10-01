@@ -695,16 +695,14 @@ class Path(text_type):
     #
     # --- Reading or writing an entire file at once.
 
-    def open(self, mode='r', buffering=-1, encoding=None, errors=None,
-             newline=None):
+    def open(self, *args, **kwargs):
         """ Open this file and return a corresponding :class:`file` object.
 
         Keyword arguments work as in :func:`io.open`.  If the file cannot be
         opened, an :class:`~exceptions.OSError` is raised.
         """
         try:
-            return io.open(self, mode=mode, buffering=buffering,
-                           encoding=encoding, errors=errors, newline=newline)
+            return io.open(self, *args, **kwargs)
         except IOError as io_err:  # Python 2
             os_err = OSError(*io_err.args)
             os_err.filename = getattr(io_err, 'filename', None)
