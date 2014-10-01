@@ -19,12 +19,10 @@ FS_ENCODING = codecs.lookup(sys.getfilesystemencoding()).name
 
 
 # -- Python 2/3 compatibility -------------------------------------
-b = lambda x: x.encode('latin1')
 _unichr = chr
 bytes_chr = lambda code: bytes_type((code,))
 
 if PY2:
-    b = lambda x: x
     _unichr = unichr
     bytes_chr = chr
 # -- Python 2/3 compatibility -------------------------------------
@@ -49,7 +47,7 @@ def surrogateescape(exc):
             else:
                 raise exc
         decoded = str().join(decoded)
-        return (decoded, exc.end)
+        return decoded, exc.end
     else:
         print(exc.args)
         ch = exc.object[exc.start:exc.end]
