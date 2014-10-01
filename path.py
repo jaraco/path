@@ -205,14 +205,16 @@ class Path(text_type):
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
         try:
-            return self._next_class(super(Path, self).__add__(more))
+            return self._next_class(
+                super(Path, self).__add__(self._always_unicode(more))
+            )
         except TypeError:  # Python bug
             return NotImplemented
 
     def __radd__(self, other):
         if not isinstance(other, string_types):
             return NotImplemented
-        return self._next_class(other.__add__(self))
+        return self._next_class(self._always_unicode(other).__add__(self))
 
     # The / operator joins Paths.
     def __div__(self, rel):
@@ -223,7 +225,7 @@ class Path(text_type):
 
         .. seealso:: :func:`os.path.join`
         """
-        return self._next_class(self.module.join(self, rel))
+        return self.joinpath(rel)
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
@@ -404,7 +406,9 @@ class Path(text_type):
         """
         if not isinstance(first, cls):
             first = cls(first)
-        return first._next_class(first.module.join(first, *others))
+        return first._next_class(first.module.join(
+            first.fs_path, *(first._next_class(o).fs_path for o in others))
+        )
 
     def splitall(self):
         r""" Return a list of the path components in this path.
