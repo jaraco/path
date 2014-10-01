@@ -91,6 +91,18 @@ if PY2:
     getcwdu = os.getcwdu
     u = lambda x: codecs.unicode_escape_decode(x)[0]
     codecs.register_error('surrogateescape', surrogate_escape)
+
+@contextlib.contextmanager
+def io_error_compat():
+    try:
+        yield
+    except IOError as io_err:
+        # On Python 2, io.open raises IOError; transform to OSError for
+        # future compatibility.
+        os_err = OSError(*io_err.args)
+        os_err.filename = getattr(io_err, 'filename', None)
+        raise os_err
+
 ##############################################################################
 
 __version__ = '6.3'
@@ -701,12 +713,8 @@ class Path(text_type):
         Keyword arguments work as in :func:`io.open`.  If the file cannot be
         opened, an :class:`~exceptions.OSError` is raised.
         """
-        try:
+        with io_error_compat():
             return io.open(self, *args, **kwargs)
-        except IOError as io_err:  # Python 2
-            os_err = OSError(*io_err.args)
-            os_err.filename = getattr(io_err, 'filename', None)
-            raise os_err
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
