@@ -851,8 +851,8 @@ def wack_dirs(request):
 def test_undecodable_names(wack_dirs, enc):
     """ Test original fs names retrievable once they pass through path.py """
     with set_fsencoding(enc):
-        p = path(wack_dirs)
-        path_names = set(name.fs_name for name in p.listdir())
+        p = Path(wack_dirs)
+        path_names = set(name.fs_path for name in p.listdir())
         os_names = set(os.path.join(wack_dirs, name)
                     for name in os.listdir(wack_dirs))
         assert os_names == path_names
