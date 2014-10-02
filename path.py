@@ -739,7 +739,7 @@ class Path(text_type):
 
             This will read the file by chunks of 8192 bytes.
         """
-        with self.open(self, *args, **kwargs) as f:
+        with self.open(*args, **kwargs) as f:
             while True:
                 d = f.read(size)
                 if not d:
@@ -1141,13 +1141,15 @@ class Path(text_type):
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
-        os.rename(self.fs_path, new)
-        return self._next_class(new)
+        new = self._next_class(self._always_unicode(new))
+        os.rename(self.fs_path, new.fs_path)
+        return new
 
     def renames(self, new):
         """ .. seealso:: :func:`os.renames` """
-        os.renames(self.fs_path, new)
-        return self._next_class(new)
+        new = self._next_class(self._always_unicode(new))
+        os.renames(self.fs_path, new.fs_path)
+        return new
 
     #
     # --- Create/delete operations on directories
@@ -1378,11 +1380,11 @@ class Path(text_type):
         # borrowed extensively from the fileinput module
         backup_fn = self + (backup_extension or os.extsep + 'bak')
         try:
-            os.unlink(backup_fn)
+           backup_fn.unlink()
         except os.error:
             pass
-        os.rename(self.fs_path, backup_fn)
-        readable = io.open(backup_fn, mode, buffering=buffering,
+        os.rename(self.fs_path, backup_fn.fs_path)
+        readable = backup_fn.open(mode, buffering=buffering,
             encoding=encoding, errors=errors, newline=newline)
         try:
             perm = os.fstat(readable.fileno()).st_mode
@@ -1410,17 +1412,17 @@ class Path(text_type):
             readable.close()
             writable.close()
             try:
-                os.unlink(self.fs_path)
+                self.unlink()
             except os.error:
                 pass
-            os.rename(backup_fn, self.fs_path)
+            backup_fn.rename(self)
             raise
         else:
             readable.close()
             writable.close()
         finally:
             try:
-                os.unlink(backup_fn)
+                backup_fn.unlink()
             except os.error:
                 pass
 
