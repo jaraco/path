@@ -47,6 +47,7 @@ import functools
 import operator
 import re
 import contextlib
+import io
 
 try:
     import win32security
@@ -83,10 +84,30 @@ if PY2:
     u = lambda x: codecs.unicode_escape_decode(x)[0]
 
 from _vendor.surrogateescape import decodefilename, encodefilename
+
+@contextlib.contextmanager
+def io_error_compat():
+    try:
+        yield
+    except IOError as io_err:
+        # On Python 2, io.open raises IOError; transform to OSError for
+        # future compatibility.
+        os_err = OSError(*io_err.args)
+        os_err.filename = getattr(io_err, 'filename', None)
+        raise os_err
+
 ##############################################################################
 
 __version__ = '6.3'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
+
+
+LINESEPS = [u('\r\n'), u('\r'), u('\n')]
+U_LINESEPS = LINESEPS + [u('\u0085'), u('\u2028'), u('\u2029')]
+NEWLINE = re.compile('|'.join(LINESEPS))
+U_NEWLINE = re.compile('|'.join(U_LINESEPS))
+NL_END = re.compile(u(r'(?:{0})$').format(NEWLINE.pattern))
+U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
 
 
 class TreeWalkWarning(Warning):
@@ -252,6 +273,10 @@ class Path(text_type):
     def normpath(self):
         """ .. seealso:: :func:`os.path.normpath` """
         return self._next_class(self.module.normpath(self))
+
+    def realpath(self):
+        """ .. seealso:: :func:`os.path.realpath` """
+        return self._next_class(self.module.realpath(self))
 
     def expanduser(self):
         """ .. seealso:: :func:`os.path.expanduser` """
@@ -687,11 +712,13 @@ class Path(text_type):
     # --- Reading or writing an entire file at once.
 
     def open(self, *args, **kwargs):
-        """ Open this file.  Return a :class:`file` object.
+        """ Open this file and return a corresponding :class:`file` object.
 
-        .. seealso:: :func:`python:open`
+        Keyword arguments work as in :func:`io.open`.  If the file cannot be
+        opened, an :class:`~exceptions.OSError` is raised.
         """
-        return open(self.fs_path, *args, **kwargs)
+        with io_error_compat():
+            return io.open(self.fs_path, *args, **kwargs)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -702,7 +729,7 @@ class Path(text_type):
         """ Returns a generator yielding chunks of the file, so it can
             be read piece by piece with a simple for loop.
 
-           Any argument you pass after `size` will be passed to `open()`.
+           Any argument you pass after `size` will be passed to :meth:`open`.
 
            :example:
 
@@ -712,7 +739,7 @@ class Path(text_type):
 
             This will read the file by chunks of 8192 bytes.
         """
-        with open(self.fs_path, *args, **kwargs) as f:
+        with self.open(self, *args, **kwargs) as f:
             while True:
                 d = f.read(size)
                 if not d:
@@ -735,34 +762,13 @@ class Path(text_type):
     def text(self, encoding=None, errors='strict'):
         r""" Open this file, read it in, return the content as a string.
 
-        This method uses ``'U'`` mode, so ``'\r\n'`` and ``'\r'`` are
-        automatically translated to ``'\n'``.
-
-        Optional arguments:
-            `encoding` - The Unicode encoding (or character set) of
-                the file.  If present, the content of the file is
-                decoded and returned as a unicode object; otherwise
-                it is returned as an 8-bit str.
-            `errors` - How to handle Unicode errors; see :meth:`str.decode`
-                for the options.  Default is 'strict'.
+        All newline sequences are converted to ``'\n'``.  Keyword arguments
+        will be passed to :meth:`open`.
 
         .. seealso:: :meth:`lines`
         """
-        if encoding is None:
-            # 8-bit
-            with self.open('U') as f:
-                return f.read()
-        else:
-            # Unicode
-            with codecs.open(self.fs_path, 'r', encoding, errors) as f:
-                # (Note - Can't use 'U' mode here, since codecs.open
-                # doesn't support 'U' mode.)
-                t = f.read()
-            return (t.replace(u('\r\n'), u('\n'))
-                     .replace(u('\r\x85'), u('\n'))
-                     .replace(u('\r'), u('\n'))
-                     .replace(u('\x85'), u('\n'))
-                     .replace(u('\u2028'), u('\n')))
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+            return U_NEWLINE.sub('\n', f.read())
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
@@ -831,28 +837,12 @@ class Path(text_type):
         """
         if isinstance(text, text_type):
             if linesep is not None:
-                # Convert all standard end-of-line sequences to
-                # ordinary newline characters.
-                text = (text.replace(u('\r\n'), u('\n'))
-                            .replace(u('\r\x85'), u('\n'))
-                            .replace(u('\r'), u('\n'))
-                            .replace(u('\x85'), u('\n'))
-                            .replace(u('\u2028'), u('\n')))
-                text = text.replace(u('\n'), linesep)
-            if encoding is None:
-                encoding = sys.getdefaultencoding()
-            bytes = text.encode(encoding, errors)
+                text = U_NEWLINE.sub(linesep, text)
+            text = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
-            # It is an error to specify an encoding if 'text' is
-            # an 8-bit string.
             assert encoding is None
-
-            if linesep is not None:
-                text = (text.replace('\r\n', '\n')
-                            .replace('\r', '\n'))
-                bytes = text.replace('\n', linesep)
-
-        self.write_bytes(bytes, append)
+            text = NEWLINE.sub(linesep, text)
+        self.write_bytes(text, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
         r""" Open this file, read all lines, return them in a list.
@@ -917,33 +907,15 @@ class Path(text_type):
             mixed-encoding data, which can really confuse someone trying
             to read the file later.
         """
-        if append:
-            mode = 'ab'
-        else:
-            mode = 'wb'
-        with self.open(mode) as f:
-            for line in lines:
-                isUnicode = isinstance(line, text_type)
+        with self.open('ab' if append else 'wb') as f:
+            for l in lines:
+                isUnicode = isinstance(l, text_type)
                 if linesep is not None:
-                    # Strip off any existing line-end and add the
-                    # specified linesep string.
-                    if isUnicode:
-                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
-                            line = line[:-2]
-                        elif line[-1:] in (u('\r'), u('\n'),
-                                           u('\x85'), u('\u2028')):
-                            line = line[:-1]
-                    else:
-                        if line[-2:] == '\r\n':
-                            line = line[:-2]
-                        elif line[-1:] in ('\r', '\n'):
-                            line = line[:-1]
-                    line += linesep
+                    pattern = U_NL_END if isUnicode else NL_END
+                    l = pattern.sub('', l) + linesep
                 if isUnicode:
-                    if encoding is None:
-                        encoding = sys.getdefaultencoding()
-                    line = line.encode(encoding, errors)
-                f.write(line)
+                    l = l.encode(encoding or sys.getdefaultencoding(), errors)
+                f.write(l)
 
     def read_md5(self):
         """ Calculate the md5 hash for this file.
