@@ -150,10 +150,6 @@ class Path(text_type):
     .. seealso:: :mod:`os.path`
     """
 
-    def __new__(cls, path):
-        path = cls._always_unicode(path)
-        return text_type.__new__(cls, path)
-
     def __init__(self, other=''):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
@@ -196,25 +192,17 @@ class Path(text_type):
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__, super(Path, self).__repr__())
 
-    def __bytes__(self):
-        return encodefilename(self)
-
-    if PY2:
-        __str__ = __bytes__
-
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
         try:
-            return self._next_class(
-                super(Path, self).__add__(self._always_unicode(more))
-            )
+            return self._next_class(super(Path, self).__add__(more))
         except TypeError:  # Python bug
             return NotImplemented
 
     def __radd__(self, other):
         if not isinstance(other, string_types):
             return NotImplemented
-        return self._next_class(self._always_unicode(other).__add__(self))
+        return self._next_class(other.__add__(self))
 
     # The / operator joins Paths.
     def __div__(self, rel):
@@ -253,33 +241,33 @@ class Path(text_type):
         """ .. seealso:: :func:`os.path.abspath` """
         return self._next_class(self.module.abspath(self.fs_path))
 
-    def normcase(self):
-        """ .. seealso:: :func:`os.path.normcase` """
-        return self._next_class(self.module.normcase(self.fs_path))
-
-    def normpath(self):
-        """ .. seealso:: :func:`os.path.normpath` """
-        return self._next_class(self.module.normpath(self.fs_path))
-
     def realpath(self):
         """ .. seealso:: :func:`os.path.realpath` """
         return self._next_class(self.module.realpath(self.fs_path))
 
+    def normcase(self):
+        """ .. seealso:: :func:`os.path.normcase` """
+        return self._next_class(self.module.normcase(self))
+
+    def normpath(self):
+        """ .. seealso:: :func:`os.path.normpath` """
+        return self._next_class(self.module.normpath(self))
+
     def expanduser(self):
         """ .. seealso:: :func:`os.path.expanduser` """
-        return self._next_class(self.module.expanduser(self.fs_path))
+        return self._next_class(self.module.expanduser(self))
 
     def expandvars(self):
         """ .. seealso:: :func:`os.path.expandvars` """
-        return self._next_class(self.module.expandvars(self.fs_path))
+        return self._next_class(self.module.expandvars(self))
 
     def dirname(self):
         """ .. seealso:: :attr:`parent`, :func:`os.path.dirname` """
-        return self._next_class(self.module.dirname(self.fs_path))
+        return self._next_class(self.module.dirname(self))
 
     def basename(self):
         """ .. seealso:: :attr:`name`, :func:`os.path.basename` """
-        return self._next_class(self.module.basename(self.fs_path))
+        return self._next_class(self.module.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling :meth:`expandvars()`,
@@ -305,7 +293,7 @@ class Path(text_type):
     @property
     def ext(self):
         """ The file extension, for example ``'.py'``. """
-        f, ext = self.module.splitext(self.fs_path)
+        f, ext = self.module.splitext(self)
         return ext
 
     @property
@@ -314,7 +302,7 @@ class Path(text_type):
 
         This is always empty on systems that don't use drive specifiers.
         """
-        drive, r = self.module.splitdrive(self.fs_path)
+        drive, r = self.module.splitdrive(self)
         return self._next_class(drive)
 
     parent = property(
@@ -343,7 +331,7 @@ class Path(text_type):
 
         .. seealso:: :attr:`parent`, :attr:`name`, :func:`os.path.split`
         """
-        parent, child = self.module.split(self.fs_path)
+        parent, child = self.module.split(self)
         return self._next_class(parent), child
 
     def splitdrive(self):
@@ -355,7 +343,7 @@ class Path(text_type):
 
         .. seealso:: :func:`os.path.splitdrive`
         """
-        drive, rel = self.module.splitdrive(self.fs_path)
+        drive, rel = self.module.splitdrive(self)
         return self._next_class(drive), rel
 
     def splitext(self):
@@ -370,7 +358,7 @@ class Path(text_type):
 
         .. seealso:: :func:`os.path.splitext`
         """
-        filename, ext = self.module.splitext(self.fs_path)
+        filename, ext = self.module.splitext(self)
         return self._next_class(filename), ext
 
     def stripext(self):
@@ -383,7 +371,7 @@ class Path(text_type):
 
     def splitunc(self):
         """ .. seealso:: :func:`os.path.splitunc` """
-        unc, rest = self.module.splitunc(self.fs_path)
+        unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
     @property
@@ -392,7 +380,7 @@ class Path(text_type):
         The UNC mount point for this path.
         This is empty for paths on local drives.
         """
-        unc, r = self.module.splitunc(self.fs_path)
+        unc, r = self.module.splitunc(self)
         return self._next_class(unc)
 
     @multimethod
@@ -406,9 +394,7 @@ class Path(text_type):
         """
         if not isinstance(first, cls):
             first = cls(first)
-        return first._next_class(first.module.join(
-            first.fs_path, *(first._next_class(o).fs_path for o in others))
-        )
+        return first._next_class(first.module.join(first, *others))
 
     def splitall(self):
         r""" Return a list of the path components in this path.
@@ -705,7 +691,7 @@ class Path(text_type):
 
         .. seealso:: :func:`python:open`
         """
-        return open(self, *args, **kwargs)
+        return open(self.fs_path, *args, **kwargs)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -726,7 +712,7 @@ class Path(text_type):
 
             This will read the file by chunks of 8192 bytes.
         """
-        with open(self, *args, **kwargs) as f:
+        with open(self.fs_path, *args, **kwargs) as f:
             while True:
                 d = f.read(size)
                 if not d:
@@ -768,7 +754,7 @@ class Path(text_type):
                 return f.read()
         else:
             # Unicode
-            with codecs.open(self, 'r', encoding, errors) as f:
+            with codecs.open(self.fs_path, 'r', encoding, errors) as f:
                 # (Note - Can't use 'U' mode here, since codecs.open
                 # doesn't support 'U' mode.)
                 t = f.read()
@@ -1006,7 +992,7 @@ class Path(text_type):
 
     def isabs(self):
         """ .. seealso:: :func:`os.path.isabs` """
-        return self.module.isabs(self.fs_path)
+        return self.module.isabs(self)
 
     def exists(self):
         """ .. seealso:: :func:`os.path.exists` """
@@ -1429,7 +1415,7 @@ class Path(text_type):
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
-            writable = open(self, 'w' + mode.replace('r', ''),
+            writable = open(self.fs_path, 'w' + mode.replace('r', ''),
                 buffering=buffering, encoding=encoding, errors=errors,
                 newline=newline)
         else:
