@@ -8,6 +8,9 @@ import setuptools
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
 
+with open('CHANGES.rst') as ld_file:
+    long_description += '\n\n' + ld_file.read()
+
 # match the version indicated in path.py
 with open('path.py') as path_mod:
     source = path_mod.read()
