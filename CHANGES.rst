@@ -1,6 +1,17 @@
 Changes
 =======
 
+7.0
+---
+
+ - The ``open`` method now uses ``io.open`` and supports all of the
+   parameters to that function. ``open`` will always raise an ``OSError``
+   on failure, even on Python 2.
+ - Updated ``write_text`` to support additional newline patterns.
+ - The ``text`` method now always returns text (never bytes), and thus
+   requires an encoding parameter be supplied if the default encoding is not
+   sufficient to decode the content of the file.
+
 6.2
 ---
 
