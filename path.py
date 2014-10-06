@@ -71,26 +71,19 @@ PY2 = not PY3
 
 string_types = str,
 text_type = str
+bytes_type = bytes
 getcwdu = os.getcwd
 u = lambda x: x
-
-def surrogate_escape(error):
-    """
-    Simulate the Python 3 ``surrogateescape`` handler, but for Python 2 only.
-    """
-    chars = error.object[error.start:error.end]
-    assert len(chars) == 1
-    val = ord(chars)
-    val += 0xdc00
-    return __builtin__.unichr(val), error.end
 
 if PY2:
     import __builtin__
     string_types = __builtin__.basestring,
     text_type = __builtin__.unicode
-    getcwdu = os.getcwdu
+    bytes_type = __builtin__.str
+    getcwdu = lambda: Path._always_unicode(os.getcwd())
     u = lambda x: codecs.unicode_escape_decode(x)[0]
-    codecs.register_error('surrogateescape', surrogate_escape)
+
+from _vendor.surrogateescape import decodefilename, encodefilename
 
 @contextlib.contextmanager
 def io_error_compat():
@@ -204,9 +197,16 @@ class Path(text_type):
         Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
-        if PY3 or isinstance(path, text_type):
-            return path
-        return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
+        if isinstance(path, bytes_type):
+            return decodefilename(path)
+        return path
+
+    @property
+    def fs_path(self):
+        """ Path usable by os functions """
+        if PY3 or os.path.supports_unicode_filenames:
+            return self
+        return encodefilename(self)
 
     # --- Special Python methods.
 
@@ -234,14 +234,14 @@ class Path(text_type):
 
         .. seealso:: :func:`os.path.join`
         """
-        return self._next_class(self.module.join(self, rel))
+        return self.joinpath(rel)
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
     def __enter__(self):
         self._old_dir = self.getcwd()
-        os.chdir(self)
+        os.chdir(self.fs_path)
         return self
 
     def __exit__(self, *_):
@@ -260,7 +260,11 @@ class Path(text_type):
 
     def abspath(self):
         """ .. seealso:: :func:`os.path.abspath` """
-        return self._next_class(self.module.abspath(self))
+        return self._next_class(self.module.abspath(self.fs_path))
+
+    def realpath(self):
+        """ .. seealso:: :func:`os.path.realpath` """
+        return self._next_class(self.module.realpath(self.fs_path))
 
     def normcase(self):
         """ .. seealso:: :func:`os.path.normcase` """
@@ -503,7 +507,7 @@ class Path(text_type):
             pattern = '*'
         return [
             self / child
-            for child in map(self._always_unicode, os.listdir(self))
+            for child in map(self._always_unicode, os.listdir(self.fs_path))
             if self._next_class(child).fnmatch(pattern)
         ]
 
@@ -714,7 +718,7 @@ class Path(text_type):
         opened, an :class:`~exceptions.OSError` is raised.
         """
         with io_error_compat():
-            return io.open(self, *args, **kwargs)
+            return io.open(self.fs_path, *args, **kwargs)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -964,31 +968,31 @@ class Path(text_type):
 
     def exists(self):
         """ .. seealso:: :func:`os.path.exists` """
-        return self.module.exists(self)
+        return self.module.exists(self.fs_path)
 
     def isdir(self):
         """ .. seealso:: :func:`os.path.isdir` """
-        return self.module.isdir(self)
+        return self.module.isdir(self.fs_path)
 
     def isfile(self):
         """ .. seealso:: :func:`os.path.isfile` """
-        return self.module.isfile(self)
+        return self.module.isfile(self.fs_path)
 
     def islink(self):
         """ .. seealso:: :func:`os.path.islink` """
-        return self.module.islink(self)
+        return self.module.islink(self.fs_path)
 
     def ismount(self):
         """ .. seealso:: :func:`os.path.ismount` """
-        return self.module.ismount(self)
+        return self.module.ismount(self.fs_path)
 
     def samefile(self, other):
         """ .. seealso:: :func:`os.path.samefile` """
-        return self.module.samefile(self, other)
+        return self.module.samefile(self.fs_path, other)
 
     def getatime(self):
         """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
-        return self.module.getatime(self)
+        return self.module.getatime(self.fs_path)
 
     atime = property(
         getatime, None, None,
@@ -999,7 +1003,7 @@ class Path(text_type):
 
     def getmtime(self):
         """ .. seealso:: :attr:`mtime`, :func:`os.path.getmtime` """
-        return self.module.getmtime(self)
+        return self.module.getmtime(self.fs_path)
 
     mtime = property(
         getmtime, None, None,
@@ -1010,7 +1014,7 @@ class Path(text_type):
 
     def getctime(self):
         """ .. seealso:: :attr:`ctime`, :func:`os.path.getctime` """
-        return self.module.getctime(self)
+        return self.module.getctime(self.fs_path)
 
     ctime = property(
         getctime, None, None,
@@ -1021,7 +1025,7 @@ class Path(text_type):
 
     def getsize(self):
         """ .. seealso:: :attr:`size`, :func:`os.path.getsize` """
-        return self.module.getsize(self)
+        return self.module.getsize(self.fs_path)
 
     size = property(
         getsize, None, None,
@@ -1039,21 +1043,21 @@ class Path(text_type):
 
             .. seealso:: :func:`os.access`
             """
-            return os.access(self, mode)
+            return os.access(self.fs_path, mode)
 
     def stat(self):
         """ Perform a ``stat()`` system call on this path.
 
         .. seealso:: :meth:`lstat`, :func:`os.stat`
         """
-        return os.stat(self)
+        return os.stat(self.fs_path)
 
     def lstat(self):
         """ Like :meth:`stat`, but do not follow symbolic links.
 
         .. seealso:: :meth:`stat`, :func:`os.lstat`
         """
-        return os.lstat(self)
+        return os.lstat(self.fs_path)
 
     def __get_owner_windows(self):
         r"""
@@ -1102,12 +1106,12 @@ class Path(text_type):
 
             .. seealso:: :func:`os.statvfs`
             """
-            return os.statvfs(self)
+            return os.statvfs(self.fs_path)
 
     if hasattr(os, 'pathconf'):
         def pathconf(self, name):
             """ .. seealso:: :func:`os.pathconf` """
-            return os.pathconf(self, name)
+            return os.pathconf(self.fs_path, name)
 
     #
     # --- Modifying operations on files and directories
@@ -1117,12 +1121,12 @@ class Path(text_type):
 
         .. seealso:: :func:`os.utime`
         """
-        os.utime(self, times)
+        os.utime(self.fs_path, times)
         return self
 
     def chmod(self, mode):
         """ .. seealso:: :func:`os.chmod` """
-        os.chmod(self, mode)
+        os.chmod(self.fs_path, mode)
         return self
 
     if hasattr(os, 'chown'):
@@ -1132,25 +1136,27 @@ class Path(text_type):
                 uid = pwd.getpwnam(uid).pw_uid
             if 'grp' in globals() and isinstance(gid, basestring):
                 gid = grp.getgrnam(gid).gr_gid
-            os.chown(self, uid, gid)
+            os.chown(self.fs_path, uid, gid)
             return self
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
-        os.rename(self, new)
-        return self._next_class(new)
+        new = self._next_class(self._always_unicode(new))
+        os.rename(self.fs_path, new.fs_path)
+        return new
 
     def renames(self, new):
         """ .. seealso:: :func:`os.renames` """
-        os.renames(self, new)
-        return self._next_class(new)
+        new = self._next_class(self._always_unicode(new))
+        os.renames(self.fs_path, new.fs_path)
+        return new
 
     #
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=0o777):
         """ .. seealso:: :func:`os.mkdir` """
-        os.mkdir(self, mode)
+        os.mkdir(self.fs_path, mode)
         return self
 
     def mkdir_p(self, mode=0o777):
@@ -1166,7 +1172,7 @@ class Path(text_type):
 
     def makedirs(self, mode=0o777):
         """ .. seealso:: :func:`os.makedirs` """
-        os.makedirs(self, mode)
+        os.makedirs(self.fs_path, mode)
         return self
 
     def makedirs_p(self, mode=0o777):
@@ -1182,7 +1188,7 @@ class Path(text_type):
 
     def rmdir(self):
         """ .. seealso:: :func:`os.rmdir` """
-        os.rmdir(self)
+        os.rmdir(self.fs_path)
         return self
 
     def rmdir_p(self):
@@ -1198,7 +1204,7 @@ class Path(text_type):
 
     def removedirs(self):
         """ .. seealso:: :func:`os.removedirs` """
-        os.removedirs(self)
+        os.removedirs(self.fs_path)
         return self
 
     def removedirs_p(self):
@@ -1218,14 +1224,14 @@ class Path(text_type):
         """ Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0o666)
+        fd = os.open(self.fs_path, os.O_WRONLY | os.O_CREAT, 0o666)
         os.close(fd)
-        os.utime(self, None)
+        os.utime(self.fs_path, None)
         return self
 
     def remove(self):
         """ .. seealso:: :func:`os.remove` """
-        os.remove(self)
+        os.remove(self.fs_path)
         return self
 
     def remove_p(self):
@@ -1241,7 +1247,7 @@ class Path(text_type):
 
     def unlink(self):
         """ .. seealso:: :func:`os.unlink` """
-        os.unlink(self)
+        os.unlink(self.fs_path)
         return self
 
     def unlink_p(self):
@@ -1258,7 +1264,7 @@ class Path(text_type):
 
             .. seealso:: :func:`os.link`
             """
-            os.link(self, newpath)
+            os.link(self.fs_path, newpath)
             return self._next_class(newpath)
 
     if hasattr(os, 'symlink'):
@@ -1267,7 +1273,7 @@ class Path(text_type):
 
             .. seealso:: :func:`os.symlink`
             """
-            os.symlink(self, newlink)
+            os.symlink(self.fs_path, newlink)
             return self._next_class(newlink)
 
     if hasattr(os, 'readlink'):
@@ -1278,7 +1284,7 @@ class Path(text_type):
 
             .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
             """
-            return self._next_class(os.readlink(self))
+            return self._next_class(os.readlink(self.fs_path))
 
         def readlinkabs(self):
             """ Return the path to which this symbolic link points.
@@ -1319,7 +1325,7 @@ class Path(text_type):
 
     def chdir(self):
         """ .. seealso:: :func:`os.chdir` """
-        os.chdir(self)
+        os.chdir(self.fs_path)
 
     cd = chdir
 
@@ -1329,12 +1335,12 @@ class Path(text_type):
     if hasattr(os, 'chroot'):
         def chroot(self):
             """ .. seealso:: :func:`os.chroot` """
-            os.chroot(self)
+            os.chroot(self.fs_path)
 
     if hasattr(os, 'startfile'):
         def startfile(self):
             """ .. seealso:: :func:`os.startfile` """
-            os.startfile(self)
+            os.startfile(self.fs_path)
             return self
 
     # in-place re-writing, courtesy of Martijn Pieters
@@ -1374,29 +1380,29 @@ class Path(text_type):
         # borrowed extensively from the fileinput module
         backup_fn = self + (backup_extension or os.extsep + 'bak')
         try:
-            os.unlink(backup_fn)
+           backup_fn.unlink()
         except os.error:
             pass
-        os.rename(self, backup_fn)
-        readable = io.open(backup_fn, mode, buffering=buffering,
+        os.rename(self.fs_path, backup_fn.fs_path)
+        readable = backup_fn.open(mode, buffering=buffering,
             encoding=encoding, errors=errors, newline=newline)
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
-            writable = open(self, 'w' + mode.replace('r', ''),
+            writable = open(self.fs_path, 'w' + mode.replace('r', ''),
                 buffering=buffering, encoding=encoding, errors=errors,
                 newline=newline)
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             if hasattr(os, 'O_BINARY'):
                 os_mode |= os.O_BINARY
-            fd = os.open(self, os_mode, perm)
+            fd = os.open(self.fs_path, os_mode, perm)
             writable = io.open(fd, "w" + mode.replace('r', ''),
                 buffering=buffering, encoding=encoding, errors=errors,
                 newline=newline)
             try:
                 if hasattr(os, 'chmod'):
-                    os.chmod(self, perm)
+                    os.chmod(self.fs_path, perm)
             except OSError:
                 pass
         try:
@@ -1406,17 +1412,17 @@ class Path(text_type):
             readable.close()
             writable.close()
             try:
-                os.unlink(self)
+                self.unlink()
             except os.error:
                 pass
-            os.rename(backup_fn, self)
+            backup_fn.rename(self)
             raise
         else:
             readable.close()
             writable.close()
         finally:
             try:
-                os.unlink(backup_fn)
+                backup_fn.unlink()
             except os.error:
                 pass
 

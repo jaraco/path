@@ -16,9 +16,9 @@ time on files.
 
 import unittest
 import codecs
+import contextlib
 import os
 import sys
-import random
 import shutil
 import tempfile
 import time
@@ -35,6 +35,30 @@ from path import CaseInsensitivePattern as ci
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
+
+
+@contextlib.contextmanager
+def set_fsencoding(enc):
+    """ Context manager to mock filesystemencoding being set to `enc` """
+    orig_fsencoding = sys.getfilesystemencoding
+    sys.getfilesystemencoding = lambda: enc
+    try:
+        yield
+    finally:
+        sys.getfilesystemencoding = orig_fsencoding
+
+
+@pytest.fixture
+def temp_dir(request):
+    # Create a temporary directory.
+    request.cls.tempdir = tempfile.mktemp()
+    os.mkdir(request.cls.tempdir)
+
+    def fin():
+        shutil.rmtree(request.cls.tempdir)
+
+    request.addfinalizer(fin)
+    return request.cls.tempdir
 
 
 class BasicTestCase(unittest.TestCase):
@@ -198,23 +222,13 @@ class BasicTestCase(unittest.TestCase):
         assert res2 == 'foo/bar'
 
 
+@pytest.mark.usefixtures('temp_dir')
 class ReturnSelfTestCase(unittest.TestCase):
     """
     Some methods don't necessarily return any value (e.g. makedirs,
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
-    def setUp(self):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def tearDown(self):
-        shutil.rmtree(self.tempdir)
-
     def testMakedirs_pReturnsSelf(self):
         """
         Path('foo').makedirs_p() == Path('foo')
@@ -246,21 +260,11 @@ class ReturnSelfTestCase(unittest.TestCase):
         self.assertEquals(p, ret)
 
 
+@pytest.mark.usefixtures('temp_dir')
 class ScratchDirTestCase(unittest.TestCase):
     """
     Tests that run in a temporary directory (does not test tempdir class)
     """
-    def setUp(self):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def tearDown(self):
-        shutil.rmtree(self.tempdir)
-
     def testContextManager(self):
         """Can be used as context manager for chdir."""
         d = Path(self.tempdir)
@@ -658,7 +662,8 @@ class ScratchDirTestCase(unittest.TestCase):
         test('UTF-16')
 
     def testChunks(self):
-        p = (tempdir() / 'test.txt').touch()
+        tempdir = Path(self.tempdir)
+        p = (tempdir / 'test.txt').touch()
         txt = "0123456789"
         size = 5
         p.write_text(txt)
@@ -670,13 +675,14 @@ class ScratchDirTestCase(unittest.TestCase):
     @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
         reason="samefile not present")
     def testSameFile(self):
-        f1 = (tempdir() / '1.txt').touch()
+        tempdir = Path(self.tempdir)
+        f1 = (tempdir / '1.txt').touch()
         f1.write_text('foo')
-        f2 = (tempdir() / '2.txt').touch()
+        f2 = (tempdir / '2.txt').touch()
         f1.write_text('foo')
-        f3 = (tempdir() / '3.txt').touch()
+        f3 = (tempdir / '3.txt').touch()
         f1.write_text('bar')
-        f4 = (tempdir() / '4.txt')
+        f4 = (tempdir / '4.txt')
         f1.copyfile(f4)
 
         self.assertEqual(os.path.samefile(f1, f2),
@@ -811,6 +817,39 @@ class TestUnicodePaths(unittest.TestCase):
         p = Path(self.tempdir)
         for res in p.walkdirs():
             pass
+
+
+@pytest.fixture
+def wack_dirs(request):
+    """ Provides a temp dirwith subdirs encoded with different encodings """
+    dirnames = [
+        b'b\xe1z',
+        b'\xcd\xbd',
+        b'\xff\xfe}\x03'
+    ]
+    # Create a temporary directory.
+    tempdir = tempfile.mkdtemp()
+    tempbytes = tempdir.encode('ascii')
+    # maxes some dirs in different encodings in the temp dir
+    for dirname in dirnames:
+        os.mkdir(os.path.join(tempbytes, dirname))
+    def fin():
+        shutil.rmtree(tempdir)
+    request.addfinalizer(fin)
+    return tempdir
+
+
+@pytest.mark.skipif(os.path.supports_unicode_filenames,
+                    reason='os does not support byte filenames')
+@pytest.mark.parametrize('enc', ['ascii', 'latin1', 'utf8', 'utf16'])
+def test_undecodable_names(wack_dirs, enc):
+    """ Test original fs names retrievable once they pass through path.py """
+    with set_fsencoding(enc):
+        p = Path(wack_dirs)
+        path_names = set(name.fs_path for name in p.listdir())
+        os_names = set(os.path.join(wack_dirs, name)
+                    for name in os.listdir(wack_dirs))
+        assert os_names == path_names
 
 
 class TestPatternMatching(object):
