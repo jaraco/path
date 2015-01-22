@@ -1121,7 +1121,15 @@ class Path(text_type):
         return self
 
     def chmod(self, mode):
-        """ .. seealso:: :func:`os.chmod` """
+        """
+        Set the mode. May be the new mode (os.chmod behavior) or a `symbolic
+        mode <http://en.wikipedia.org/wiki/Chmod#Symbolic_modes>`_.
+
+        .. seealso:: :func:`os.chmod`
+        """
+        if isinstance(mode, string_types):
+            mask = _permission_mask(mode)
+            mode = mask(self.stat().st_mode)
         os.chmod(self, mode)
         return self
 
