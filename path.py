@@ -1128,9 +1128,9 @@ class Path(text_type):
     if hasattr(os, 'chown'):
         def chown(self, uid=-1, gid=-1):
             """ .. seealso:: :func:`os.chown` """
-            if 'pwd' in globals() and isinstance(uid, basestring):
+            if 'pwd' in globals() and isinstance(uid, string_types):
                 uid = pwd.getpwnam(uid).pw_uid
-            if 'grp' in globals() and isinstance(gid, basestring):
+            if 'grp' in globals() and isinstance(gid, string_types):
                 gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
             return self
