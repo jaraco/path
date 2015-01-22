@@ -1478,8 +1478,11 @@ def _permission_mask(mode):
 
     >>> _permission_mask('a+x')(0) == 0o111
     True
+
+    >>> _permission_mask('a=rw')(0o057) == 0o666
+    True
     """
-    parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
+    parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+=])(?P<what>[rwx]+)$', mode)
     if not parsed:
         raise ValueError("Unrecognized symbolic mode", mode)
     spec_map = dict(r=4, w=2, x=1)
@@ -1496,7 +1499,11 @@ def _permission_mask(mode):
     if op == '-':
         mask ^= 0o777
 
-    op_map = {'+': operator.or_, '-': operator.and_}
+    op_map = {
+        '+': operator.or_,
+        '-': operator.and_,
+        '=': lambda mask, target: mask,
+    }
     return functools.partial(op_map[op], mask)
 
 
