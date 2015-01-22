@@ -1,6 +1,11 @@
 Changes
 =======
 
+7.1
+---
+
+ - #23: Added support for symbolic masks to ``.chmod``.
+
 7.0
 ---
 
