@@ -1467,8 +1467,11 @@ def _permission_mask(mode):
 
     >>> _permission_mask('go-x')(0o777) == 0o766
     True
+
+    >>> _permission_mask('a+x')(0) == 0o111
+    True
     """
-    parsed = re.match('(?P<who>[ugo]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
+    parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+])(?P<what>[rwx]+)$', mode)
     if not parsed:
         raise ValueError("Unrecognized symbolic mode", mode)
     spec_map = dict(r=4, w=2, x=1)
@@ -1476,8 +1479,9 @@ def _permission_mask(mode):
                   for perm in parsed.group('what')])
     # now apply spec to each in who
     shift_map = dict(u=6, g=3, o=0)
+    who = parsed.group('who').replace('a', 'ugo')
     mask = functools.reduce(operator.or_, [spec << shift_map[subj]
-                  for subj in parsed.group('who')])
+                  for subj in who])
 
     op = parsed.group('op')
     # if op is -, invert the mask
