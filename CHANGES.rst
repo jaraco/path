@@ -1,6 +1,13 @@
 Changes
 =======
 
+7.2
+---
+
+ - In chmod, added support for multiple symbolic masks (separated by commas).
+ - In chmod, fixed issue in setting of symbolic mask with '=' where
+   unreferenced permissions were cleared.
+
 7.1
 ---
 
