@@ -1481,6 +1481,9 @@ def _permission_mask(mode):
 
     >>> _permission_mask('a=rw')(0o057) == 0o666
     True
+
+    >>> _permission_mask('u=x')(0o666) == 0o166
+    True
     """
     parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+=])(?P<what>[rwx]+)$', mode)
     if not parsed:
