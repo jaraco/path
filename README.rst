@@ -26,7 +26,7 @@ Installing
 
 Path.py may be installed using ``setuptools``, ``distribute``, or ``pip``::
 
-    easy_install path.py
+    pip install path.py
 
 The latest release is always updated to the `Python Package Index
 <http://pypi.python.org/pypi/path.py>`_.
@@ -42,7 +42,7 @@ download a snapshot of the latest code. Alternatively, if you have git
 installed, you may be able to use ``pip`` or ``easy_install`` to install directly from
 the repository::
 
-    easy_install git+https://github.com/jaraco/path.py.git
+    pip install git+https://github.com/jaraco/path.py.git
 
 Testing
 =======
