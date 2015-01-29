@@ -1489,13 +1489,13 @@ def _permission_mask(mode):
     if not parsed:
         raise ValueError("Unrecognized symbolic mode", mode)
     spec_map = dict(r=4, w=2, x=1)
-    spec = functools.reduce(operator.or_, [spec_map[perm]
-                  for perm in parsed.group('what')])
+    specs = (spec_map[perm] for perm in parsed.group('what'))
+    spec = functools.reduce(operator.or_, specs)
     # now apply spec to each in who
     shift_map = dict(u=6, g=3, o=0)
     who = parsed.group('who').replace('a', 'ugo')
-    mask = functools.reduce(operator.or_, [spec << shift_map[subj]
-                  for subj in who])
+    masks = (spec << shift_map[subj] for subj in who)
+    mask = functools.reduce(operator.or_, masks)
 
     op = parsed.group('op')
     # if op is -, invert the mask
