@@ -1506,10 +1506,15 @@ def _permission_mask(mode):
     if op == '-':
         mask ^= 0o777
 
+    # if op is =, retain extant values for unreferenced subjects
+    if op == '=':
+        masks = (0o7 << shift_map[subj] for subj in who)
+        retain = functools.reduce(operator.or_, masks) ^ 0o777
+
     op_map = {
         '+': operator.or_,
         '-': operator.and_,
-        '=': lambda mask, target: mask,
+        '=': lambda mask, target: target & retain ^ mask,
     }
     return functools.partial(op_map[op], mask)
 
