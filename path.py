@@ -1128,7 +1128,7 @@ class Path(text_type):
         .. seealso:: :func:`os.chmod`
         """
         if isinstance(mode, string_types):
-            mask = _permission_mask(mode)
+            mask = _multi_permission_mask(mode)
             mode = mask(self.stat().st_mode)
         os.chmod(self, mode)
         return self
@@ -1462,6 +1462,17 @@ class tempdir(Path):
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
             self.rmtree()
+
+
+def _multi_permission_mask(mode):
+    """
+    Support multiple, comma-separated Unix chmod symbolic modes.
+
+    >>> _multi_permission_mask('a=r,u+w')(0) == 0o644
+    True
+    """
+    compose = lambda f, g: lambda *args, **kwargs: g(f(*args, **kwargs))
+    return functools.reduce(compose, map(_permission_mask, mode.split(',')))
 
 
 def _permission_mask(mode):
