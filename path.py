@@ -1476,6 +1476,9 @@ def _permission_mask(mode):
     >>> _permission_mask('go-x')(0o777) == 0o766
     True
 
+    >>> _permission_mask('o-x')(0o445) == 0o444
+    True
+
     >>> _permission_mask('a+x')(0) == 0o111
     True
 
@@ -1498,6 +1501,7 @@ def _permission_mask(mode):
     mask = functools.reduce(operator.or_, masks)
 
     op = parsed.group('op')
+
     # if op is -, invert the mask
     if op == '-':
         mask ^= 0o777
