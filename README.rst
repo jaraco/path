@@ -3,7 +3,9 @@ path.py
 
 ``path.py`` implements a path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For
-example::
+example:
+
+.. code-block:: python
 
     from path import Path
     d = Path('/home/guido/bin')
