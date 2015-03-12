@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 """ test_path.py - Test the path module.
 
@@ -936,6 +936,22 @@ class TestInPlace(object):
             data = stream.read()
         assert not 'Lorem' in data
         assert 'lazy dog' in data
+
+
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason="requires non-Windows (POSIX)")
+def test_posix_url():
+    assert Path('/var/log/xyzzy').url() == 'file:///var/log/xyzzy'
+    assert Path('xyzzy').url() == 'file:///xyzzy'
+
+
+@pytest.mark.skipif(not sys.platform.startswith('win'),
+                    reason="requires Windows")
+def test_windows_url():
+    assert Path(r'Foo\Bar').url() == 'file:///Foo/Bar'
+    assert Path(r'C:/Foo/Bar').url() == 'file:///C://Foo/Bar'
+    assert Path(r'C:\Foo\Bar').url() == 'file:///C:/Foo/Bar'
+
 
 if __name__ == '__main__':
     pytest.main()
