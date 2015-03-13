@@ -938,8 +938,6 @@ class TestInPlace(object):
         assert 'lazy dog' in data
 
 
-@pytest.mark.skipif(sys.platform.startswith('win'),
-                    reason="requires non-Windows (POSIX)")
 def test_posix_url():
     assert Path('/var/log/xyzzy').url() == 'file:///var/log/xyzzy'
     assert Path('xyzzy').url() == 'file:///xyzzy'
