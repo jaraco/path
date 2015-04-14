@@ -1,6 +1,11 @@
 Changes
 =======
 
+7.3
+---
+
+ - #91: Releases now include a universal wheel.
+
 7.2
 ---
 
