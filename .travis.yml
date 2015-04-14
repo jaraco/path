@@ -9,4 +9,4 @@ python:
   - pypy
 
 script:
-  - py.test
+  - python setup.py test
