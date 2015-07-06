@@ -736,11 +736,8 @@ class Path(text_type):
             This will read the file by chunks of 8192 bytes.
         """
         with self.open(*args, **kwargs) as f:
-            while True:
-                d = f.read(size)
-                if not d:
-                    break
-                yield d
+            for chunk in iter(lambda: f.read(size), b''):
+                yield chunk
 
     def write_bytes(self, bytes, append=False):
         """ Open this file and write the given bytes to it.
