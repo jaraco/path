@@ -1133,15 +1133,21 @@ class Path(text_type):
         os.chmod(self, mode)
         return self
 
-    if hasattr(os, 'chown'):
-        def chown(self, uid=-1, gid=-1):
-            """ .. seealso:: :func:`os.chown` """
+    def chown(self, uid=-1, gid=-1):
+        """
+        Change the owner and group by names rather than the uid or gid numbers.
+
+        .. seealso:: :func:`os.chown`
+        """
+        if hasattr(os, 'chown'):
             if 'pwd' in globals() and isinstance(uid, string_types):
                 uid = pwd.getpwnam(uid).pw_uid
             if 'grp' in globals() and isinstance(gid, string_types):
                 gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
-            return self
+        else:
+            raise NotImplementedError("Ownership not available on this platform.")
+        return self
 
     def rename(self, new):
         """ .. seealso:: :func:`os.rename` """
