@@ -1,6 +1,14 @@
 Changes
 =======
 
+7.4
+---
+
+- #93: chown now appears in docs and raises NotImplementedError if
+  ``os.chown`` isn't present.
+- #92: Added compatibility support for ``.samefile`` on platforms without
+  ``os.samefile``.
+
 7.3
 ---
 
