@@ -48,6 +48,7 @@ import operator
 import re
 import contextlib
 import io
+import platform
 
 try:
     import win32security
@@ -1433,6 +1434,81 @@ class Path(text_type):
                 os.unlink(backup_fn)
             except os.error:
                 pass
+
+    @ClassProperty
+    @classmethod
+    def desktop(cls):
+        """
+        Return a DesktopPaths object suitable referencing a suitable
+        directory for the relevant platform for the given
+        type of content.
+
+        For example, to get a config directory for an app, invoke:
+
+            Path.desktop.config(app_name)
+
+        Uses DesktopPaths to resolve the paths in a platform-friendly
+        way.
+
+        Ensures that directory exists.
+        """
+        platform_class = dict(
+            Windows=WindowsDesktopPaths,
+        )
+        return platform_class.get(platform.system(), UnixDesktopPaths)(cls)
+
+
+class DesktopPaths(object):
+    def __init__(self, path_class):
+        self.path_class = path_class
+
+    def _ensure_dir(self, target, sub_dir):
+        """
+        Ensure target/sub_dir exists and return it.
+        """
+        target = self.path_class(target) / sub_dir
+        target.makedirs_p()
+        return target
+
+
+class WindowsDesktopPaths(DesktopPaths):
+    """
+    Resolve desktop paths on Windows. Honors the AppData conventions.
+
+    Stores config and data in $APPDATA and cache in $LOCALAPPDATA.
+    """
+    def config(self, app_name):
+        return self._ensure_dir(os.environ['APPDATA'], app_name)
+
+    data = config
+
+    def cache(self, app_name):
+        return self._ensure_dir(os.environ['LOCALAPPDATA'], app_name)
+
+
+
+class UnixDesktopPaths(DesktopPaths):
+    """
+    Resolve desktop paths on Unix per the
+    `XDG Base Directory Specification
+    <http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_.
+    """
+    def _resolve_home(self, env_key, default):
+        default_home = self.path_class(default).expanduser()
+        home = os.environ.get(env_key, default_home)
+        return self.path_class(home)
+
+    def config(self, app_name):
+        home = self._resolve_home('XDG_CONFIG_HOME', '~/.config')
+        return self._ensure_dir(home, app_name)
+
+    def data(self, app_name):
+        home = self._resolve_home('XDG_DATA_HOME', '~/.local/share')
+        return self._ensure_dir(home, app_name)
+
+    def cache(self, app_name):
+        home = self._resolve_home('XDG_CACHE_HOME', '~/.cache')
+        return self._ensure_dir(home, app_name)
 
 
 class tempdir(Path):

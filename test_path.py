@@ -31,6 +31,7 @@ import pytest
 
 from path import Path, tempdir, u
 from path import CaseInsensitivePattern as ci
+from path import WindowsDesktopPaths, UnixDesktopPaths
 
 
 def p(**choices):
@@ -948,6 +949,38 @@ class TestInPlace(object):
             data = stream.read()
         assert not 'Lorem' in data
         assert 'lazy dog' in data
+
+
+class TestDesktopPaths:
+    def test_windows_paths(self, tmpdir, monkeypatch):
+        fake_app_data = tmpdir / 'appdata'
+        monkeypatch.setitem(os.environ, 'APPDATA', str(fake_app_data))
+        monkeypatch.setattr("platform.system", lambda: 'Windows')
+        expected = str(tmpdir / 'appdata' / 'myapp')
+        assert WindowsDesktopPaths(Path).config('myapp') == expected
+
+    def test_unix_paths(self, tmpdir, monkeypatch):
+        fake_config = tmpdir / '_config'
+        monkeypatch.setitem(os.environ, 'XDG_CONFIG_HOME', str(fake_config))
+        monkeypatch.setattr("platform.system", lambda: 'Linux')
+        expected = str(tmpdir / '_config' / 'myapp')
+        assert UnixDesktopPaths(Path).config('myapp') == expected
+
+    def test_unix_paths_fallback(self, tmpdir, monkeypatch):
+        "Without XDG_CONFIG_HOME set, ~/.config should be used."
+        fake_home = tmpdir / '_home'
+        monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
+        monkeypatch.setattr("platform.system", lambda: 'Linux')
+        expected = str(tmpdir / '_home' / '.config' / 'myapp')
+        assert UnixDesktopPaths(Path).config('myapp') == expected
+
+    def test_desktop_property(self, monkeypatch):
+        # avoid creating the directory during tests
+        monkeypatch.setattr("path.Path.makedirs_p", lambda self: None)
+        assert isinstance(Path.desktop.config('foo'), Path)
+        assert isinstance(Path.desktop.data('bar'), Path)
+        assert isinstance(Path.desktop.cache('baz'), Path)
+
 
 if __name__ == '__main__':
     pytest.main()
