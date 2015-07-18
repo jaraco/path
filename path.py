@@ -1443,14 +1443,20 @@ class Path(text_type):
         directory for the relevant platform for the given
         type of content.
 
-        For example, to get a config directory for an app, invoke:
+        For example, to get a config directory, invoke:
 
-            Path.desktop.config(app_name)
+            Path.desktop.config
 
         Uses DesktopPaths to resolve the paths in a platform-friendly
         way.
 
-        Ensures that directory exists.
+        DesktopPaths provides a helper function for the common
+        use-case where a subdirectory should be created
+        and the target should be ensured to exist.
+
+        To get a config directory for 'My App', invoke:
+
+            DesktopPaths.ensure(Path.desktop.config, 'My App')
         """
         platform_class = dict(
             Windows=WindowsDesktopPaths,
@@ -1462,11 +1468,12 @@ class DesktopPaths(object):
     def __init__(self, path_class):
         self.path_class = path_class
 
-    def _ensure_dir(self, target, sub_dir):
+    @staticmethod
+    def ensure(target, *subs):
         """
-        Ensure target/sub_dir exists and return it.
+        Ensure target and any subpaths exist and return the resolved dir.
         """
-        target = self.path_class(target) / sub_dir
+        target = functools.reduce(operator.truediv, subs, target)
         target.makedirs_p()
         return target
 
@@ -1477,13 +1484,15 @@ class WindowsDesktopPaths(DesktopPaths):
 
     Stores config and data in $APPDATA and cache in $LOCALAPPDATA.
     """
-    def config(self, app_name):
-        return self._ensure_dir(os.environ['APPDATA'], app_name)
+    @property
+    def config(self):
+        return self.path_class(os.environ['APPDATA'])
 
     data = config
 
-    def cache(self, app_name):
-        return self._ensure_dir(os.environ['LOCALAPPDATA'], app_name)
+    @property
+    def cache(self):
+        return self.path_class(os.environ['LOCALAPPDATA'])
 
 
 
@@ -1498,17 +1507,17 @@ class UnixDesktopPaths(DesktopPaths):
         home = os.environ.get(env_key, default_home)
         return self.path_class(home)
 
-    def config(self, app_name):
-        home = self._resolve_home('XDG_CONFIG_HOME', '~/.config')
-        return self._ensure_dir(home, app_name)
+    @property
+    def config(self):
+        return self._resolve_home('XDG_CONFIG_HOME', '~/.config')
 
-    def data(self, app_name):
-        home = self._resolve_home('XDG_DATA_HOME', '~/.local/share')
-        return self._ensure_dir(home, app_name)
+    @property
+    def data(self):
+        return self._resolve_home('XDG_DATA_HOME', '~/.local/share')
 
-    def cache(self, app_name):
-        home = self._resolve_home('XDG_CACHE_HOME', '~/.cache')
-        return self._ensure_dir(home, app_name)
+    @property
+    def cache(self):
+        return self._resolve_home('XDG_CACHE_HOME', '~/.cache')
 
 
 class tempdir(Path):
