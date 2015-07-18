@@ -1,6 +1,20 @@
 Changes
 =======
 
+7.5
+---
+
+- #88: Added support for resolving certain directories on a desktop
+  system to platform-friendly locations. Based on Windows AppData
+  folders and the Unix XDG Base Directory specification, the
+  ``Path.desktop`` properties now supplies three properties,
+  ``config``, ``data``, and ``cache``. There's additionally a helper
+  method in path.DesktopPaths called ``ensure``, designed to
+  facilitate simple resolution of a directory ensured to exist. For
+  example, to create a config directory for "My App"::
+
+      config_dir = DesktopPaths.ensure(Path.desktop.config, "My App")
+
 7.4
 ---
 
