@@ -48,7 +48,7 @@ import operator
 import re
 import contextlib
 import io
-import platform
+import importlib
 
 try:
     import win32security
@@ -120,6 +120,12 @@ U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
 
 class TreeWalkWarning(Warning):
     pass
+
+
+# from jaraco.functools
+def compose(*funcs):
+    compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))
+    return functools.reduce(compose_two, funcs)
 
 
 def simple_cache(func):
@@ -1437,36 +1443,57 @@ class Path(text_type):
 
     @ClassProperty
     @classmethod
-    def desktop(cls):
+    def app_dirs(cls):
         """
-        Return a DesktopPaths object suitable referencing a suitable
+        Return a AppDirPaths object suitable referencing a suitable
         directory for the relevant platform for the given
         type of content.
 
-        For example, to get a config directory, invoke:
+        For example, to get a user config directory, invoke:
 
-            Path.desktop.config
+            dir = Path.app_dirs.user.config()
 
-        Uses DesktopPaths to resolve the paths in a platform-friendly
-        way.
+        Uses the `appdirs
+        <https://pypi.python.org/pypi/appdirs/1.4.0>`_ to resolve
+        the paths in a platform-friendly way.
 
-        DesktopPaths provides a helper function for the common
-        use-case where a subdirectory should be created
-        and the target should be ensured to exist.
+        AppDirPaths provides a helper function for the common
+        use-case where the target should be ensured to exist.
 
         To get a config directory for 'My App', invoke:
 
-            DesktopPaths.ensure(Path.desktop.config, 'My App')
+            dir = AppDirPaths.ensure(Path.app_dirs.user.config('My App'))
+
+        If the ``appdirs`` module is not installed, invocation
+        of any such function will raise an ImportError.
         """
-        platform_class = dict(
-            Windows=WindowsDesktopPaths,
-        )
-        return platform_class.get(platform.system(), UnixDesktopPaths)(cls)
+        return AppDirPaths(cls)
 
 
-class DesktopPaths(object):
+class AppDirPaths(object):
+    class AppDirScope:
+        def __init__(self, paths, scope):
+            self.paths = paths
+            self.scope = scope
+
+        def __getattr__(self, class_):
+            return self.paths.get_dir(self.scope, class_)
+
     def __init__(self, path_class):
         self.path_class = path_class
+
+    def __getattr__(self, scope):
+        return self.AppDirScope(self, scope)
+
+    def get_dir(self, scope, class_):
+        """
+        Return the callable function from appdirs, but with the
+        result wrapped in self.path_class
+        """
+        appdirs = importlib.import_module('appdirs')
+        func_name = '{scope}_{class_}_dir'.format(**locals())
+        func = getattr(appdirs, func_name)
+        return compose(self.path_class, func)
 
     @staticmethod
     def ensure(target, *subs):
@@ -1476,48 +1503,6 @@ class DesktopPaths(object):
         target = functools.reduce(operator.truediv, subs, target)
         target.makedirs_p()
         return target
-
-
-class WindowsDesktopPaths(DesktopPaths):
-    """
-    Resolve desktop paths on Windows. Honors the AppData conventions.
-
-    Stores config and data in $APPDATA and cache in $LOCALAPPDATA.
-    """
-    @property
-    def config(self):
-        return self.path_class(os.environ['APPDATA'])
-
-    data = config
-
-    @property
-    def cache(self):
-        return self.path_class(os.environ['LOCALAPPDATA'])
-
-
-
-class UnixDesktopPaths(DesktopPaths):
-    """
-    Resolve desktop paths on Unix per the
-    `XDG Base Directory Specification
-    <http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_.
-    """
-    def _resolve_home(self, env_key, default):
-        default_home = self.path_class(default).expanduser()
-        home = os.environ.get(env_key, default_home)
-        return self.path_class(home)
-
-    @property
-    def config(self):
-        return self._resolve_home('XDG_CONFIG_HOME', '~/.config')
-
-    @property
-    def data(self):
-        return self._resolve_home('XDG_DATA_HOME', '~/.local/share')
-
-    @property
-    def cache(self):
-        return self._resolve_home('XDG_CACHE_HOME', '~/.cache')
 
 
 class tempdir(Path):

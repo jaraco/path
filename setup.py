@@ -46,7 +46,7 @@ setup_params = dict(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     setup_requires=sphinx_req + pytest_runner,
-    tests_require=['pytest'],
+    tests_require=['pytest', 'appdirs'],
     extras_require={
         ':python_version=="2.6"': ['importlib'],
     },

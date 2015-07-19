@@ -26,12 +26,13 @@ import ntpath
 import posixpath
 import textwrap
 import platform
+import importlib
 
 import pytest
 
 from path import Path, tempdir, u
 from path import CaseInsensitivePattern as ci
-from path import DesktopPaths, WindowsDesktopPaths, UnixDesktopPaths
+from path import AppDirPaths
 
 
 def p(**choices):
@@ -951,43 +952,58 @@ class TestInPlace(object):
         assert 'lazy dog' in data
 
 
-class TestDesktopPaths:
-    def test_windows_paths(self, tmpdir, monkeypatch):
-        fake_app_data = tmpdir / 'appdata'
-        monkeypatch.setitem(os.environ, 'APPDATA', str(fake_app_data))
-        monkeypatch.setattr("platform.system", lambda: 'Windows')
-        expected = str(tmpdir / 'appdata')
-        assert WindowsDesktopPaths(Path).config == expected
+class TestAppDirPaths:
+    @pytest.fixture(autouse=True, scope='class')
+    def appdirs_installed(cls):
+        pytest.importorskip('appdirs')
 
-    def test_unix_paths(self, tmpdir, monkeypatch):
+    @pytest.fixture
+    def feign_linux(self, monkeypatch):
+        monkeypatch.setattr("platform.system", lambda: "Linux")
+        monkeypatch.setattr("sys.platform", "linux")
+        # remove any existing import of appdirs, as it sets up some
+        # state during import.
+        sys.modules.pop('appdirs')
+
+    def test_basic_paths(self):
+        appdirs = importlib.import_module('appdirs')
+
+        expected = appdirs.user_config_dir()
+        assert AppDirPaths(Path).user.config() == expected
+
+        expected = appdirs.site_config_dir()
+        assert AppDirPaths(Path).site.config() == expected
+
+        expected = appdirs.user_config_dir('My App', 'Me')
+        assert AppDirPaths(Path).user.config('My App', 'Me') == expected
+
+    def test_unix_paths(self, tmpdir, monkeypatch, feign_linux):
         fake_config = tmpdir / '_config'
         monkeypatch.setitem(os.environ, 'XDG_CONFIG_HOME', str(fake_config))
-        monkeypatch.setattr("platform.system", lambda: 'Linux')
         expected = str(tmpdir / '_config')
-        assert UnixDesktopPaths(Path).config == expected
+        assert AppDirPaths(Path).user.config() == expected
 
-    def test_unix_paths_fallback(self, tmpdir, monkeypatch):
+    def test_unix_paths_fallback(self, tmpdir, monkeypatch, feign_linux):
         "Without XDG_CONFIG_HOME set, ~/.config should be used."
         fake_home = tmpdir / '_home'
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
-        monkeypatch.setattr("platform.system", lambda: 'Linux')
         expected = str(tmpdir / '_home' / '.config')
-        assert UnixDesktopPaths(Path).config == expected
+        assert AppDirPaths(Path).user.config() == expected
 
-    def test_desktop_property(self, monkeypatch):
-        assert isinstance(Path.desktop.config, Path)
-        assert isinstance(Path.desktop.data, Path)
-        assert isinstance(Path.desktop.cache, Path)
+    def test_property(self, monkeypatch):
+        assert isinstance(Path.app_dirs.user.config(), Path)
+        assert isinstance(Path.app_dirs.user.data(), Path)
+        assert isinstance(Path.app_dirs.user.cache(), Path)
 
     def test_ensure_simple(self, tmpdir):
         target = Path(tmpdir / 'target')
-        res = DesktopPaths.ensure(target)
+        res = AppDirPaths.ensure(target)
         assert res == target
         assert res.isdir()
 
     def test_ensure_subdir(self, tmpdir):
         target = Path(tmpdir / 'target')
-        res = DesktopPaths.ensure(target, 'sub1', 'sub2')
+        res = AppDirPaths.ensure(target, 'sub1', 'sub2')
         assert res == target / 'sub1' / 'sub2'
         assert res.isdir()
 
