@@ -962,6 +962,7 @@ class TestAppDirPaths:
     def feign_linux(self, monkeypatch):
         monkeypatch.setattr("platform.system", lambda: "Linux")
         monkeypatch.setattr("sys.platform", "linux")
+        monkeypatch.setattr("os.pathsep", ":")
         # remove any existing import of appdirs, as it sets up some
         # state during import.
         sys.modules.pop('appdirs')
@@ -1014,6 +1015,20 @@ class TestAppDirPaths:
         """
         res = Path.app_dirs.site.config(multipath=True)
         assert isinstance(res, str)
+
+    def test_multipath(self, feign_linux, monkeypatch, tmpdir):
+        """
+        If multipath is provided, on Linux return the XDG_CONFIG_DIRS
+        """
+        fake_config_1 = str(tmpdir / '_config1')
+        fake_config_2 = str(tmpdir / '_config2')
+        config_dirs = os.pathsep.join([fake_config_1, fake_config_2])
+        monkeypatch.setitem(os.environ, 'XDG_CONFIG_DIRS', config_dirs)
+        res = Path.app_dirs.site.config(multipath=True)
+        assert isinstance(res, Multi)
+        assert fake_config_1 in res
+        assert fake_config_2 in res
+        assert '_config1' in str(res)
 
 
 class TestMultiPath:

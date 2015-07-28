@@ -1493,7 +1493,8 @@ class AppDirPaths(object):
         appdirs = importlib.import_module('appdirs')
         func_name = '{scope}_{class_}_dir'.format(**locals())
         func = getattr(appdirs, func_name)
-        return compose(self.path_class, func)
+        MultiPath = Multi.for_class(self.path_class)
+        return compose(MultiPath.detect, func)
 
     @staticmethod
     def ensure(target, *subs):
