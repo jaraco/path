@@ -1505,6 +1505,37 @@ class AppDirPaths(object):
         return target
 
 
+class Multi:
+    """
+    A mix-in for a Path which may contain multiple Path separated by pathsep.
+    """
+    @classmethod
+    def for_class(cls, path_cls):
+        name = 'Multi' + path_cls.__name__
+        return type(name, (cls, path_cls), {})
+
+    @classmethod
+    def detect(cls, input):
+        if os.pathsep not in input:
+            cls = cls._next_class
+        return cls(input)
+
+    def __iter__(self):
+        return iter(map(self._next_class, self.split(os.pathsep)))
+
+    @ClassProperty
+    @classmethod
+    def _next_class(cls):
+        """
+        Multi-subclasses should use the parent class
+        """
+        return next(
+            class_
+            for class_ in cls.__mro__
+            if not issubclass(class_, Multi)
+        )
+
+
 class tempdir(Path):
     """
     A temporary directory via :func:`tempfile.mkdtemp`, and constructed with the

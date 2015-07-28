@@ -33,6 +33,7 @@ import pytest
 from path import Path, tempdir, u
 from path import CaseInsensitivePattern as ci
 from path import AppDirPaths
+from path import Multi
 
 
 def p(**choices):
@@ -1013,6 +1014,54 @@ class TestAppDirPaths:
         """
         res = Path.app_dirs.site.config(multipath=True)
         assert isinstance(res, str)
+
+
+class TestMultiPath:
+    def test_for_class(self):
+        """
+        Multi.for_class should return a subclass of the Path class provided.
+        """
+        cls = Multi.for_class(Path)
+        assert issubclass(cls, Path)
+        assert issubclass(cls, Multi)
+        assert cls.__name__ == 'MultiPath'
+
+    def test_detect_no_pathsep(self):
+        """
+        If no pathsep is provided, multipath detect should return an instance
+        of the parent class with no Multi mix-in.
+        """
+        path = Multi.for_class(Path).detect('/foo/bar')
+        assert isinstance(path, Path)
+        assert not isinstance(path, Multi)
+
+    def test_detect_with_pathsep(self):
+        """
+        If a pathsep appears in the input, detect should return an instance
+        of a Path with the Multi mix-in.
+        """
+        inputs = '/foo/bar', '/baz/bing'
+        input = os.pathsep.join(inputs)
+        path = Multi.for_class(Path).detect(input)
+
+        assert isinstance(path, Multi)
+
+    def test_iteration(self):
+        """
+        Iterating over a MultiPath should yield instances of the
+        parent class.
+        """
+        inputs = '/foo/bar', '/baz/bing'
+        input = os.pathsep.join(inputs)
+        path = Multi.for_class(Path).detect(input)
+
+        items = iter(path)
+        first = next(items)
+        assert first == '/foo/bar'
+        assert isinstance(first, Path)
+        assert not isinstance(first, Multi)
+        assert next(items) == '/baz/bing'
+        assert path == input
 
 
 if __name__ == '__main__':
