@@ -704,9 +704,11 @@ class ScratchDirTestCase(unittest.TestCase):
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
 
-    def test_chdir_or_cd(self):
+
+class TestChdir:
+    def test_chdir_or_cd(self, tmpdir):
         """ tests the chdir or cd method """
-        d = Path(self.tempdir)
+        d = Path(str(tmpdir))
         cwd = d.getcwd()
 
         # ensure the cwd isn't our tempdir
@@ -715,18 +717,18 @@ class ScratchDirTestCase(unittest.TestCase):
         d.chdir()
 
         # we now ensure that our cwd is the tempdir
-        assert str(d.getcwd()) == str(self.tempdir)
+        assert str(d.getcwd()) == str(tmpdir)
         # we're resetting our path
         d = Path(cwd)
 
         # we ensure that our cwd is still set to tempdir
-        assert str(d.getcwd()) == str(self.tempdir)
+        assert str(d.getcwd()) == str(tmpdir)
 
         # we're calling the alias cd method
         d.cd()
         # now, we ensure cwd isn'r tempdir
         assert str(d.getcwd()) == str(cwd)
-        assert str(d.getcwd()) != str(self.tempdir)
+        assert str(d.getcwd()) != str(tmpdir)
 
 
 class SubclassTestCase(unittest.TestCase):
