@@ -239,6 +239,20 @@ class Path(text_type):
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
+    # The / operator joins Paths the other way around
+    def __rdiv__(self, rel):
+        """ fp.__rdiv__(rel) == rel / fp
+
+        Join two path components, adding a separator character if
+        needed.
+
+        .. seealso:: :func:`os.path.join`
+        """
+        return self._next_class(self.module.join(rel, self))
+
+    # Make the / operator work even when true division is enabled.
+    __rtruediv__ = __rdiv__
+
     def __enter__(self):
         self._old_dir = self.getcwd()
         os.chdir(self)

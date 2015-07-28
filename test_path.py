@@ -54,6 +54,9 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual(boz.relpathto(quux), up/up/up/'quux')
         self.assertEqual(boz.relpathto(bar), up/up)
 
+        # Path is not the first element in concatenation
+        self.assertEqual(root.relpathto(boz), 'foo'/Path('bar')/'Baz'/'Boz')
+
         # x.relpathto(x) == curdir
         self.assertEqual(root.relpathto(root), os.curdir)
         self.assertEqual(boz.relpathto(boz), os.curdir)
