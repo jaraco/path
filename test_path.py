@@ -1007,6 +1007,13 @@ class TestAppDirPaths:
         assert res == target / 'sub1' / 'sub2'
         assert res.isdir()
 
+    def test_other_parameters(self):
+        """
+        Other parameters should be passed through to appdirs function.
+        """
+        res = Path.app_dirs.site.config(multipath=True)
+        assert isinstance(res, str)
+
 
 if __name__ == '__main__':
     pytest.main()
