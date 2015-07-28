@@ -25,6 +25,7 @@ import time
 import ntpath
 import posixpath
 import textwrap
+import platform
 
 import pytest
 
@@ -389,6 +390,10 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assert_(len(results) == 1)
         res, = results
         self.assert_(isinstance(res, Path))
+        # OS X seems to encode the bytes in the filename as %XX characters.
+        if platform.system() == 'Darwin':
+            assert res.basename() == 'r%E9%F1emi'
+            return
         assert len(res.basename()) == len(filename)
 
     def testMakeDirs(self):
