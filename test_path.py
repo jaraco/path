@@ -709,18 +709,23 @@ class ScratchDirTestCase(unittest.TestCase):
         d = Path(self.tempdir)
         cwd = d.getcwd()
 
-        assert str(d) != str(cwd)  # ensure the cwd isn't our tempdir
-        d.chdir()  # now, we're going to chdir to tempdir
+        # ensure the cwd isn't our tempdir
+        assert str(d) != str(cwd)
+        # now, we're going to chdir to tempdir
+        d.chdir()
 
-        assert str(d.getcwd()) == str(self.tempdir)  # we now ensure that our
-                                                     # cwd is the tempdir
-        d = Path(cwd)  # we're resetting our path
+        # we now ensure that our cwd is the tempdir
+        assert str(d.getcwd()) == str(self.tempdir)
+        # we're resetting our path
+        d = Path(cwd)
 
-        assert str(d.getcwd()) == str(self.tempdir)  # we ensure that our cwd
-                                                     # is still set to tempdir
+        # we ensure that our cwd is still set to tempdir
+        assert str(d.getcwd()) == str(self.tempdir)
 
-        d.cd()  # we're calling the alias cd method
-        assert str(d.getcwd()) == str(cwd)  # now, we ensure cwd isn'r tempdir
+        # we're calling the alias cd method
+        d.cd()
+        # now, we ensure cwd isn'r tempdir
+        assert str(d.getcwd()) == str(cwd)
         assert str(d.getcwd()) != str(self.tempdir)
 
 
