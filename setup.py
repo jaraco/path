@@ -20,7 +20,7 @@ with open('path.py') as path_mod:
 needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
 sphinx_req = ['sphinx'] if needs_sphinx else []
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)
-pytest_runner = ['pytest-runner'] if needs_pytest else []
+pytest_runner = ['pytest-runner>=2.6'] if needs_pytest else []
 
 setup_params = dict(
     name="path.py",
