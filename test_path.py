@@ -1001,8 +1001,8 @@ class TestAppDirPaths:
         """
         Other parameters should be passed through to appdirs function.
         """
-        res = Path.app_dirs(multipath=True).site.config
-        assert isinstance(res, str)
+        res = Path.app_dirs(version="1.0", multipath=True).site.config
+        assert isinstance(res, Path)
 
     def test_multipath(self, feign_linux, monkeypatch, tmpdir):
         """
