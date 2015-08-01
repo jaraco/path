@@ -13,7 +13,7 @@ Changes
   'data'). For
   example, to create a config directory for "My App"::
 
-      config_dir = Path.appdirs("My App").user.config
+      config_dir = Path.appdirs("My App").user.config.makedirs_p()
 
   ``config_dir`` will exist in a user context and will be in a
   suitable platform-friendly location.

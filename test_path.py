@@ -997,18 +997,6 @@ class TestAppDirPaths:
         assert isinstance(Path.app_dirs().user.data, Path)
         assert isinstance(Path.app_dirs().user.cache, Path)
 
-    def test_ensure_simple(self, tmpdir):
-        target = Path(tmpdir / 'target')
-        res = AppDirPaths.ensure(target)
-        assert res == target
-        assert res.isdir()
-
-    def test_ensure_subdir(self, tmpdir):
-        target = Path(tmpdir / 'target')
-        res = AppDirPaths.ensure(target, 'sub1', 'sub2')
-        assert res == target / 'sub1' / 'sub2'
-        assert res.isdir()
-
     def test_other_parameters(self):
         """
         Other parameters should be passed through to appdirs function.

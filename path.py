@@ -1501,13 +1501,6 @@ class AppDirPaths(object):
         MultiPath = Multi.for_class(self.path_class)
         return MultiPath.detect(value)
 
-    @staticmethod
-    def ensure(target, *subs):
-        """
-        Ensure target and any subpaths exist and return the resolved dir.
-        """
-        return functools.reduce(operator.truediv, subs, target).makedirs_p()
-
 
 class Multi:
     """
