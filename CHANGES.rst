@@ -7,14 +7,13 @@ Changes
 - #88: Added support for resolving certain directories on a
   system to platform-friendly locations using the `appdirs
   <https://pypi.python.org/pypi/appdirs/1.4.0>`_ library. The
-  ``Path.app_dirs`` property now resolves a path in a scope
+  ``Path.app_dirs`` method returns an AppDirPaths instance
+  that will resolve a path in a scope
   (i.e. 'site' or 'user') and class (i.e. 'config', 'cache',
-  'data'). There's additionally a helper
-  method in path.AppDirPaths called ``ensure``, designed to
-  facilitate simple resolution of a directory ensured to exist. For
+  'data'). For
   example, to create a config directory for "My App"::
 
-      config_dir = AppDirPaths.ensure(Path.appdirs.user.config("My App"))
+      config_dir = Path.appdirs("My App").user.config
 
   ``config_dir`` will exist in a user context and will be in a
   suitable platform-friendly location.
@@ -22,7 +21,7 @@ Changes
   As ``path.py`` does not currently have any dependencies, and
   to retain that expectation for a compatible upgrade path,
   ``appdirs`` must be installed to avoid an ImportError when
-  invoking this function.
+  invoking ``app_dirs``.
 
 7.4
 ---

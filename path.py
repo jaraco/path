@@ -1451,23 +1451,20 @@ class Path(text_type):
 
         For example, to get a user config directory, invoke:
 
-            dir = Path.app_dirs.user.config()
+            dir = Path.app_dirs().user.config
 
         Uses the `appdirs
         <https://pypi.python.org/pypi/appdirs/1.4.0>`_ to resolve
         the paths in a platform-friendly way.
 
-        AppDirPaths provides a helper function for the common
-        use-case where the target should be ensured to exist.
+        To create a config directory for 'My App', consider:
 
-        To get a config directory for 'My App', invoke:
-
-            dir = AppDirPaths.ensure(Path.app_dirs.user.config('My App'))
+            dir = Path.app_dirs("My App").user.config.makedirs_p()
 
         If the ``appdirs`` module is not installed, invocation
-        of any such function will raise an ImportError.
+        of app_dirs will raise an ImportError.
         """
-        return AppDirPaths(cls)
+        return functools.partial(AppDirPaths, cls)
 
 
 class AppDirPaths(object):
@@ -1479,8 +1476,17 @@ class AppDirPaths(object):
         def __getattr__(self, class_):
             return self.paths.get_dir(self.scope, class_)
 
-    def __init__(self, path_class):
-        self.path_class = path_class
+    def __init__(self, path_class, *args, **kwargs):
+        appdirs = importlib.import_module('appdirs')
+
+        # let appname default to None until
+        # https://github.com/ActiveState/appdirs/issues/55 is solved.
+        not args and kwargs.setdefault('appname', None)
+
+        vars(self).update(
+            path_class=path_class,
+            wrapper=appdirs.AppDirs(*args, **kwargs),
+        )
 
     def __getattr__(self, scope):
         return self.AppDirScope(self, scope)
@@ -1490,20 +1496,17 @@ class AppDirPaths(object):
         Return the callable function from appdirs, but with the
         result wrapped in self.path_class
         """
-        appdirs = importlib.import_module('appdirs')
-        func_name = '{scope}_{class_}_dir'.format(**locals())
-        func = getattr(appdirs, func_name)
+        prop_name = '{scope}_{class_}_dir'.format(**locals())
+        value = getattr(self.wrapper, prop_name)
         MultiPath = Multi.for_class(self.path_class)
-        return compose(MultiPath.detect, func)
+        return MultiPath.detect(value)
 
     @staticmethod
     def ensure(target, *subs):
         """
         Ensure target and any subpaths exist and return the resolved dir.
         """
-        target = functools.reduce(operator.truediv, subs, target)
-        target.makedirs_p()
-        return target
+        return functools.reduce(operator.truediv, subs, target).makedirs_p()
 
 
 class Multi:

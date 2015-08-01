@@ -971,31 +971,31 @@ class TestAppDirPaths:
         appdirs = importlib.import_module('appdirs')
 
         expected = appdirs.user_config_dir()
-        assert AppDirPaths(Path).user.config() == expected
+        assert AppDirPaths(Path).user.config == expected
 
         expected = appdirs.site_config_dir()
-        assert AppDirPaths(Path).site.config() == expected
+        assert AppDirPaths(Path).site.config == expected
 
         expected = appdirs.user_config_dir('My App', 'Me')
-        assert AppDirPaths(Path).user.config('My App', 'Me') == expected
+        assert AppDirPaths(Path, 'My App', 'Me').user.config == expected
 
     def test_unix_paths(self, tmpdir, monkeypatch, feign_linux):
         fake_config = tmpdir / '_config'
         monkeypatch.setitem(os.environ, 'XDG_CONFIG_HOME', str(fake_config))
         expected = str(tmpdir / '_config')
-        assert AppDirPaths(Path).user.config() == expected
+        assert AppDirPaths(Path).user.config == expected
 
     def test_unix_paths_fallback(self, tmpdir, monkeypatch, feign_linux):
         "Without XDG_CONFIG_HOME set, ~/.config should be used."
         fake_home = tmpdir / '_home'
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
         expected = str(tmpdir / '_home' / '.config')
-        assert AppDirPaths(Path).user.config() == expected
+        assert AppDirPaths(Path).user.config == expected
 
-    def test_property(self, monkeypatch):
-        assert isinstance(Path.app_dirs.user.config(), Path)
-        assert isinstance(Path.app_dirs.user.data(), Path)
-        assert isinstance(Path.app_dirs.user.cache(), Path)
+    def test_property(self):
+        assert isinstance(Path.app_dirs().user.config, Path)
+        assert isinstance(Path.app_dirs().user.data, Path)
+        assert isinstance(Path.app_dirs().user.cache, Path)
 
     def test_ensure_simple(self, tmpdir):
         target = Path(tmpdir / 'target')
@@ -1013,7 +1013,7 @@ class TestAppDirPaths:
         """
         Other parameters should be passed through to appdirs function.
         """
-        res = Path.app_dirs.site.config(multipath=True)
+        res = Path.app_dirs(multipath=True).site.config
         assert isinstance(res, str)
 
     def test_multipath(self, feign_linux, monkeypatch, tmpdir):
@@ -1024,11 +1024,24 @@ class TestAppDirPaths:
         fake_config_2 = str(tmpdir / '_config2')
         config_dirs = os.pathsep.join([fake_config_1, fake_config_2])
         monkeypatch.setitem(os.environ, 'XDG_CONFIG_DIRS', config_dirs)
-        res = Path.app_dirs.site.config(multipath=True)
+        res = Path.app_dirs(multipath=True).site.config
         assert isinstance(res, Multi)
         assert fake_config_1 in res
         assert fake_config_2 in res
         assert '_config1' in str(res)
+
+    def test_reused_AppDirPaths(self):
+        """
+        Passing additional args and kwargs to AppDirPaths should be
+        passed through to each invocation of the function in appdirs.
+        """
+        appdirs = importlib.import_module('appdirs')
+
+        adp = AppDirPaths(Path, version="1.0")
+        res = adp.user.config
+
+        expected = appdirs.user_config_dir(version="1.0")
+        assert res == expected
 
 
 class TestMultiPath:
