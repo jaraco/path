@@ -23,6 +23,14 @@ Changes
   ``appdirs`` must be installed to avoid an ImportError when
   invoking ``app_dirs``.
 
+
+- #88: In order to support "multipath" results, where multiple
+  paths are returned in a single, ``os.pathsep``-separated
+  string, a new class MultiPath now represents those special
+  results. This functionality is experimental and may change.
+  Feedback is invited.
+
+
 7.4
 ---
 
