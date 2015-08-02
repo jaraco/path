@@ -166,10 +166,19 @@ def alias(name):
 
 @alias('path')
 class Path(text_type):
-    """ Represents a filesystem path.
+    """
+    Represents a filesystem path.
 
     For documentation on individual methods, consult their
     counterparts in :mod:`os.path`.
+
+    Some methods are additionally included from :mod:`shutil`.
+    The functions are linked directly into the class namespace
+    such that they will be bound to the Path instance. For example,
+    ``Path(src).copy(target)`` is equivalent to
+    ``shutil.copy(src, target)``. Therefore, when referencing
+    the docs for these methods, assume `src` references `self`,
+    the Path instance.
     """
 
     module = os.path
@@ -1321,8 +1330,9 @@ class Path(text_type):
             else:
                 return (self.parent / p).abspath()
 
-    #
-    # --- High-level functions from shutil
+    # High-level functions from shutil
+    # These functions will be bound to the instance such that
+    # Path(name).copy(target) will invoke shutil.copy(name, target)
 
     copyfile = shutil.copyfile
     copymode = shutil.copymode
