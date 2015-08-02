@@ -10,7 +10,7 @@ release = path.__version__
 version = re.match('[^.]+[.][^.]+', release).group(0)
 
 pygments_style = 'sphinx'
-html_theme = 'default'
+html_theme = 'alabaster'
 html_static_path = ['_static']
 htmlhelp_basename = 'pathpydoc'
 templates_path = ['_templates']
