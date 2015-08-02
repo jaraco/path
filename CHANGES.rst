@@ -4,6 +4,7 @@ Changes
 7.4
 ---
 
+- #97: __rdiv__ and __rtruediv__ are now defined.
 - #93: chown now appears in docs and raises NotImplementedError if
   ``os.chown`` isn't present.
 - #92: Added compatibility support for ``.samefile`` on platforms without
