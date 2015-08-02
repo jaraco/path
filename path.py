@@ -105,7 +105,7 @@ def io_error_compat():
 
 ##############################################################################
 
-__version__ = '7.5'
+__version__ = '7.6'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
 
 
