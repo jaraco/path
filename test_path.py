@@ -734,7 +734,7 @@ class TestMergeTree:
             self.test_file.copy(self.test_link)
 
     def test_with_nonexisting_dst_kwargs(self):
-        self.subdir_a.mergetree(self.subdir_b, symlinks=True)
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
         expected = set((
             self.subdir_b / self.test_file.name,
@@ -744,7 +744,7 @@ class TestMergeTree:
         assert Path(self.subdir_b / self.test_link.name).islink()
 
     def test_with_nonexisting_dst_args(self):
-        self.subdir_a.mergetree(self.subdir_b, True)
+        self.subdir_a.merge_tree(self.subdir_b, True)
         assert self.subdir_b.isdir()
         expected = set((
             self.subdir_b / self.test_file.name,
@@ -763,7 +763,7 @@ class TestMergeTree:
         with open(self.test_file, 'w') as f:
             f.write('x' * 5000)
 
-        self.subdir_a.mergetree(self.subdir_b, True)
+        self.subdir_a.merge_tree(self.subdir_b, True)
 
         assert self.subdir_b.isdir()
         expected = set((
