@@ -713,8 +713,8 @@ class ScratchDirTestCase(unittest.TestCase):
                       "should not raise an exception.")
 
 
-class TestMergeTree(unittest.TestCase):
-    def setUp(self):
+class TestMergeTree:
+    def setup_method(self, method):
         self.testDir = tempdir() / 'testdir'
         self.testA = self.testDir / 'A'
         self.testFile = self.testA / 'testfile.txt'
@@ -734,29 +734,29 @@ class TestMergeTree(unittest.TestCase):
         else:
             self.testFile.copy(self.testLink)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         self.testDir.rmtree()
-        self.assertFalse(self.testDir.exists())
+        assert not self.testDir.exists()
 
     def test_with_nonexisting_dst_kwargs(self):
         self.testA.mergetree(self.testB, symlinks=True)
-        self.assertTrue(self.testB.isdir())
+        assert self.testB.isdir()
         expected = set((
             self.testB / self.testFile.name,
             self.testB / self.testLink.name,
         ))
         assert set(self.testB.listdir()) == expected
-        self.assertTrue(Path(self.testB / self.testLink.name).islink())
+        assert Path(self.testB / self.testLink.name).islink()
 
     def test_with_nonexisting_dst_args(self):
         self.testA.mergetree(self.testB, True)
-        self.assertTrue(self.testB.isdir())
+        assert self.testB.isdir()
         expected = set((
             self.testB / self.testFile.name,
             self.testB / self.testLink.name,
         ))
         assert set(self.testB.listdir()) == expected
-        self.assertTrue(Path(self.testB / self.testLink.name).islink())
+        assert Path(self.testB / self.testLink.name).islink()
 
     def test_with_existing_dst(self):
         self.testB.rmtree()
@@ -770,15 +770,16 @@ class TestMergeTree(unittest.TestCase):
 
         self.testA.mergetree(self.testB, True)
 
-        self.assertTrue(self.testB.isdir())
+        assert self.testB.isdir()
         expected = set((
             self.testB / self.testFile.name,
             self.testB / self.testLink.name,
             self.testB / self.testNew.name,
         ))
         assert set(self.testB.listdir()) == expected
-        self.assertTrue(Path(self.testB / self.testLink.name).islink())
-        self.assertEqual(len(Path(self.testB / self.testFile.name).bytes()), 5000)
+        assert Path(self.testB / self.testLink.name).islink()
+        assert len(Path(self.testB / self.testFile.name).bytes()) == 5000
+
 
 class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
