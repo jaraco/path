@@ -3,6 +3,8 @@
 
 - Pull Request #100: Add ``merge_tree`` method for merging
   two existing directory trees.
+- Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
+  for version management.
 
 7.5
 ---

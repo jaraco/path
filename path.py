@@ -106,7 +106,6 @@ def io_error_compat():
 
 ##############################################################################
 
-__version__ = '7.6'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
 
 
@@ -116,6 +115,13 @@ NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 NL_END = re.compile(u(r'(?:{0})$').format(NEWLINE.pattern))
 U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
+
+
+try:
+    import pkg_resources
+    __version__ = pkg_resources.require('path.py')[0].version
+except ImportError:
+    __version__ = 'unknown'
 
 
 class TreeWalkWarning(Warning):
