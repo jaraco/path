@@ -48,6 +48,7 @@ import operator
 import re
 import contextlib
 import io
+from distutils import dir_util
 import importlib
 
 try:
@@ -106,7 +107,6 @@ def io_error_compat():
 
 ##############################################################################
 
-__version__ = '7.4'
 __all__ = ['Path', 'path', 'CaseInsensitivePattern']
 
 
@@ -116,6 +116,13 @@ NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 NL_END = re.compile(u(r'(?:{0})$').format(NEWLINE.pattern))
 U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
+
+
+try:
+    import pkg_resources
+    __version__ = pkg_resources.require('path.py')[0].version
+except ImportError:
+    __version__ = 'unknown'
 
 
 class TreeWalkWarning(Warning):
@@ -173,10 +180,19 @@ def alias(name):
 
 @alias('path')
 class Path(text_type):
-    """ Represents a filesystem path.
+    """
+    Represents a filesystem path.
 
     For documentation on individual methods, consult their
     counterparts in :mod:`os.path`.
+
+    Some methods are additionally included from :mod:`shutil`.
+    The functions are linked directly into the class namespace
+    such that they will be bound to the Path instance. For example,
+    ``Path(src).copy(target)`` is equivalent to
+    ``shutil.copy(src, target)``. Therefore, when referencing
+    the docs for these methods, assume `src` references `self`,
+    the Path instance.
     """
 
     module = os.path
@@ -245,6 +261,20 @@ class Path(text_type):
 
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
+
+    # The / operator joins Paths the other way around
+    def __rdiv__(self, rel):
+        """ fp.__rdiv__(rel) == rel / fp
+
+        Join two path components, adding a separator character if
+        needed.
+
+        .. seealso:: :func:`os.path.join`
+        """
+        return self._next_class(self.module.join(rel, self))
+
+    # Make the / operator work even when true division is enabled.
+    __rtruediv__ = __rdiv__
 
     def __enter__(self):
         self._old_dir = self.getcwd()
@@ -1314,8 +1344,9 @@ class Path(text_type):
             else:
                 return (self.parent / p).abspath()
 
-    #
-    # --- High-level functions from shutil
+    # High-level functions from shutil
+    # These functions will be bound to the instance such that
+    # Path(name).copy(target) will invoke shutil.copy(name, target)
 
     copyfile = shutil.copyfile
     copymode = shutil.copymode
@@ -1343,6 +1374,31 @@ class Path(text_type):
         os.chdir(self)
 
     cd = chdir
+
+    def merge_tree(self, dst, symlinks=False, *args, **kwargs):
+        """
+        Copy entire contents of self to dst, overwriting existing
+        contents in dst with those in self.
+
+        If the additional keyword `update` is True, each
+        `src` will only be copied if `dst` does not exist,
+        or `src` is newer than `dst`.
+
+        Note that the technique employed stages the files in a temporary
+        directory first, so this function is not suitable for merging
+        trees with large files, especially if the temporary directory
+        is not capable of storing a copy of the entire source tree.
+        """
+        update = kwargs.pop('update', False)
+        with tempdir() as _temp_dir:
+            # first copy the tree to a stage directory to support
+            #  the parameters and behavior of copytree.
+            stage = _temp_dir / str(hash(self))
+            self.copytree(stage, symlinks, *args, **kwargs)
+            # now copy everything from the stage directory using
+            #  the semantics of dir_util.copy_tree
+            dir_util.copy_tree(stage, dst, preserve_symlinks=symlinks,
+                update=update)
 
     #
     # --- Special stuff from os

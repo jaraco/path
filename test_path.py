@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
-""" test_path.py - Test the path module.
+"""
+Tests for the path module.
 
-This only runs on Posix and Windows right now.  I would like to have more
-tests.  You can help!  Just add appropriate pathnames for your
+This suite runs on Linux, OS X, and Windows right now.  To extend the
+platform support, just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
-Then send me the result.  If you can't get the test to run at all on
+Then report the result.  If you can't get the test to run at all on
 your platform, there's probably a bug in path.py -- please report the issue
 in the issue tracker at https://github.com/jaraco/path.py.
 
-TempDirTestCase.testTouch() takes a while to run.  It sleeps a few
+TestScratchDir.test_touch() takes a while to run.  It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-import unittest
+from __future__ import unicode_literals, absolute_import, print_function
+
 import codecs
 import os
 import sys
-import random
 import shutil
-import tempfile
 import time
 import ntpath
 import posixpath
@@ -30,7 +30,7 @@ import importlib
 
 import pytest
 
-from path import Path, tempdir, u
+from path import Path, tempdir
 from path import CaseInsensitivePattern as ci
 from path import SpecialResolver
 from path import Multi
@@ -41,8 +41,8 @@ def p(**choices):
     return choices[os.name]
 
 
-class BasicTestCase(unittest.TestCase):
-    def testRelpath(self):
+class TestBasics:
+    def test_relpath(self):
         root = Path(p(nt='C:\\', posix='/'))
         foo = root / 'foo'
         quux = foo / 'quux'
@@ -51,28 +51,31 @@ class BasicTestCase(unittest.TestCase):
         up = Path(os.pardir)
 
         # basics
-        self.assertEqual(root.relpathto(boz), Path('foo')/'bar'/'Baz'/'Boz')
-        self.assertEqual(bar.relpathto(boz), Path('Baz')/'Boz')
-        self.assertEqual(quux.relpathto(boz), up/'bar'/'Baz'/'Boz')
-        self.assertEqual(boz.relpathto(quux), up/up/up/'quux')
-        self.assertEqual(boz.relpathto(bar), up/up)
+        assert root.relpathto(boz) == Path('foo')/'bar'/'Baz'/'Boz'
+        assert bar.relpathto(boz) == Path('Baz')/'Boz'
+        assert quux.relpathto(boz) == up/'bar'/'Baz'/'Boz'
+        assert boz.relpathto(quux) == up/up/up/'quux'
+        assert boz.relpathto(bar) == up/up
+
+        # Path is not the first element in concatenation
+        assert root.relpathto(boz) == 'foo'/Path('bar')/'Baz'/'Boz'
 
         # x.relpathto(x) == curdir
-        self.assertEqual(root.relpathto(root), os.curdir)
-        self.assertEqual(boz.relpathto(boz), os.curdir)
+        assert root.relpathto(root) == os.curdir
+        assert boz.relpathto(boz) == os.curdir
         # Make sure case is properly noted (or ignored)
-        self.assertEqual(boz.relpathto(boz.normcase()), os.curdir)
+        assert boz.relpathto(boz.normcase()) == os.curdir
 
         # relpath()
         cwd = Path(os.getcwd())
-        self.assertEqual(boz.relpath(), cwd.relpathto(boz))
+        assert boz.relpath() == cwd.relpathto(boz)
 
         if os.name == 'nt':
             # Check relpath across drives.
             d = Path('D:\\')
-            self.assertEqual(d.relpathto(boz), boz)
+            assert d.relpathto(boz) == boz
 
-    def testConstructionFromNone(self):
+    def test_construction_from_none(self):
         """
 
         """
@@ -83,17 +86,17 @@ class BasicTestCase(unittest.TestCase):
         else:
             raise Exception("DID NOT RAISE")
 
-    def testConstructionFromInt(self):
+    def test_construction_from_int(self):
         """
         Path class will construct a path as a string of the number
         """
-        self.assert_(Path(1) == '1')
+        assert Path(1) == '1'
 
-    def testStringCompatibility(self):
+    def test_string_compatibility(self):
         """ Test compatibility with ordinary strings. """
         x = Path('xyzzy')
-        self.assert_(x == 'xyzzy')
-        self.assert_(x == u('xyzzy'))
+        assert x == 'xyzzy'
+        assert x == str('xyzzy')
 
         # sorting
         items = [Path('fhj'),
@@ -104,50 +107,52 @@ class BasicTestCase(unittest.TestCase):
                  Path('B'),
                  'c']
         items.sort()
-        self.assert_(items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj'])
+        assert items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj']
 
         # Test p1/p1.
         p1 = Path("foo")
         p2 = Path("bar")
-        self.assertEqual(p1/p2, p(nt='foo\\bar', posix='foo/bar'))
+        assert p1/p2 == p(nt='foo\\bar', posix='foo/bar')
 
-    def testProperties(self):
+    def test_properties(self):
         # Create sample path object.
         f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
               posix='/usr/local/python/lib/xyzzy.py')
         f = Path(f)
 
         # .parent
-        self.assertEqual(f.parent, p(nt='C:\\Program Files\\Python\\Lib',
-                                     posix='/usr/local/python/lib'))
+        nt_lib = 'C:\\Program Files\\Python\\Lib'
+        posix_lib = '/usr/local/python/lib'
+        expected = p(nt=nt_lib, posix=posix_lib)
+        assert f.parent == expected
 
         # .name
-        self.assertEqual(f.name, 'xyzzy.py')
-        self.assertEqual(f.parent.name, p(nt='Lib', posix='lib'))
+        assert f.name == 'xyzzy.py'
+        assert f.parent.name == p(nt='Lib', posix='lib')
 
         # .ext
-        self.assertEqual(f.ext, '.py')
-        self.assertEqual(f.parent.ext, '')
+        assert f.ext == '.py'
+        assert f.parent.ext == ''
 
         # .drive
-        self.assertEqual(f.drive, p(nt='C:', posix=''))
+        assert f.drive == p(nt='C:', posix='')
 
-    def testMethods(self):
+    def test_methods(self):
         # .abspath()
-        self.assertEqual(Path(os.curdir).abspath(), os.getcwd())
+        assert Path(os.curdir).abspath() == os.getcwd()
 
         # .getcwd()
         cwd = Path.getcwd()
-        self.assert_(isinstance(cwd, Path))
-        self.assertEqual(cwd, os.getcwd())
+        assert isinstance(cwd, Path)
+        assert cwd == os.getcwd()
 
-    def testUNC(self):
+    def test_UNC(self):
         if hasattr(os.path, 'splitunc'):
             p = Path(r'\\python1\share1\dir1\file1.txt')
-            self.assert_(p.uncshare == r'\\python1\share1')
-            self.assert_(p.splitunc() == os.path.splitunc(str(p)))
+            assert p.uncshare == r'\\python1\share1'
+            assert p.splitunc() == os.path.splitunc(str(p))
 
-    def testExplicitModule(self):
+    def test_explicit_module(self):
         """
         The user may specify an explicit path module to use.
         """
@@ -155,20 +160,20 @@ class BasicTestCase(unittest.TestCase):
         posix_ok = Path.using_module(posixpath)(r'foo/bar/baz')
         posix_wrong = Path.using_module(posixpath)(r'foo\bar\baz')
 
-        self.assertEqual(nt_ok.dirname(), r'foo\bar')
-        self.assertEqual(posix_ok.dirname(), r'foo/bar')
-        self.assertEqual(posix_wrong.dirname(), '')
+        assert nt_ok.dirname() == r'foo\bar'
+        assert posix_ok.dirname() == r'foo/bar'
+        assert posix_wrong.dirname() == ''
 
-        self.assertEqual(nt_ok / 'quux', r'foo\bar\baz\quux')
-        self.assertEqual(posix_ok / 'quux', r'foo/bar/baz/quux')
+        assert nt_ok / 'quux' == r'foo\bar\baz\quux'
+        assert posix_ok / 'quux' == r'foo/bar/baz/quux'
 
-    def testExplicitModuleClasses(self):
+    def test_explicit_module_classes(self):
         """
         Multiple calls to path.using_module should produce the same class.
         """
         nt_path = Path.using_module(ntpath)
-        self.assert_(nt_path is Path.using_module(ntpath))
-        self.assertEqual(nt_path.__name__, 'Path_ntpath')
+        assert nt_path is Path.using_module(ntpath)
+        assert nt_path.__name__ == 'Path_ntpath'
 
     def test_joinpath_on_instance(self):
         res = Path('foo')
@@ -202,80 +207,58 @@ class BasicTestCase(unittest.TestCase):
         assert res2 == 'foo/bar'
 
 
-class ReturnSelfTestCase(unittest.TestCase):
+class TestSelfReturn:
     """
     Some methods don't necessarily return any value (e.g. makedirs,
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
-    def setUp(self):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def tearDown(self):
-        shutil.rmtree(self.tempdir)
-
-    def testMakedirs_pReturnsSelf(self):
+    def test_makedirs_p(self, tmpdir):
         """
         Path('foo').makedirs_p() == Path('foo')
         """
-        p = Path(self.tempdir) / "newpath"
+        p = Path(tmpdir) / "newpath"
         ret = p.makedirs_p()
-        self.assertEquals(p, ret)
+        assert p == ret
 
-    def testMakedirs_pReturnsSelfEvenIfExists(self):
-        p = Path(self.tempdir)
+    def test_makedirs_p_extant(self, tmpdir):
+        p = Path(tmpdir)
         ret = p.makedirs_p()
-        self.assertEquals(p, ret)
+        assert p == ret
 
-    def testRenameReturnsSelf(self):
-        p = Path(self.tempdir) / "somefile"
+    def test_rename(self, tmpdir):
+        p = Path(tmpdir) / "somefile"
         p.touch()
-        target = Path(self.tempdir) / "otherfile"
+        target = Path(tmpdir) / "otherfile"
         ret = p.rename(target)
-        self.assertEquals(target, ret)
+        assert target == ret
 
-    def testMkdirReturnsSelf(self):
-        p = Path(self.tempdir) / "newdir"
+    def test_mkdir(self, tmpdir):
+        p = Path(tmpdir) / "newdir"
         ret = p.mkdir()
-        self.assertEquals(p, ret)
+        assert p == ret
 
-    def testTouchReturnsSelf(self):
-        p = Path(self.tempdir) / "empty file"
+    def test_touch(self, tmpdir):
+        p = Path(tmpdir) / "empty file"
         ret = p.touch()
-        self.assertEquals(p, ret)
+        assert p == ret
 
 
-class ScratchDirTestCase(unittest.TestCase):
+class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test tempdir class)
     """
-    def setUp(self):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def tearDown(self):
-        shutil.rmtree(self.tempdir)
-
-    def testContextManager(self):
+    def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
-        d = Path(self.tempdir)
+        d = Path(tmpdir)
         subdir = d / 'subdir'
         subdir.makedirs()
         old_dir = os.getcwd()
         with subdir:
-            self.assertEquals(os.getcwd(), os.path.realpath(subdir))
-        self.assertEquals(os.getcwd(), old_dir)
+            assert os.getcwd() == os.path.realpath(subdir)
+        assert os.getcwd() == old_dir
 
-    def testTouch(self):
+    def test_touch(self, tmpdir):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
         # of a file's mtime and ctime is about 2 seconds.
@@ -283,70 +266,70 @@ class ScratchDirTestCase(unittest.TestCase):
         # atime isn't tested because on Windows the resolution of atime
         # is something like 24 hours.
 
-        d = Path(self.tempdir)
+        threshold = 1
+
+        d = Path(tmpdir)
         f = d / 'test.txt'
-        t0 = time.time() - 3
+        t0 = time.time() - threshold
         f.touch()
-        t1 = time.time() + 3
-        try:
-            self.assert_(f.exists())
-            self.assert_(f.isfile())
-            self.assertEqual(f.size, 0)
-            self.assert_(t0 <= f.mtime <= t1)
-            if hasattr(os.path, 'getctime'):
-                ct = f.ctime
-                self.assert_(t0 <= ct <= t1)
+        t1 = time.time() + threshold
 
-            time.sleep(5)
-            fobj = open(f, 'ab')
-            fobj.write('some bytes'.encode('utf-8'))
-            fobj.close()
+        assert f.exists()
+        assert f.isfile()
+        assert f.size == 0
+        assert t0 <= f.mtime <= t1
+        if hasattr(os.path, 'getctime'):
+            ct = f.ctime
+            assert t0 <= ct <= t1
 
-            time.sleep(5)
-            t2 = time.time() - 3
-            f.touch()
-            t3 = time.time() + 3
+        time.sleep(threshold*2)
+        fobj = open(f, 'ab')
+        fobj.write('some bytes'.encode('utf-8'))
+        fobj.close()
 
-            assert t0 <= t1 < t2 <= t3  # sanity check
+        time.sleep(threshold*2)
+        t2 = time.time() - threshold
+        f.touch()
+        t3 = time.time() + threshold
 
-            self.assert_(f.exists())
-            self.assert_(f.isfile())
-            self.assertEqual(f.size, 10)
-            self.assert_(t2 <= f.mtime <= t3)
-            if hasattr(os.path, 'getctime'):
-                ct2 = f.ctime
-                if os.name == 'nt':
-                    # On Windows, "ctime" is CREATION time
-                    self.assertEqual(ct, ct2)
-                    self.assert_(ct2 < t2)
-                else:
-                    # On other systems, it might be the CHANGE time
-                    # (especially on Unix, time of inode changes)
-                    self.failUnless(ct == ct2 or ct2 == f.mtime)
-        finally:
-            f.remove()
+        assert t0 <= t1 < t2 <= t3  # sanity check
 
-    def testListing(self):
-        d = Path(self.tempdir)
-        self.assertEqual(d.listdir(), [])
+        assert f.exists()
+        assert f.isfile()
+        assert f.size == 10
+        assert t2 <= f.mtime <= t3
+        if hasattr(os.path, 'getctime'):
+            ct2 = f.ctime
+            if os.name == 'nt':
+                # On Windows, "ctime" is CREATION time
+                assert ct == ct2
+                assert ct2 < t2
+            else:
+                # On other systems, it might be the CHANGE time
+                # (especially on Unix, time of inode changes)
+                assert ct == ct2 or ct2 == f.mtime
+
+    def test_listing(self, tmpdir):
+        d = Path(tmpdir)
+        assert d.listdir() == []
 
         f = 'testfile.txt'
         af = d / f
-        self.assertEqual(af, os.path.join(d, f))
+        assert af == os.path.join(d, f)
         af.touch()
         try:
-            self.assert_(af.exists())
+            assert af.exists()
 
-            self.assertEqual(d.listdir(), [af])
+            assert d.listdir() == [af]
 
             # .glob()
-            self.assertEqual(d.glob('testfile.txt'), [af])
-            self.assertEqual(d.glob('test*.txt'), [af])
-            self.assertEqual(d.glob('*.txt'), [af])
-            self.assertEqual(d.glob('*txt'), [af])
-            self.assertEqual(d.glob('*'), [af])
-            self.assertEqual(d.glob('*.html'), [])
-            self.assertEqual(d.glob('testfile'), [])
+            assert d.glob('testfile.txt') == [af]
+            assert d.glob('test*.txt') == [af]
+            assert d.glob('*.txt') == [af]
+            assert d.glob('*txt') == [af]
+            assert d.glob('*') == [af]
+            assert d.glob('*.html') == []
+            assert d.glob('testfile') == []
         finally:
             af.remove()
 
@@ -360,7 +343,7 @@ class ScratchDirTestCase(unittest.TestCase):
             files2 = d.listdir()
             files.sort()
             files2.sort()
-            self.assertEqual(files, files2)
+            assert files == files2
         finally:
             for f in files:
                 try:
@@ -368,39 +351,35 @@ class ScratchDirTestCase(unittest.TestCase):
                 except:
                     pass
 
-    def test_listdir_other_encoding(self):
+    def test_listdir_other_encoding(self, tmpdir):
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
         See issue #61 for details.
         """
-        self.assertEqual(Path(self.tempdir).listdir(), [])
-        tmpdir_bytes = self.tempdir
+        assert Path(tmpdir).listdir() == []
+        tmpdir_bytes = str(tmpdir).encode('ascii')
 
-        filename = 'r\xe9\xf1emi'
-        PY3 = sys.version_info[0] >= 3
-        if PY3:
-            filename = filename.encode('latin-1')
-            tmpdir_bytes = tmpdir_bytes.encode('ascii')
+        filename = 'r\xe9\xf1emi'.encode('latin-1')
         pathname = os.path.join(tmpdir_bytes, filename)
         with open(pathname, 'wb'):
             pass
         # first demonstrate that os.listdir works
-        self.assert_(os.listdir(tmpdir_bytes))
+        assert os.listdir(tmpdir_bytes)
 
         # now try with path.py
-        results = Path(self.tempdir).listdir()
-        self.assert_(len(results) == 1)
+        results = Path(tmpdir).listdir()
+        assert len(results) == 1
         res, = results
-        self.assert_(isinstance(res, Path))
+        assert isinstance(res, Path)
         # OS X seems to encode the bytes in the filename as %XX characters.
         if platform.system() == 'Darwin':
             assert res.basename() == 'r%E9%F1emi'
             return
         assert len(res.basename()) == len(filename)
 
-    def testMakeDirs(self):
-        d = Path(self.tempdir)
+    def test_makedirs(self, tmpdir):
+        d = Path(tmpdir)
 
         # Placeholder file so that when removedirs() is called,
         # it doesn't remove the temporary directory itself.
@@ -411,20 +390,20 @@ class ScratchDirTestCase(unittest.TestCase):
             boz = foo / 'bar' / 'baz' / 'boz'
             boz.makedirs()
             try:
-                self.assert_(boz.isdir())
+                assert boz.isdir()
             finally:
                 boz.removedirs()
-            self.failIf(foo.exists())
-            self.assert_(d.exists())
+            assert not foo.exists()
+            assert d.exists()
 
             foo.mkdir(0o750)
             boz.makedirs(0o700)
             try:
-                self.assert_(boz.isdir())
+                assert boz.isdir()
             finally:
                 boz.removedirs()
-            self.failIf(foo.exists())
-            self.assert_(d.exists())
+            assert not foo.exists()
+            assert d.exists()
         finally:
             os.remove(tempf)
 
@@ -439,14 +418,14 @@ class ScratchDirTestCase(unittest.TestCase):
         for i in b:
             bd[i] = None
 
-        self.assertEqual(ad, bd)
+        assert ad == bd
 
-    def testShutil(self):
+    def test_shutil(self, tmpdir):
         # Note: This only tests the methods exist and do roughly what
         # they should, neglecting the details as they are shutil's
         # responsibility.
 
-        d = Path(self.tempdir)
+        d = Path(tmpdir)
         testDir = d / 'testdir'
         testFile = testDir / 'testfile.txt'
         testA = testDir / 'A'
@@ -467,14 +446,14 @@ class ScratchDirTestCase(unittest.TestCase):
 
         # Test simple file copying.
         testFile.copyfile(testCopy)
-        self.assert_(testCopy.isfile())
-        self.assert_(testFile.bytes() == testCopy.bytes())
+        assert testCopy.isfile()
+        assert testFile.bytes() == testCopy.bytes()
 
         # Test copying into a directory.
         testCopy2 = testA / testFile.name
         testFile.copy(testA)
-        self.assert_(testCopy2.isfile())
-        self.assert_(testFile.bytes() == testCopy2.bytes())
+        assert testCopy2.isfile()
+        assert testFile.bytes() == testCopy2.bytes()
 
         # Make a link for the next test to use.
         if hasattr(os, 'symlink'):
@@ -484,44 +463,40 @@ class ScratchDirTestCase(unittest.TestCase):
 
         # Test copying directory tree.
         testA.copytree(testC)
-        self.assert_(testC.isdir())
+        assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
             [testC / testCopy.name,
              testC / testFile.name,
              testCopyOfLink])
-        self.assert_(not testCopyOfLink.islink())
+        assert not testCopyOfLink.islink()
 
         # Clean up for another try.
         testC.rmtree()
-        self.assert_(not testC.exists())
+        assert not testC.exists()
 
         # Copy again, preserving symlinks.
         testA.copytree(testC, True)
-        self.assert_(testC.isdir())
+        assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
             [testC / testCopy.name,
              testC / testFile.name,
              testCopyOfLink])
         if hasattr(os, 'symlink'):
-            self.assert_(testCopyOfLink.islink())
-            self.assert_(testCopyOfLink.readlink() == testFile)
+            assert testCopyOfLink.islink()
+            assert testCopyOfLink.readlink() == testFile
 
         # Clean up.
         testDir.rmtree()
-        self.assert_(not testDir.exists())
+        assert not testDir.exists()
         self.assertList(d.listdir(), [])
 
     def assertList(self, listing, expected):
-        listing = list(listing)
-        listing.sort()
-        expected = list(expected)
-        expected.sort()
-        self.assertEqual(listing, expected)
+        assert sorted(listing) == sorted(expected)
 
-    def testPatterns(self):
-        d = Path(self.tempdir)
+    def test_patterns(self, tmpdir):
+        d = Path(tmpdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
 
@@ -542,8 +517,8 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assertList(d.walkfiles('*.tmp'), [e/'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d/'xdir.tmp'])
 
-    def testUnicode(self):
-        d = Path(self.tempdir)
+    def test_unicode(self, tmpdir):
+        d = Path(tmpdir)
         p = d/'unicode.txt'
 
         def test(enc):
@@ -552,39 +527,39 @@ class ScratchDirTestCase(unittest.TestCase):
             Unicode codepoints.
             """
 
-            given = u('Hello world\n'
+            given = ('Hello world\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\r\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\x85'
                       '\u0d0a\u0a0d\u0d15\u0a15\u2028'
                       '\r'
                       'hanging')
-            clean = u('Hello world\n'
+            clean = ('Hello world\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\n'
                       'hanging')
             givenLines = [
-                u('Hello world\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\x85'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
-                u('\r'),
-                u('hanging')]
+                ('Hello world\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
+                ('\r'),
+                ('hanging')]
             expectedLines = [
-                u('Hello world\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\n'),
-                u('hanging')]
+                ('Hello world\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\n'),
+                ('hanging')]
             expectedLines2 = [
-                u('Hello world'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u(''),
-                u('hanging')]
+                ('Hello world'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                (''),
+                ('hanging')]
 
             # write bytes manually to file
             f = codecs.open(p, 'w', enc)
@@ -593,10 +568,10 @@ class ScratchDirTestCase(unittest.TestCase):
 
             # test all 3 path read-fully functions, including
             # path.lines() in unicode mode.
-            self.assertEqual(p.bytes(), given.encode(enc))
-            self.assertEqual(p.text(enc), clean)
-            self.assertEqual(p.lines(enc), expectedLines)
-            self.assertEqual(p.lines(enc, retain=False), expectedLines2)
+            assert p.bytes() == given.encode(enc)
+            assert p.text(enc) == clean
+            assert p.lines(enc) == expectedLines
+            assert p.lines(enc, retain=False) == expectedLines2
 
             # If this is UTF-16, that's enough.
             # The rest of these will unfortunately fail because append=True
@@ -606,7 +581,7 @@ class ScratchDirTestCase(unittest.TestCase):
                 return
 
             # Write Unicode to file using path.write_text().
-            cleanNoHanging = clean + u('\n')  # This test doesn't work with a
+            cleanNoHanging = clean + '\n'  # This test doesn't work with a
                                               # hanging line.
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
@@ -615,17 +590,17 @@ class ScratchDirTestCase(unittest.TestCase):
                                                        os.linesep).encode(enc)
             expectedLinesNoHanging = expectedLines[:]
             expectedLinesNoHanging[-1] += '\n'
-            self.assertEqual(p.bytes(), expectedBytes)
-            self.assertEqual(p.text(enc), 2 * cleanNoHanging)
-            self.assertEqual(p.lines(enc), 2 * expectedLinesNoHanging)
-            self.assertEqual(p.lines(enc, retain=False), 2 * expectedLines2)
+            assert p.bytes() == expectedBytes
+            assert p.text(enc) == 2 * cleanNoHanging
+            assert p.lines(enc) == 2 * expectedLinesNoHanging
+            assert p.lines(enc, retain=False) == 2 * expectedLines2
 
             # Write Unicode to file using path.write_lines().
             # The output in the file should be exactly the same as last time.
             p.write_lines(expectedLines, enc)
             p.write_lines(expectedLines2, enc, append=True)
             # Check the result.
-            self.assertEqual(p.bytes(), expectedBytes)
+            assert p.bytes() == expectedBytes
 
             # Now: same test, but using various newline sequences.
             # If linesep is being properly applied, these will be converted
@@ -633,51 +608,51 @@ class ScratchDirTestCase(unittest.TestCase):
             p.write_lines(givenLines, enc)
             p.write_lines(givenLines, enc, append=True)
             # Check the result.
-            self.assertEqual(p.bytes(), expectedBytes)
+            assert p.bytes() == expectedBytes
 
             # Same test, using newline sequences that are different
             # from the platform default.
             def testLinesep(eol):
                 p.write_lines(givenLines, enc, linesep=eol)
                 p.write_lines(givenLines, enc, linesep=eol, append=True)
-                expected = 2 * cleanNoHanging.replace(u('\n'), eol).encode(enc)
-                self.assertEqual(p.bytes(), expected)
+                expected = 2 * cleanNoHanging.replace('\n', eol).encode(enc)
+                assert p.bytes() == expected
 
-            testLinesep(u('\n'))
-            testLinesep(u('\r'))
-            testLinesep(u('\r\n'))
-            testLinesep(u('\x0d\x85'))
+            testLinesep('\n')
+            testLinesep('\r')
+            testLinesep('\r\n')
+            testLinesep('\x0d\x85')
 
             # Again, but with linesep=None.
             p.write_lines(givenLines, enc, linesep=None)
             p.write_lines(givenLines, enc, linesep=None, append=True)
             # Check the result.
             expectedBytes = 2 * given.encode(enc)
-            self.assertEqual(p.bytes(), expectedBytes)
-            self.assertEqual(p.text(enc), 2 * clean)
+            assert p.bytes() == expectedBytes
+            assert p.text(enc) == 2 * clean
             expectedResultLines = expectedLines[:]
             expectedResultLines[-1] += expectedLines[0]
             expectedResultLines += expectedLines[1:]
-            self.assertEqual(p.lines(enc), expectedResultLines)
+            assert p.lines(enc) == expectedResultLines
 
         test('UTF-8')
         test('UTF-16BE')
         test('UTF-16LE')
         test('UTF-16')
 
-    def testChunks(self):
+    def test_chunks(self, tmpdir):
         p = (tempdir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
         p.write_text(txt)
         for i, chunk in enumerate(p.chunks(size)):
-            self.assertEqual(chunk, txt[i * size:i * size + size])
+            assert chunk == txt[i * size:i * size + size]
 
-        self.assertEqual(i, len(txt) / size - 1)
+        assert i == len(txt) / size - 1
 
     @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
         reason="samefile not present")
-    def testSameFile(self):
+    def test_samefile(self, tmpdir):
         f1 = (tempdir() / '1.txt').touch()
         f1.write_text('foo')
         f2 = (tempdir() / '2.txt').touch()
@@ -687,30 +662,96 @@ class ScratchDirTestCase(unittest.TestCase):
         f4 = (tempdir() / '4.txt')
         f1.copyfile(f4)
 
-        self.assertEqual(os.path.samefile(f1, f2),
-                         f1.samefile(f2))
+        assert os.path.samefile(f1, f2) == f1.samefile(f2)
+        assert os.path.samefile(f1, f3) == f1.samefile(f3)
+        assert os.path.samefile(f1, f4) == f1.samefile(f4)
+        assert os.path.samefile(f1, f1) == f1.samefile(f1)
 
-        self.assertEqual(os.path.samefile(f1, f3),
-                         f1.samefile(f3))
-
-        self.assertEqual(os.path.samefile(f1, f4),
-                         f1.samefile(f4))
-
-        self.assertEqual(os.path.samefile(f1, f1),
-                         f1.samefile(f1))
-
-    def testRmtreeP(self):
-        d = Path(self.tempdir)
+    def test_rmtree_p(self, tmpdir):
+        d = Path(tmpdir)
         sub = d / 'subfolder'
         sub.mkdir()
         (sub / 'afile').write_text('something')
         sub.rmtree_p()
-        self.assertFalse(sub.exists())
+        assert not sub.exists()
         try:
             sub.rmtree_p()
         except OSError:
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
+
+
+class TestMergeTree:
+    @pytest.fixture(autouse=True)
+    def testing_structure(self, tmpdir):
+        self.test_dir = Path(tmpdir)
+        self.subdir_a = self.test_dir / 'A'
+        self.test_file = self.subdir_a / 'testfile.txt'
+        self.test_link = self.subdir_a / 'testlink.txt'
+        self.subdir_b = self.test_dir / 'B'
+
+        self.subdir_a.mkdir()
+        self.subdir_b.mkdir()
+
+        with open(self.test_file, 'w') as f:
+            f.write('x' * 10000)
+
+        if hasattr(os, 'symlink'):
+            self.test_file.symlink(self.test_link)
+        else:
+            self.test_file.copy(self.test_link)
+
+    def test_with_nonexisting_dst_kwargs(self):
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
+        assert self.subdir_b.isdir()
+        expected = set((
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+        ))
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
+
+    def test_with_nonexisting_dst_args(self):
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        assert self.subdir_b.isdir()
+        expected = set((
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+        ))
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
+
+    def test_with_existing_dst(self):
+        self.subdir_b.rmtree()
+        self.subdir_a.copytree(self.subdir_b, True)
+
+        self.test_link.remove()
+        test_new = self.subdir_a / 'newfile.txt'
+        test_new.touch()
+        with open(self.test_file, 'w') as f:
+            f.write('x' * 5000)
+
+        self.subdir_a.merge_tree(self.subdir_b, True)
+
+        assert self.subdir_b.isdir()
+        expected = set((
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+            self.subdir_b / test_new.name,
+        ))
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
+        assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
+
+    def test_copytree_parameters(self):
+        """
+        merge_tree should accept parameters to copytree, such as 'ignore'
+        """
+        ignore = shutil.ignore_patterns('testlink*')
+        self.subdir_a.merge_tree(self.subdir_b, ignore=ignore)
+
+        assert self.subdir_b.isdir()
+        assert self.subdir_b.listdir() == [self.subdir_b / self.test_file.name]
 
 
 class TestChdir:
@@ -739,7 +780,7 @@ class TestChdir:
         assert str(d.getcwd()) != str(tmpdir)
 
 
-class SubclassTestCase(unittest.TestCase):
+class TestSubclass:
     class PathSubclass(Path):
         pass
 
@@ -753,7 +794,7 @@ class SubclassTestCase(unittest.TestCase):
         assert isinstance(subdir, self.PathSubclass)
 
 
-class TempDirTestCase(unittest.TestCase):
+class TestTempDir:
 
     def test_constructor(self):
         """
@@ -807,28 +848,22 @@ class TempDirTestCase(unittest.TestCase):
         """
 
         with tempdir() as d:
-            self.assertTrue(d.isdir())
-        self.assertFalse(d.isdir())
+            assert d.isdir()
+        assert not d.isdir()
 
 
-class TestUnicodePaths(unittest.TestCase):
-    def setup_method(self, method):
-        # Create a temporary directory.
-        self.tempdir = tempfile.mkdtemp()
+class TestUnicode:
+    @pytest.fixture(autouse=True)
+    def unicode_name_in_tmpdir(self, tmpdir):
         # build a snowman (dir) in the temporary directory
-        snowman = os.path.join(self.tempdir, '☃')
-        os.mkdir(snowman)
+        Path(tmpdir).joinpath('☃').mkdir()
 
-    def teardown_method(self, method):
-        shutil.rmtree(self.tempdir)
-
-    def test_walkdirs_with_unicode_name(self):
-        p = Path(self.tempdir)
-        for res in p.walkdirs():
+    def test_walkdirs_with_unicode_name(self, tmpdir):
+        for res in Path(tmpdir).walkdirs():
             pass
 
 
-class TestPatternMatching(object):
+class TestPatternMatching:
     def test_fnmatch_simple(self):
         p = Path('FooBar')
         assert p.fnmatch('Foo*')
@@ -904,14 +939,14 @@ class TestPatternMatching(object):
 
 @pytest.mark.skipif(sys.version_info < (2, 6),
     reason="in_place requires io module in Python 2.6")
-class TestInPlace(object):
-    reference_content = u(textwrap.dedent("""
+class TestInPlace:
+    reference_content = textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
-        """.lstrip()))
-    reversed_content = u(textwrap.dedent("""
+        """.lstrip())
+    reversed_content = textwrap.dedent("""
         .god yzal eht revo depmuj xof nworb kciuq ehT
-        """.lstrip()))
-    alternate_content = u(textwrap.dedent("""
+        """.lstrip())
+    alternate_content = textwrap.dedent("""
           Lorem ipsum dolor sit amet, consectetur adipisicing elit,
         sed do eiusmod tempor incididunt ut labore et dolore magna
         aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -920,7 +955,7 @@ class TestInPlace(object):
         esse cillum dolore eu fugiat nulla pariatur. Excepteur
         sint occaecat cupidatat non proident, sunt in culpa qui
         officia deserunt mollit anim id est laborum.
-        """.lstrip()))
+        """.lstrip())
 
     @classmethod
     def create_reference(cls, tmpdir):

@@ -1,5 +1,15 @@
-Changes
-=======
+7.6
+---
+
+- Pull Request #100: Add ``merge_tree`` method for merging
+  two existing directory trees.
+- Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
+  for version management.
+
+7.5
+---
+
+- #97: ``__rdiv__`` and ``__rtruediv__`` are now defined.
 
 7.5
 ---
