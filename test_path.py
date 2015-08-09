@@ -875,19 +875,13 @@ class TestTempDir:
 
 
 class TestUnicode:
-    def setup_method(self, method):
-        # Create a temporary directory.
-        self.tempdir = tempfile.mkdtemp()
+    @pytest.fixture(autouse=True)
+    def unicode_name_in_tmpdir(self, tmpdir):
         # build a snowman (dir) in the temporary directory
-        snowman = os.path.join(self.tempdir, '☃')
-        os.mkdir(snowman)
+        (tmpdir / '☃').mkdir()
 
-    def teardown_method(self, method):
-        shutil.rmtree(self.tempdir)
-
-    def test_walkdirs_with_unicode_name(self):
-        p = Path(self.tempdir)
-        for res in p.walkdirs():
+    def test_walkdirs_with_unicode_name(self, tmpdir):
+        for res in Path(tmpdir).walkdirs():
             pass
 
 
