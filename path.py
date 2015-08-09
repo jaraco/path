@@ -48,6 +48,7 @@ import operator
 import re
 import contextlib
 import io
+from distutils import dir_util
 
 try:
     import win32security
@@ -1360,6 +1361,25 @@ class Path(text_type):
         os.chdir(self)
 
     cd = chdir
+
+    def mergetree(self, dst, *args, **kwargs):
+        """ A wrapper around :meth:`copytree` that accepts an existing directory as `dst`.
+        If it does not exist yet, it will be created. Contents of `dst` will be overwritten
+        if they exist in `src`, but will otherwise be untouched.
+        If the additional keyword `update` (default: False) is true, `src` will only be
+        copied if `dst` does not exist, or if `dst` does exist but is older than `src`.
+        """
+        update = kwargs.pop('update', False)
+        _tempdir = Path(tempfile.gettempdir()) / str(hash(self))
+        try:
+            self.copytree(_tempdir, *args, **kwargs)
+            if len(args):
+                symlinks = args[0]
+            else:
+                symlinks = kwargs.get('symlinks', False)
+            dir_util.copy_tree(_tempdir, dst, preserve_symlinks=int(symlinks), update=int(update))
+        finally:
+            _tempdir.rmtree()
 
     #
     # --- Special stuff from os
