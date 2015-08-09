@@ -268,43 +268,41 @@ class TestScratchDir:
         t0 = time.time() - 3
         f.touch()
         t1 = time.time() + 3
-        try:
-            assert f.exists()
-            assert f.isfile()
-            assert f.size == 0
-            assert t0 <= f.mtime <= t1
-            if hasattr(os.path, 'getctime'):
-                ct = f.ctime
-                assert t0 <= ct <= t1
 
-            time.sleep(5)
-            fobj = open(f, 'ab')
-            fobj.write('some bytes'.encode('utf-8'))
-            fobj.close()
+        assert f.exists()
+        assert f.isfile()
+        assert f.size == 0
+        assert t0 <= f.mtime <= t1
+        if hasattr(os.path, 'getctime'):
+            ct = f.ctime
+            assert t0 <= ct <= t1
 
-            time.sleep(5)
-            t2 = time.time() - 3
-            f.touch()
-            t3 = time.time() + 3
+        time.sleep(5)
+        fobj = open(f, 'ab')
+        fobj.write('some bytes'.encode('utf-8'))
+        fobj.close()
 
-            assert t0 <= t1 < t2 <= t3  # sanity check
+        time.sleep(5)
+        t2 = time.time() - 3
+        f.touch()
+        t3 = time.time() + 3
 
-            assert f.exists()
-            assert f.isfile()
-            assert f.size == 10
-            assert t2 <= f.mtime <= t3
-            if hasattr(os.path, 'getctime'):
-                ct2 = f.ctime
-                if os.name == 'nt':
-                    # On Windows, "ctime" is CREATION time
-                    assert ct == ct2
-                    assert ct2 < t2
-                else:
-                    # On other systems, it might be the CHANGE time
-                    # (especially on Unix, time of inode changes)
-                    assert ct == ct2 or ct2 == f.mtime
-        finally:
-            f.remove()
+        assert t0 <= t1 < t2 <= t3  # sanity check
+
+        assert f.exists()
+        assert f.isfile()
+        assert f.size == 10
+        assert t2 <= f.mtime <= t3
+        if hasattr(os.path, 'getctime'):
+            ct2 = f.ctime
+            if os.name == 'nt':
+                # On Windows, "ctime" is CREATION time
+                assert ct == ct2
+                assert ct2 < t2
+            else:
+                # On other systems, it might be the CHANGE time
+                # (especially on Unix, time of inode changes)
+                assert ct == ct2 or ct2 == f.mtime
 
     def test_listing(self, tmpdir):
         d = Path(tmpdir)
