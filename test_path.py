@@ -714,71 +714,66 @@ class ScratchDirTestCase(unittest.TestCase):
 
 
 class TestMergeTree:
-    def setup_method(self, method):
-        self.testDir = tempdir() / 'testdir'
-        self.testA = self.testDir / 'A'
-        self.testFile = self.testA / 'testfile.txt'
-        self.testLink = self.testA / 'testlink.txt'
-        self.testB = self.testDir / 'B'
+    @pytest.fixture(autouse=True)
+    def testing_structure(self, tmpdir):
+        self.test_dir = Path(tmpdir)
+        self.subdir_a = self.test_dir / 'A'
+        self.test_file = self.subdir_a / 'testfile.txt'
+        self.test_link = self.subdir_a / 'testlink.txt'
+        self.subdir_b = self.test_dir / 'B'
 
-        self.testDir.mkdir()
-        self.testA.mkdir()
-        self.testB.mkdir()
+        self.subdir_a.mkdir()
+        self.subdir_b.mkdir()
 
-        f = open(self.testFile, 'w')
-        f.write('x' * 10000)
-        f.close()
+        with open(self.test_file, 'w') as f:
+            f.write('x' * 10000)
 
         if hasattr(os, 'symlink'):
-            self.testFile.symlink(self.testLink)
+            self.test_file.symlink(self.test_link)
         else:
-            self.testFile.copy(self.testLink)
-
-    def teardown_method(self, method):
-        self.testDir.rmtree()
-        assert not self.testDir.exists()
+            self.test_file.copy(self.test_link)
 
     def test_with_nonexisting_dst_kwargs(self):
-        self.testA.mergetree(self.testB, symlinks=True)
-        assert self.testB.isdir()
+        self.subdir_a.mergetree(self.subdir_b, symlinks=True)
+        assert self.subdir_b.isdir()
         expected = set((
-            self.testB / self.testFile.name,
-            self.testB / self.testLink.name,
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
         ))
-        assert set(self.testB.listdir()) == expected
-        assert Path(self.testB / self.testLink.name).islink()
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
 
     def test_with_nonexisting_dst_args(self):
-        self.testA.mergetree(self.testB, True)
-        assert self.testB.isdir()
+        self.subdir_a.mergetree(self.subdir_b, True)
+        assert self.subdir_b.isdir()
         expected = set((
-            self.testB / self.testFile.name,
-            self.testB / self.testLink.name,
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
         ))
-        assert set(self.testB.listdir()) == expected
-        assert Path(self.testB / self.testLink.name).islink()
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
 
     def test_with_existing_dst(self):
-        self.testB.rmtree()
-        self.testA.copytree(self.testB, True)
+        self.subdir_b.rmtree()
+        self.subdir_a.copytree(self.subdir_b, True)
 
-        self.testLink.remove()
-        self.testNew = self.testA / 'newfile.txt'
-        self.testNew.touch()
-        with open(self.testFile, 'w') as f:
+        self.test_link.remove()
+        test_new = self.subdir_a / 'newfile.txt'
+        test_new.touch()
+        with open(self.test_file, 'w') as f:
             f.write('x' * 5000)
 
-        self.testA.mergetree(self.testB, True)
+        self.subdir_a.mergetree(self.subdir_b, True)
 
-        assert self.testB.isdir()
+        assert self.subdir_b.isdir()
         expected = set((
-            self.testB / self.testFile.name,
-            self.testB / self.testLink.name,
-            self.testB / self.testNew.name,
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+            self.subdir_b / test_new.name,
         ))
-        assert set(self.testB.listdir()) == expected
-        assert Path(self.testB / self.testLink.name).islink()
-        assert len(Path(self.testB / self.testFile.name).bytes()) == 5000
+        assert set(self.subdir_b.listdir()) == expected
+        assert Path(self.subdir_b / self.test_link.name).islink()
+        assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
 
 class TestChdir:
