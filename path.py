@@ -1362,7 +1362,7 @@ class Path(text_type):
 
     cd = chdir
 
-    def merge_tree(self, dst, *args, **kwargs):
+    def merge_tree(self, dst, symlinks=False, *args, **kwargs):
         """
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
@@ -1375,14 +1375,10 @@ class Path(text_type):
             # first copy the tree to a stage directory to support
             #  the parameters and behavior of copytree.
             stage = _temp_dir / str(hash(self))
-            self.copytree(stage, *args, **kwargs)
-            if len(args):
-                symlinks = args[0]
-            else:
-                symlinks = kwargs.get('symlinks', False)
+            self.copytree(stage, symlinks, *args, **kwargs)
             # now copy everything from the stage directory using
             #  the semantics of dir_util.copy_tree
-            dir_util.copy_tree(stage, dst, preserve_symlinks=int(symlinks),
+            dir_util.copy_tree(stage, dst, preserve_symlinks=symlinks,
                 update=int(update))
 
     #
