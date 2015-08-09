@@ -26,7 +26,7 @@ import platform
 
 import pytest
 
-from path import Path, tempdir, u
+from path import Path, tempdir, u, PY3
 from path import CaseInsensitivePattern as ci
 
 
@@ -355,7 +355,6 @@ class TestScratchDir:
         tmpdir_bytes = str(tmpdir)
 
         filename = 'r\xe9\xf1emi'
-        PY3 = sys.version_info[0] >= 3
         if PY3:
             filename = filename.encode('latin-1')
             tmpdir_bytes = tmpdir_bytes.encode('ascii')
