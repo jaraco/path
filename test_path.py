@@ -741,19 +741,21 @@ class TestMergeTree(unittest.TestCase):
     def test_with_nonexisting_dst_kwargs(self):
         self.testA.mergetree(self.testB, symlinks=True)
         self.assertTrue(self.testB.isdir())
-        self.assertSetEqual(
-            set(self.testB.listdir()),
-            set((self.testB / self.testFile.name,
-             self.testB / self.testLink.name)))
+        expected = set((
+            self.testB / self.testFile.name,
+            self.testB / self.testLink.name,
+        ))
+        assert set(self.testB.listdir()) == expected
         self.assertTrue(Path(self.testB / self.testLink.name).islink())
 
     def test_with_nonexisting_dst_args(self):
         self.testA.mergetree(self.testB, True)
         self.assertTrue(self.testB.isdir())
-        self.assertSetEqual(
-            set(self.testB.listdir()),
-            set((self.testB / self.testFile.name,
-             self.testB / self.testLink.name)))
+        expected = set((
+            self.testB / self.testFile.name,
+            self.testB / self.testLink.name,
+        ))
+        assert set(self.testB.listdir()) == expected
         self.assertTrue(Path(self.testB / self.testLink.name).islink())
 
     def test_with_existing_dst(self):
