@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-""" test_path.py - Test the path module.
+"""
+Tests for the path module.
 
-This only runs on Posix and Windows right now.  I would like to have more
-tests.  You can help!  Just add appropriate pathnames for your
+This suite runs on Linux, OS X, and Windows right now.  To extend the
+platform support, just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
-Then send me the result.  If you can't get the test to run at all on
+Then report the result.  If you can't get the test to run at all on
 your platform, there's probably a bug in path.py -- please report the issue
 in the issue tracker at https://github.com/jaraco/path.py.
 
-TempDirTestCase.testTouch() takes a while to run.  It sleeps a few
+TestScratchDir.test_touch() takes a while to run.  It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 """
