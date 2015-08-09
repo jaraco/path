@@ -514,11 +514,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.assertList(d.listdir(), [])
 
     def assertList(self, listing, expected):
-        listing = list(listing)
-        listing.sort()
-        expected = list(expected)
-        expected.sort()
-        assert listing == expected
+        assert sorted(listing) == sorted(expected)
 
     def testPatterns(self):
         d = Path(self.tempdir)
