@@ -696,7 +696,7 @@ class ScratchDirTestCase(unittest.TestCase):
         sub.mkdir()
         (sub / 'afile').write_text('something')
         sub.rmtree_p()
-        self.assertFalse(sub.exists())
+        assert not sub.exists()
         try:
             sub.rmtree_p()
         except OSError:
@@ -871,8 +871,8 @@ class TempDirTestCase(unittest.TestCase):
         """
 
         with tempdir() as d:
-            self.assertTrue(d.isdir())
-        self.assertFalse(d.isdir())
+            assert d.isdir()
+        assert not d.isdir()
 
 
 class TestUnicodePaths(unittest.TestCase):
