@@ -1371,17 +1371,15 @@ class Path(text_type):
         older than `src`.
         """
         update = kwargs.pop('update', False)
-        _tempdir = Path(tempfile.gettempdir()) / str(hash(self))
-        try:
-            self.copytree(_tempdir, *args, **kwargs)
+        with tempdir() as _temp_dir:
+            stage = _temp_dir / str(hash(self))
+            self.copytree(stage, *args, **kwargs)
             if len(args):
                 symlinks = args[0]
             else:
                 symlinks = kwargs.get('symlinks', False)
-            dir_util.copy_tree(_tempdir, dst, preserve_symlinks=int(symlinks),
+            dir_util.copy_tree(stage, dst, preserve_symlinks=int(symlinks),
                 update=int(update))
-        finally:
-            _tempdir.rmtree()
 
     #
     # --- Special stuff from os
