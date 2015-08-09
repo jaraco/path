@@ -1369,6 +1369,11 @@ class Path(text_type):
         If the additional keyword `update` is True, `src` will only be
         copied if `dst` does not exist, or if `dst` does exist but is
         older than `src`.
+
+        Note that the technique employed stages the files in a temporary
+        directory first, so this function is not suitable for merging
+        trees with large files, especially if the temporary directory
+        is not capable of storing a copy of the entire source tree.
         """
         update = kwargs.pop('update', False)
         with tempdir() as _temp_dir:
