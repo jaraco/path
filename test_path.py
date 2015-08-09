@@ -263,11 +263,13 @@ class TestScratchDir:
         # atime isn't tested because on Windows the resolution of atime
         # is something like 24 hours.
 
+        threshold = 1
+
         d = Path(tmpdir)
         f = d / 'test.txt'
-        t0 = time.time() - 3
+        t0 = time.time() - threshold
         f.touch()
-        t1 = time.time() + 3
+        t1 = time.time() + threshold
 
         assert f.exists()
         assert f.isfile()
@@ -277,15 +279,15 @@ class TestScratchDir:
             ct = f.ctime
             assert t0 <= ct <= t1
 
-        time.sleep(5)
+        time.sleep(threshold*2)
         fobj = open(f, 'ab')
         fobj.write('some bytes'.encode('utf-8'))
         fobj.close()
 
-        time.sleep(5)
-        t2 = time.time() - 3
+        time.sleep(threshold*2)
+        t2 = time.time() - threshold
         f.touch()
-        t3 = time.time() + 3
+        t3 = time.time() + threshold
 
         assert t0 <= t1 < t2 <= t3  # sanity check
 
