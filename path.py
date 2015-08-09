@@ -1366,9 +1366,10 @@ class Path(text_type):
         """
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
-        If the additional keyword `update` is True, `src` will only be
-        copied if `dst` does not exist, or if `dst` does exist but is
-        older than `src`.
+
+        If the additional keyword `update` is True, each
+        `src` will only be copied if `dst` does not exist,
+        or `src` is newer than `dst`.
 
         Note that the technique employed stages the files in a temporary
         directory first, so this function is not suitable for merging
