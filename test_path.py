@@ -414,7 +414,7 @@ class ScratchDirTestCase(unittest.TestCase):
                 assert boz.isdir()
             finally:
                 boz.removedirs()
-            self.failIf(foo.exists())
+            assert not foo.exists()
             assert d.exists()
 
             foo.mkdir(0o750)
@@ -423,7 +423,7 @@ class ScratchDirTestCase(unittest.TestCase):
                 assert boz.isdir()
             finally:
                 boz.removedirs()
-            self.failIf(foo.exists())
+            assert not foo.exists()
             assert d.exists()
         finally:
             os.remove(tempf)
