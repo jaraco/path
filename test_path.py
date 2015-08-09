@@ -14,6 +14,8 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
+from __future__ import unicode_literals, absolute_import, print_function
+
 import codecs
 import os
 import sys
@@ -26,7 +28,7 @@ import platform
 
 import pytest
 
-from path import Path, tempdir, u
+from path import Path, tempdir
 from path import CaseInsensitivePattern as ci
 
 
@@ -90,7 +92,7 @@ class TestBasics:
         """ Test compatibility with ordinary strings. """
         x = Path('xyzzy')
         assert x == 'xyzzy'
-        assert x == u('xyzzy')
+        assert x == str('xyzzy')
 
         # sorting
         items = [Path('fhj'),
@@ -354,7 +356,7 @@ class TestScratchDir:
         assert Path(tmpdir).listdir() == []
         tmpdir_bytes = str(tmpdir).encode('ascii')
 
-        filename = u('r\xe9\xf1emi').encode('latin-1')
+        filename = 'r\xe9\xf1emi'.encode('latin-1')
         pathname = os.path.join(tmpdir_bytes, filename)
         with open(pathname, 'wb'):
             pass
@@ -521,39 +523,39 @@ class TestScratchDir:
             Unicode codepoints.
             """
 
-            given = u('Hello world\n'
+            given = ('Hello world\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\r\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\x85'
                       '\u0d0a\u0a0d\u0d15\u0a15\u2028'
                       '\r'
                       'hanging')
-            clean = u('Hello world\n'
+            clean = ('Hello world\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\u0d0a\u0a0d\u0d15\u0a15\n'
                       '\n'
                       'hanging')
             givenLines = [
-                u('Hello world\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\x85'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
-                u('\r'),
-                u('hanging')]
+                ('Hello world\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
+                ('\r'),
+                ('hanging')]
             expectedLines = [
-                u('Hello world\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                u('\n'),
-                u('hanging')]
+                ('Hello world\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+                ('\n'),
+                ('hanging')]
             expectedLines2 = [
-                u('Hello world'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u('\u0d0a\u0a0d\u0d15\u0a15'),
-                u(''),
-                u('hanging')]
+                ('Hello world'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                ('\u0d0a\u0a0d\u0d15\u0a15'),
+                (''),
+                ('hanging')]
 
             # write bytes manually to file
             f = codecs.open(p, 'w', enc)
@@ -575,7 +577,7 @@ class TestScratchDir:
                 return
 
             # Write Unicode to file using path.write_text().
-            cleanNoHanging = clean + u('\n')  # This test doesn't work with a
+            cleanNoHanging = clean + '\n'  # This test doesn't work with a
                                               # hanging line.
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
@@ -609,13 +611,13 @@ class TestScratchDir:
             def testLinesep(eol):
                 p.write_lines(givenLines, enc, linesep=eol)
                 p.write_lines(givenLines, enc, linesep=eol, append=True)
-                expected = 2 * cleanNoHanging.replace(u('\n'), eol).encode(enc)
+                expected = 2 * cleanNoHanging.replace('\n', eol).encode(enc)
                 assert p.bytes() == expected
 
-            testLinesep(u('\n'))
-            testLinesep(u('\r'))
-            testLinesep(u('\r\n'))
-            testLinesep(u('\x0d\x85'))
+            testLinesep('\n')
+            testLinesep('\r')
+            testLinesep('\r\n')
+            testLinesep('\x0d\x85')
 
             # Again, but with linesep=None.
             p.write_lines(givenLines, enc, linesep=None)
@@ -850,7 +852,7 @@ class TestUnicode:
     @pytest.fixture(autouse=True)
     def unicode_name_in_tmpdir(self, tmpdir):
         # build a snowman (dir) in the temporary directory
-        (tmpdir / '☃').mkdir()
+        Path(tmpdir).joinpath('☃').mkdir()
 
     def test_walkdirs_with_unicode_name(self, tmpdir):
         for res in Path(tmpdir).walkdirs():
@@ -934,13 +936,13 @@ class TestPatternMatching:
 @pytest.mark.skipif(sys.version_info < (2, 6),
     reason="in_place requires io module in Python 2.6")
 class TestInPlace:
-    reference_content = u(textwrap.dedent("""
+    reference_content = textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
-        """.lstrip()))
-    reversed_content = u(textwrap.dedent("""
+        """.lstrip())
+    reversed_content = textwrap.dedent("""
         .god yzal eht revo depmuj xof nworb kciuq ehT
-        """.lstrip()))
-    alternate_content = u(textwrap.dedent("""
+        """.lstrip())
+    alternate_content = textwrap.dedent("""
           Lorem ipsum dolor sit amet, consectetur adipisicing elit,
         sed do eiusmod tempor incididunt ut labore et dolore magna
         aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -949,7 +951,7 @@ class TestInPlace:
         esse cillum dolore eu fugiat nulla pariatur. Excepteur
         sint occaecat cupidatat non proident, sunt in culpa qui
         officia deserunt mollit anim id est laborum.
-        """.lstrip()))
+        """.lstrip())
 
     @classmethod
     def create_reference(cls, tmpdir):
