@@ -38,7 +38,7 @@ def p(**choices):
 
 
 class TestBasics:
-    def testRelpath(self):
+    def test_relpath(self):
         root = Path(p(nt='C:\\', posix='/'))
         foo = root / 'foo'
         quux = foo / 'quux'
@@ -71,7 +71,7 @@ class TestBasics:
             d = Path('D:\\')
             assert d.relpathto(boz) == boz
 
-    def testConstructionFromNone(self):
+    def test_construction_from_none(self):
         """
 
         """
@@ -82,13 +82,13 @@ class TestBasics:
         else:
             raise Exception("DID NOT RAISE")
 
-    def testConstructionFromInt(self):
+    def test_construction_from_int(self):
         """
         Path class will construct a path as a string of the number
         """
         assert Path(1) == '1'
 
-    def testStringCompatibility(self):
+    def test_string_compatibility(self):
         """ Test compatibility with ordinary strings. """
         x = Path('xyzzy')
         assert x == 'xyzzy'
@@ -110,7 +110,7 @@ class TestBasics:
         p2 = Path("bar")
         assert p1/p2 == p(nt='foo\\bar', posix='foo/bar')
 
-    def testProperties(self):
+    def test_properties(self):
         # Create sample path object.
         f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
               posix='/usr/local/python/lib/xyzzy.py')
@@ -133,7 +133,7 @@ class TestBasics:
         # .drive
         assert f.drive == p(nt='C:', posix='')
 
-    def testMethods(self):
+    def test_methods(self):
         # .abspath()
         assert Path(os.curdir).abspath() == os.getcwd()
 
@@ -142,13 +142,13 @@ class TestBasics:
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
-    def testUNC(self):
+    def test_UNC(self):
         if hasattr(os.path, 'splitunc'):
             p = Path(r'\\python1\share1\dir1\file1.txt')
             assert p.uncshare == r'\\python1\share1'
             assert p.splitunc() == os.path.splitunc(str(p))
 
-    def testExplicitModule(self):
+    def test_explicit_module(self):
         """
         The user may specify an explicit path module to use.
         """
@@ -163,7 +163,7 @@ class TestBasics:
         assert nt_ok / 'quux' == r'foo\bar\baz\quux'
         assert posix_ok / 'quux' == r'foo/bar/baz/quux'
 
-    def testExplicitModuleClasses(self):
+    def test_explicit_module_classes(self):
         """
         Multiple calls to path.using_module should produce the same class.
         """
@@ -220,7 +220,7 @@ class TestSelfReturn:
     def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
 
-    def testMakedirs_pReturnsSelf(self):
+    def test_makedirs_p(self):
         """
         Path('foo').makedirs_p() == Path('foo')
         """
@@ -228,24 +228,24 @@ class TestSelfReturn:
         ret = p.makedirs_p()
         assert p == ret
 
-    def testMakedirs_pReturnsSelfEvenIfExists(self):
+    def test_makedirs_p_extant(self):
         p = Path(self.tempdir)
         ret = p.makedirs_p()
         assert p == ret
 
-    def testRenameReturnsSelf(self):
+    def test_rename(self):
         p = Path(self.tempdir) / "somefile"
         p.touch()
         target = Path(self.tempdir) / "otherfile"
         ret = p.rename(target)
         assert target == ret
 
-    def testMkdirReturnsSelf(self):
+    def test_mkdir(self):
         p = Path(self.tempdir) / "newdir"
         ret = p.mkdir()
         assert p == ret
 
-    def testTouchReturnsSelf(self):
+    def test_touch(self):
         p = Path(self.tempdir) / "empty file"
         ret = p.touch()
         assert p == ret
@@ -266,7 +266,7 @@ class TestScratchDir:
     def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
 
-    def testContextManager(self):
+    def test_context_manager(self):
         """Can be used as context manager for chdir."""
         d = Path(self.tempdir)
         subdir = d / 'subdir'
@@ -276,7 +276,7 @@ class TestScratchDir:
             assert os.getcwd() == os.path.realpath(subdir)
         assert os.getcwd() == old_dir
 
-    def testTouch(self):
+    def test_touch(self):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
         # of a file's mtime and ctime is about 2 seconds.
@@ -327,7 +327,7 @@ class TestScratchDir:
         finally:
             f.remove()
 
-    def testListing(self):
+    def test_listing(self):
         d = Path(self.tempdir)
         assert d.listdir() == []
 
@@ -400,7 +400,7 @@ class TestScratchDir:
             return
         assert len(res.basename()) == len(filename)
 
-    def testMakeDirs(self):
+    def test_makedirs(self):
         d = Path(self.tempdir)
 
         # Placeholder file so that when removedirs() is called,
@@ -442,7 +442,7 @@ class TestScratchDir:
 
         assert ad == bd
 
-    def testShutil(self):
+    def test_shutil(self):
         # Note: This only tests the methods exist and do roughly what
         # they should, neglecting the details as they are shutil's
         # responsibility.
@@ -517,7 +517,7 @@ class TestScratchDir:
     def assertList(self, listing, expected):
         assert sorted(listing) == sorted(expected)
 
-    def testPatterns(self):
+    def test_patterns(self):
         d = Path(self.tempdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
@@ -539,7 +539,7 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e/'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d/'xdir.tmp'])
 
-    def testUnicode(self):
+    def test_unicode(self):
         d = Path(self.tempdir)
         p = d/'unicode.txt'
 
@@ -662,7 +662,7 @@ class TestScratchDir:
         test('UTF-16LE')
         test('UTF-16')
 
-    def testChunks(self):
+    def test_chunks(self):
         p = (tempdir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
@@ -674,7 +674,7 @@ class TestScratchDir:
 
     @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
         reason="samefile not present")
-    def testSameFile(self):
+    def test_samefile(self):
         f1 = (tempdir() / '1.txt').touch()
         f1.write_text('foo')
         f2 = (tempdir() / '2.txt').touch()
@@ -689,7 +689,7 @@ class TestScratchDir:
         assert os.path.samefile(f1, f4) == f1.samefile(f4)
         assert os.path.samefile(f1, f1) == f1.samefile(f1)
 
-    def testRmtreeP(self):
+    def test_rmtree_p(self):
         d = Path(self.tempdir)
         sub = d / 'subfolder'
         sub.mkdir()
