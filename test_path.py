@@ -87,13 +87,13 @@ class BasicTestCase(unittest.TestCase):
         """
         Path class will construct a path as a string of the number
         """
-        self.assert_(Path(1) == '1')
+        assert Path(1) == '1'
 
     def testStringCompatibility(self):
         """ Test compatibility with ordinary strings. """
         x = Path('xyzzy')
-        self.assert_(x == 'xyzzy')
-        self.assert_(x == u('xyzzy'))
+        assert x == 'xyzzy'
+        assert x == u('xyzzy')
 
         # sorting
         items = [Path('fhj'),
@@ -104,7 +104,7 @@ class BasicTestCase(unittest.TestCase):
                  Path('B'),
                  'c']
         items.sort()
-        self.assert_(items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj'])
+        assert items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj']
 
         # Test p1/p1.
         p1 = Path("foo")
@@ -138,14 +138,14 @@ class BasicTestCase(unittest.TestCase):
 
         # .getcwd()
         cwd = Path.getcwd()
-        self.assert_(isinstance(cwd, Path))
+        assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
     def testUNC(self):
         if hasattr(os.path, 'splitunc'):
             p = Path(r'\\python1\share1\dir1\file1.txt')
-            self.assert_(p.uncshare == r'\\python1\share1')
-            self.assert_(p.splitunc() == os.path.splitunc(str(p)))
+            assert p.uncshare == r'\\python1\share1'
+            assert p.splitunc() == os.path.splitunc(str(p))
 
     def testExplicitModule(self):
         """
@@ -167,7 +167,7 @@ class BasicTestCase(unittest.TestCase):
         Multiple calls to path.using_module should produce the same class.
         """
         nt_path = Path.using_module(ntpath)
-        self.assert_(nt_path is Path.using_module(ntpath))
+        assert nt_path is Path.using_module(ntpath)
         assert nt_path.__name__ == 'Path_ntpath'
 
     def test_joinpath_on_instance(self):
@@ -289,13 +289,13 @@ class ScratchDirTestCase(unittest.TestCase):
         f.touch()
         t1 = time.time() + 3
         try:
-            self.assert_(f.exists())
-            self.assert_(f.isfile())
+            assert f.exists()
+            assert f.isfile()
             assert f.size == 0
-            self.assert_(t0 <= f.mtime <= t1)
+            assert t0 <= f.mtime <= t1
             if hasattr(os.path, 'getctime'):
                 ct = f.ctime
-                self.assert_(t0 <= ct <= t1)
+                assert t0 <= ct <= t1
 
             time.sleep(5)
             fobj = open(f, 'ab')
@@ -309,20 +309,20 @@ class ScratchDirTestCase(unittest.TestCase):
 
             assert t0 <= t1 < t2 <= t3  # sanity check
 
-            self.assert_(f.exists())
-            self.assert_(f.isfile())
+            assert f.exists()
+            assert f.isfile()
             assert f.size == 10
-            self.assert_(t2 <= f.mtime <= t3)
+            assert t2 <= f.mtime <= t3
             if hasattr(os.path, 'getctime'):
                 ct2 = f.ctime
                 if os.name == 'nt':
                     # On Windows, "ctime" is CREATION time
                     assert ct == ct2
-                    self.assert_(ct2 < t2)
+                    assert ct2 < t2
                 else:
                     # On other systems, it might be the CHANGE time
                     # (especially on Unix, time of inode changes)
-                    self.failUnless(ct == ct2 or ct2 == f.mtime)
+                    assert ct == ct2 or ct2 == f.mtime
         finally:
             f.remove()
 
@@ -335,7 +335,7 @@ class ScratchDirTestCase(unittest.TestCase):
         assert af == os.path.join(d, f)
         af.touch()
         try:
-            self.assert_(af.exists())
+            assert af.exists()
 
             assert d.listdir() == [af]
 
@@ -386,13 +386,13 @@ class ScratchDirTestCase(unittest.TestCase):
         with open(pathname, 'wb'):
             pass
         # first demonstrate that os.listdir works
-        self.assert_(os.listdir(tmpdir_bytes))
+        assert os.listdir(tmpdir_bytes)
 
         # now try with path.py
         results = Path(self.tempdir).listdir()
-        self.assert_(len(results) == 1)
+        assert len(results) == 1
         res, = results
-        self.assert_(isinstance(res, Path))
+        assert isinstance(res, Path)
         # OS X seems to encode the bytes in the filename as %XX characters.
         if platform.system() == 'Darwin':
             assert res.basename() == 'r%E9%F1emi'
@@ -411,20 +411,20 @@ class ScratchDirTestCase(unittest.TestCase):
             boz = foo / 'bar' / 'baz' / 'boz'
             boz.makedirs()
             try:
-                self.assert_(boz.isdir())
+                assert boz.isdir()
             finally:
                 boz.removedirs()
             self.failIf(foo.exists())
-            self.assert_(d.exists())
+            assert d.exists()
 
             foo.mkdir(0o750)
             boz.makedirs(0o700)
             try:
-                self.assert_(boz.isdir())
+                assert boz.isdir()
             finally:
                 boz.removedirs()
             self.failIf(foo.exists())
-            self.assert_(d.exists())
+            assert d.exists()
         finally:
             os.remove(tempf)
 
@@ -467,14 +467,14 @@ class ScratchDirTestCase(unittest.TestCase):
 
         # Test simple file copying.
         testFile.copyfile(testCopy)
-        self.assert_(testCopy.isfile())
-        self.assert_(testFile.bytes() == testCopy.bytes())
+        assert testCopy.isfile()
+        assert testFile.bytes() == testCopy.bytes()
 
         # Test copying into a directory.
         testCopy2 = testA / testFile.name
         testFile.copy(testA)
-        self.assert_(testCopy2.isfile())
-        self.assert_(testFile.bytes() == testCopy2.bytes())
+        assert testCopy2.isfile()
+        assert testFile.bytes() == testCopy2.bytes()
 
         # Make a link for the next test to use.
         if hasattr(os, 'symlink'):
@@ -484,33 +484,33 @@ class ScratchDirTestCase(unittest.TestCase):
 
         # Test copying directory tree.
         testA.copytree(testC)
-        self.assert_(testC.isdir())
+        assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
             [testC / testCopy.name,
              testC / testFile.name,
              testCopyOfLink])
-        self.assert_(not testCopyOfLink.islink())
+        assert not testCopyOfLink.islink()
 
         # Clean up for another try.
         testC.rmtree()
-        self.assert_(not testC.exists())
+        assert not testC.exists()
 
         # Copy again, preserving symlinks.
         testA.copytree(testC, True)
-        self.assert_(testC.isdir())
+        assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
             [testC / testCopy.name,
              testC / testFile.name,
              testCopyOfLink])
         if hasattr(os, 'symlink'):
-            self.assert_(testCopyOfLink.islink())
-            self.assert_(testCopyOfLink.readlink() == testFile)
+            assert testCopyOfLink.islink()
+            assert testCopyOfLink.readlink() == testFile
 
         # Clean up.
         testDir.rmtree()
-        self.assert_(not testDir.exists())
+        assert not testDir.exists()
         self.assertList(d.listdir(), [])
 
     def assertList(self, listing, expected):
