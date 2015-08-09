@@ -1443,15 +1443,15 @@ class Path(text_type):
 
     @ClassProperty
     @classmethod
-    def app_dirs(cls):
+    def special(cls):
         """
-        Return a AppDirPaths object suitable referencing a suitable
+        Return a SpecialResolver object suitable referencing a suitable
         directory for the relevant platform for the given
         type of content.
 
         For example, to get a user config directory, invoke:
 
-            dir = Path.app_dirs().user.config
+            dir = Path.special().user.config
 
         Uses the `appdirs
         <https://pypi.python.org/pypi/appdirs/1.4.0>`_ to resolve
@@ -1459,16 +1459,16 @@ class Path(text_type):
 
         To create a config directory for 'My App', consider:
 
-            dir = Path.app_dirs("My App").user.config.makedirs_p()
+            dir = Path.special("My App").user.config.makedirs_p()
 
         If the ``appdirs`` module is not installed, invocation
-        of app_dirs will raise an ImportError.
+        of special will raise an ImportError.
         """
-        return functools.partial(AppDirPaths, cls)
+        return functools.partial(SpecialResolver, cls)
 
 
-class AppDirPaths(object):
-    class AppDirScope:
+class SpecialResolver(object):
+    class ResolverScope:
         def __init__(self, paths, scope):
             self.paths = paths
             self.scope = scope
@@ -1489,7 +1489,7 @@ class AppDirPaths(object):
         )
 
     def __getattr__(self, scope):
-        return self.AppDirScope(self, scope)
+        return self.ResolverScope(self, scope)
 
     def get_dir(self, scope, class_):
         """

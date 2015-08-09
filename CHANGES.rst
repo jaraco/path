@@ -7,13 +7,13 @@ Changes
 - #88: Added support for resolving certain directories on a
   system to platform-friendly locations using the `appdirs
   <https://pypi.python.org/pypi/appdirs/1.4.0>`_ library. The
-  ``Path.app_dirs`` method returns an AppDirPaths instance
+  ``Path.special`` method returns an ``SpecialResolver`` instance
   that will resolve a path in a scope
   (i.e. 'site' or 'user') and class (i.e. 'config', 'cache',
   'data'). For
   example, to create a config directory for "My App"::
 
-      config_dir = Path.app_dirs("My App").user.config.makedirs_p()
+      config_dir = Path.special("My App").user.config.makedirs_p()
 
   ``config_dir`` will exist in a user context and will be in a
   suitable platform-friendly location.
@@ -21,7 +21,7 @@ Changes
   As ``path.py`` does not currently have any dependencies, and
   to retain that expectation for a compatible upgrade path,
   ``appdirs`` must be installed to avoid an ImportError when
-  invoking ``app_dirs``.
+  invoking ``special``.
 
 
 - #88: In order to support "multipath" results, where multiple
