@@ -775,6 +775,16 @@ class TestMergeTree:
         assert Path(self.subdir_b / self.test_link.name).islink()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
+    def test_copytree_parameters(self):
+        """
+        merge_tree should accept parameters to copytree, such as 'ignore'
+        """
+        ignore = shutil.ignore_patterns('testlink*')
+        self.subdir_a.merge_tree(self.subdir_b, ignore=ignore)
+
+        assert self.subdir_b.isdir()
+        assert self.subdir_b.listdir() == [self.subdir_b / self.test_file.name]
+
 
 class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
