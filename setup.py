@@ -7,7 +7,7 @@ import setuptools
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
 
-needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
+needs_sphinx = set(['build_sphinx', 'upload_docs', 'release']).intersection(sys.argv)
 sphinx_req = ['sphinx', 'rst.linker'] if needs_sphinx else []
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner>=2.6'] if needs_pytest else []
