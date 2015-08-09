@@ -26,7 +26,7 @@ import platform
 
 import pytest
 
-from path import Path, tempdir, u, PY3
+from path import Path, tempdir, u
 from path import CaseInsensitivePattern as ci
 
 
@@ -352,12 +352,9 @@ class TestScratchDir:
         See issue #61 for details.
         """
         assert Path(tmpdir).listdir() == []
-        tmpdir_bytes = str(tmpdir)
+        tmpdir_bytes = str(tmpdir).encode('ascii')
 
-        filename = 'r\xe9\xf1emi'
-        if PY3:
-            filename = filename.encode('latin-1')
-            tmpdir_bytes = tmpdir_bytes.encode('ascii')
+        filename = u('r\xe9\xf1emi').encode('latin-1')
         pathname = os.path.join(tmpdir_bytes, filename)
         with open(pathname, 'wb'):
             pass
