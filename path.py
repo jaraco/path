@@ -1363,9 +1363,9 @@ class Path(text_type):
     cd = chdir
 
     def merge_tree(self, dst, *args, **kwargs):
-        """ A wrapper around :meth:`copytree` that accepts an existing directory as `dst`.
-        If it does not exist yet, it will be created. Contents of `dst` will be overwritten
-        if they exist in `src`, but will otherwise be untouched.
+        """
+        Copy entire contents of self to dst, overwriting existing
+        contents in dst with those in self.
         If the additional keyword `update` (default: False) is true, `src` will only be
         copied if `dst` does not exist, or if `dst` does exist but is older than `src`.
         """
