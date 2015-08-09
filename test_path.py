@@ -118,8 +118,10 @@ class BasicTestCase(unittest.TestCase):
         f = Path(f)
 
         # .parent
-        self.assertEqual(f.parent, p(nt='C:\\Program Files\\Python\\Lib',
-                                     posix='/usr/local/python/lib'))
+        nt_lib = 'C:\\Program Files\\Python\\Lib'
+        posix_lib = '/usr/local/python/lib'
+        expected = p(nt=nt_lib, posix=posix_lib)
+        assert f.parent == expected
 
         # .name
         assert f.name == 'xyzzy.py'
@@ -683,17 +685,10 @@ class ScratchDirTestCase(unittest.TestCase):
         f4 = (tempdir() / '4.txt')
         f1.copyfile(f4)
 
-        self.assertEqual(os.path.samefile(f1, f2),
-                         f1.samefile(f2))
-
-        self.assertEqual(os.path.samefile(f1, f3),
-                         f1.samefile(f3))
-
-        self.assertEqual(os.path.samefile(f1, f4),
-                         f1.samefile(f4))
-
-        self.assertEqual(os.path.samefile(f1, f1),
-                         f1.samefile(f1))
+        assert os.path.samefile(f1, f2) == f1.samefile(f2)
+        assert os.path.samefile(f1, f3) == f1.samefile(f3)
+        assert os.path.samefile(f1, f4) == f1.samefile(f4)
+        assert os.path.samefile(f1, f1) == f1.samefile(f1)
 
     def testRmtreeP(self):
         d = Path(self.tempdir)
