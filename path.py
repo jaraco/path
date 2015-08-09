@@ -1372,12 +1372,16 @@ class Path(text_type):
         """
         update = kwargs.pop('update', False)
         with tempdir() as _temp_dir:
+            # first copy the tree to a stage directory to support
+            #  the parameters and behavior of copytree.
             stage = _temp_dir / str(hash(self))
             self.copytree(stage, *args, **kwargs)
             if len(args):
                 symlinks = args[0]
             else:
                 symlinks = kwargs.get('symlinks', False)
+            # now copy everything from the stage directory using
+            #  the semantics of dir_util.copy_tree
             dir_util.copy_tree(stage, dst, preserve_symlinks=int(symlinks),
                 update=int(update))
 
