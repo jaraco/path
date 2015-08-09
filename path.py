@@ -1366,8 +1366,9 @@ class Path(text_type):
         """
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
-        If the additional keyword `update` (default: False) is true, `src` will only be
-        copied if `dst` does not exist, or if `dst` does exist but is older than `src`.
+        If the additional keyword `update` is True, `src` will only be
+        copied if `dst` does not exist, or if `dst` does exist but is
+        older than `src`.
         """
         update = kwargs.pop('update', False)
         _tempdir = Path(tempfile.gettempdir()) / str(hash(self))
@@ -1377,7 +1378,8 @@ class Path(text_type):
                 symlinks = args[0]
             else:
                 symlinks = kwargs.get('symlinks', False)
-            dir_util.copy_tree(_tempdir, dst, preserve_symlinks=int(symlinks), update=int(update))
+            dir_util.copy_tree(_tempdir, dst, preserve_symlinks=int(symlinks),
+                update=int(update))
         finally:
             _tempdir.rmtree()
 
