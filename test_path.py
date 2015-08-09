@@ -14,7 +14,6 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-import unittest
 import codecs
 import os
 import sys
@@ -38,7 +37,7 @@ def p(**choices):
     return choices[os.name]
 
 
-class BasicTestCase(unittest.TestCase):
+class TestBasics:
     def testRelpath(self):
         root = Path(p(nt='C:\\', posix='/'))
         foo = root / 'foo'
@@ -204,13 +203,13 @@ class BasicTestCase(unittest.TestCase):
         assert res2 == 'foo/bar'
 
 
-class ReturnSelfTestCase(unittest.TestCase):
+class TestSelfReturn:
     """
     Some methods don't necessarily return any value (e.g. makedirs,
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
-    def setUp(self):
+    def setup_method(self, method):
         # Create a temporary directory.
         f = tempfile.mktemp()
         system_tmp_dir = os.path.dirname(f)
@@ -218,7 +217,7 @@ class ReturnSelfTestCase(unittest.TestCase):
         self.tempdir = os.path.join(system_tmp_dir, my_dir)
         os.mkdir(self.tempdir)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
 
     def testMakedirs_pReturnsSelf(self):
@@ -252,11 +251,11 @@ class ReturnSelfTestCase(unittest.TestCase):
         assert p == ret
 
 
-class ScratchDirTestCase(unittest.TestCase):
+class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test tempdir class)
     """
-    def setUp(self):
+    def setup_method(self, method):
         # Create a temporary directory.
         f = tempfile.mktemp()
         system_tmp_dir = os.path.dirname(f)
@@ -264,7 +263,7 @@ class ScratchDirTestCase(unittest.TestCase):
         self.tempdir = os.path.join(system_tmp_dir, my_dir)
         os.mkdir(self.tempdir)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
 
     def testContextManager(self):
@@ -803,7 +802,7 @@ class TestChdir:
         assert str(d.getcwd()) != str(tmpdir)
 
 
-class SubclassTestCase(unittest.TestCase):
+class TestSubclass:
     class PathSubclass(Path):
         pass
 
@@ -817,7 +816,7 @@ class SubclassTestCase(unittest.TestCase):
         assert isinstance(subdir, self.PathSubclass)
 
 
-class TempDirTestCase(unittest.TestCase):
+class TestTempDir:
 
     def test_constructor(self):
         """
@@ -875,7 +874,7 @@ class TempDirTestCase(unittest.TestCase):
         assert not d.isdir()
 
 
-class TestUnicodePaths(unittest.TestCase):
+class TestUnicode:
     def setup_method(self, method):
         # Create a temporary directory.
         self.tempdir = tempfile.mkdtemp()
@@ -892,7 +891,7 @@ class TestUnicodePaths(unittest.TestCase):
             pass
 
 
-class TestPatternMatching(object):
+class TestPatternMatching:
     def test_fnmatch_simple(self):
         p = Path('FooBar')
         assert p.fnmatch('Foo*')
@@ -968,7 +967,7 @@ class TestPatternMatching(object):
 
 @pytest.mark.skipif(sys.version_info < (2, 6),
     reason="in_place requires io module in Python 2.6")
-class TestInPlace(object):
+class TestInPlace:
     reference_content = u(textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
         """.lstrip()))
