@@ -17,9 +17,7 @@ time on files.
 import codecs
 import os
 import sys
-import random
 import shutil
-import tempfile
 import time
 import ntpath
 import posixpath
@@ -209,44 +207,33 @@ class TestSelfReturn:
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
-    def setup_method(self, method):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def teardown_method(self, method):
-        shutil.rmtree(self.tempdir)
-
-    def test_makedirs_p(self):
+    def test_makedirs_p(self, tmpdir):
         """
         Path('foo').makedirs_p() == Path('foo')
         """
-        p = Path(self.tempdir) / "newpath"
+        p = Path(tmpdir) / "newpath"
         ret = p.makedirs_p()
         assert p == ret
 
-    def test_makedirs_p_extant(self):
-        p = Path(self.tempdir)
+    def test_makedirs_p_extant(self, tmpdir):
+        p = Path(tmpdir)
         ret = p.makedirs_p()
         assert p == ret
 
-    def test_rename(self):
-        p = Path(self.tempdir) / "somefile"
+    def test_rename(self, tmpdir):
+        p = Path(tmpdir) / "somefile"
         p.touch()
-        target = Path(self.tempdir) / "otherfile"
+        target = Path(tmpdir) / "otherfile"
         ret = p.rename(target)
         assert target == ret
 
-    def test_mkdir(self):
-        p = Path(self.tempdir) / "newdir"
+    def test_mkdir(self, tmpdir):
+        p = Path(tmpdir) / "newdir"
         ret = p.mkdir()
         assert p == ret
 
-    def test_touch(self):
-        p = Path(self.tempdir) / "empty file"
+    def test_touch(self, tmpdir):
+        p = Path(tmpdir) / "empty file"
         ret = p.touch()
         assert p == ret
 
@@ -255,20 +242,9 @@ class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test tempdir class)
     """
-    def setup_method(self, method):
-        # Create a temporary directory.
-        f = tempfile.mktemp()
-        system_tmp_dir = os.path.dirname(f)
-        my_dir = 'testpath_tempdir_' + str(random.random())[2:]
-        self.tempdir = os.path.join(system_tmp_dir, my_dir)
-        os.mkdir(self.tempdir)
-
-    def teardown_method(self, method):
-        shutil.rmtree(self.tempdir)
-
-    def test_context_manager(self):
+    def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
-        d = Path(self.tempdir)
+        d = Path(tmpdir)
         subdir = d / 'subdir'
         subdir.makedirs()
         old_dir = os.getcwd()
@@ -276,7 +252,7 @@ class TestScratchDir:
             assert os.getcwd() == os.path.realpath(subdir)
         assert os.getcwd() == old_dir
 
-    def test_touch(self):
+    def test_touch(self, tmpdir):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
         # of a file's mtime and ctime is about 2 seconds.
@@ -284,7 +260,7 @@ class TestScratchDir:
         # atime isn't tested because on Windows the resolution of atime
         # is something like 24 hours.
 
-        d = Path(self.tempdir)
+        d = Path(tmpdir)
         f = d / 'test.txt'
         t0 = time.time() - 3
         f.touch()
@@ -327,8 +303,8 @@ class TestScratchDir:
         finally:
             f.remove()
 
-    def test_listing(self):
-        d = Path(self.tempdir)
+    def test_listing(self, tmpdir):
+        d = Path(tmpdir)
         assert d.listdir() == []
 
         f = 'testfile.txt'
@@ -369,14 +345,14 @@ class TestScratchDir:
                 except:
                     pass
 
-    def test_listdir_other_encoding(self):
+    def test_listdir_other_encoding(self, tmpdir):
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
         See issue #61 for details.
         """
-        assert Path(self.tempdir).listdir() == []
-        tmpdir_bytes = self.tempdir
+        assert Path(tmpdir).listdir() == []
+        tmpdir_bytes = str(tmpdir)
 
         filename = 'r\xe9\xf1emi'
         PY3 = sys.version_info[0] >= 3
@@ -390,7 +366,7 @@ class TestScratchDir:
         assert os.listdir(tmpdir_bytes)
 
         # now try with path.py
-        results = Path(self.tempdir).listdir()
+        results = Path(tmpdir).listdir()
         assert len(results) == 1
         res, = results
         assert isinstance(res, Path)
@@ -400,8 +376,8 @@ class TestScratchDir:
             return
         assert len(res.basename()) == len(filename)
 
-    def test_makedirs(self):
-        d = Path(self.tempdir)
+    def test_makedirs(self, tmpdir):
+        d = Path(tmpdir)
 
         # Placeholder file so that when removedirs() is called,
         # it doesn't remove the temporary directory itself.
@@ -442,12 +418,12 @@ class TestScratchDir:
 
         assert ad == bd
 
-    def test_shutil(self):
+    def test_shutil(self, tmpdir):
         # Note: This only tests the methods exist and do roughly what
         # they should, neglecting the details as they are shutil's
         # responsibility.
 
-        d = Path(self.tempdir)
+        d = Path(tmpdir)
         testDir = d / 'testdir'
         testFile = testDir / 'testfile.txt'
         testA = testDir / 'A'
@@ -517,8 +493,8 @@ class TestScratchDir:
     def assertList(self, listing, expected):
         assert sorted(listing) == sorted(expected)
 
-    def test_patterns(self):
-        d = Path(self.tempdir)
+    def test_patterns(self, tmpdir):
+        d = Path(tmpdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
 
@@ -539,8 +515,8 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e/'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d/'xdir.tmp'])
 
-    def test_unicode(self):
-        d = Path(self.tempdir)
+    def test_unicode(self, tmpdir):
+        d = Path(tmpdir)
         p = d/'unicode.txt'
 
         def test(enc):
@@ -662,7 +638,7 @@ class TestScratchDir:
         test('UTF-16LE')
         test('UTF-16')
 
-    def test_chunks(self):
+    def test_chunks(self, tmpdir):
         p = (tempdir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
@@ -674,7 +650,7 @@ class TestScratchDir:
 
     @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
         reason="samefile not present")
-    def test_samefile(self):
+    def test_samefile(self, tmpdir):
         f1 = (tempdir() / '1.txt').touch()
         f1.write_text('foo')
         f2 = (tempdir() / '2.txt').touch()
@@ -689,8 +665,8 @@ class TestScratchDir:
         assert os.path.samefile(f1, f4) == f1.samefile(f4)
         assert os.path.samefile(f1, f1) == f1.samefile(f1)
 
-    def test_rmtree_p(self):
-        d = Path(self.tempdir)
+    def test_rmtree_p(self, tmpdir):
+        d = Path(tmpdir)
         sub = d / 'subfolder'
         sub.mkdir()
         (sub / 'afile').write_text('something')
