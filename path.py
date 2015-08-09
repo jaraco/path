@@ -1379,7 +1379,7 @@ class Path(text_type):
             # now copy everything from the stage directory using
             #  the semantics of dir_util.copy_tree
             dir_util.copy_tree(stage, dst, preserve_symlinks=symlinks,
-                update=int(update))
+                update=update)
 
     #
     # --- Special stuff from os
