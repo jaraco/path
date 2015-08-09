@@ -769,11 +769,12 @@ class TestMergeTree(unittest.TestCase):
         self.testA.mergetree(self.testB, True)
 
         self.assertTrue(self.testB.isdir())
-        self.assertSetEqual(
-            set(self.testB.listdir()),
-            set((self.testB / self.testFile.name,
-             self.testB / self.testLink.name,
-             self.testB / self.testNew.name)))
+        expected = set((
+            self.testB / self.testFile.name,
+            self.testB / self.testLink.name,
+            self.testB / self.testNew.name,
+        ))
+        assert set(self.testB.listdir()) == expected
         self.assertTrue(Path(self.testB / self.testLink.name).islink())
         self.assertEqual(len(Path(self.testB / self.testFile.name).bytes()), 5000)
 
