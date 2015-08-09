@@ -8,9 +8,6 @@ import setuptools
 with open('README.rst') as ld_file:
     long_description = ld_file.read()
 
-with open('CHANGES.rst') as ld_file:
-    long_description += '\n\n' + ld_file.read()
-
 # match the version indicated in path.py
 with open('path.py') as path_mod:
     source = path_mod.read()
@@ -18,7 +15,7 @@ with open('path.py') as path_mod:
     version = pattern.search(source).group('version')
 
 needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
-sphinx_req = ['sphinx'] if needs_sphinx else []
+sphinx_req = ['sphinx', 'rst.linker'] if needs_sphinx else []
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner>=2.6'] if needs_pytest else []
 
