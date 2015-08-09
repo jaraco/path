@@ -1,6 +1,12 @@
 Changes
 =======
 
+7.6
+---
+
+- Pull Request #100: Add ``merge_tree`` method for merging
+  two existing directory trees.
+
 7.5
 ---
 
