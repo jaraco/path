@@ -51,6 +51,16 @@ import io
 from distutils import dir_util
 
 try:
+    from urllib.parse import urljoin  # Python 3
+except ImportError:
+    from urlparse import urljoin  # Python 2
+
+try:
+    from urllib.request import pathname2url  # Python 3
+except ImportError:
+    from urllib import pathname2url  # Python 2
+
+try:
     import win32security
 except ImportError:
     pass
@@ -197,6 +207,9 @@ class Path(text_type):
     def __init__(self, other=''):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
+
+    def url(self):
+        return urljoin('file:', pathname2url(str(self)))
 
     @classmethod
     @simple_cache
