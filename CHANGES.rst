@@ -1,3 +1,8 @@
+7.6.1
+-----
+
+- #101: Supress error when `path.py` is not present as a distribution.
+
 7.6
 ---
 

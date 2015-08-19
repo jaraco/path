@@ -122,6 +122,8 @@ try:
     __version__ = pkg_resources.require('path.py')[0].version
 except ImportError:
     __version__ = 'unknown'
+except pkg_resources.DistributionNotFound:
+    __version__ = 'unknown'
 
 
 class TreeWalkWarning(Warning):
