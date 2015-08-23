@@ -1,22 +1,4 @@
-7.6.1
------
-
-- #101: Supress error when `path.py` is not present as a distribution.
-
-7.6
----
-
-- Pull Request #100: Add ``merge_tree`` method for merging
-  two existing directory trees.
-- Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
-  for version management.
-
-7.5
----
-
-- #97: ``__rdiv__`` and ``__rtruediv__`` are now defined.
-
-7.5
+7.7
 ---
 
 - #88: Added support for resolving certain directories on a
@@ -45,6 +27,28 @@
   results. This functionality is experimental and may change.
   Feedback is invited.
 
+7.6.2
+-----
+
+- Re-release of 7.6.1 without unintended feature.
+
+7.6.1
+-----
+
+- #101: Supress error when `path.py` is not present as a distribution.
+
+7.6
+---
+
+- Pull Request #100: Add ``merge_tree`` method for merging
+  two existing directory trees.
+- Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
+  for version management.
+
+7.5
+---
+
+- #97: ``__rdiv__`` and ``__rtruediv__`` are now defined.
 
 7.4
 ---
