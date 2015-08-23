@@ -1,3 +1,8 @@
+7.6.2
+-----
+
+- Re-release of 7.6.1 without unintended feature.
+
 7.6.1
 -----
 
