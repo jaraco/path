@@ -1437,7 +1437,7 @@ class Path(text_type):
 
             p = Path(filename)
             assert p.isfile()
-            with p.in_place() as reader, writer:
+            with p.in_place() as (reader, writer):
                 for number, line in enumerate(reader, 1):
                     writer.write('{0:3}: '.format(number)))
                     writer.write(line)
