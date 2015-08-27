@@ -1,3 +1,9 @@
+8.0
+---
+
+Removed ``path.path``. Clients must now refer to the canonical
+name, ``path.Path`` as introduced in 6.2.
+
 7.7
 ---
 

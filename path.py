@@ -107,7 +107,7 @@ def io_error_compat():
 
 ##############################################################################
 
-__all__ = ['Path', 'path', 'CaseInsensitivePattern']
+__all__ = ['Path', 'CaseInsensitivePattern']
 
 
 LINESEPS = [u('\r\n'), u('\r'), u('\n')]
@@ -172,15 +172,6 @@ class multimethod(object):
         )
 
 
-def alias(name):
-    "Create a decorator which will make an alias of the decorated item"
-    def decorate(item):
-        globals()[name] = item
-        return item
-    return decorate
-
-
-@alias('path')
 class Path(text_type):
     """
     Represents a filesystem path.
