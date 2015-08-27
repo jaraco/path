@@ -1,3 +1,8 @@
+8.1
+---
+
+Restored ``path.path`` with a DeprecationWarning.
+
 8.0
 ---
 
