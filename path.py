@@ -1707,9 +1707,14 @@ class CaseInsensitivePattern(text_type):
     def normcase(self):
         return __import__('ntpath').normcase
 
-
+########################
+# Backward-compatibility
 class path(Path):
     def __new__(cls, *args, **kwargs):
         msg = "path is deprecated. Use Path instead."
         warnings.warn(msg, DeprecationWarning)
         return Path.__new__(cls, *args, **kwargs)
+
+
+__all__ += ['path']
+########################
