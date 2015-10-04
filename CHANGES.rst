@@ -1,3 +1,14 @@
+8.1.2
+-----
+
+- #105: By using unicode literals, avoid errors rendering the
+  backslash in __get_owner_windows.
+
+8.1.1
+-----
+
+Reluctantly restored reference to path.path in ``__all__``.
+
 8.1
 ---
 
