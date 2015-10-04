@@ -33,6 +33,8 @@ Example::
         f.chmod(0o755)
 """
 
+from __future__ import unicode_literals
+
 import sys
 import warnings
 import os
@@ -74,7 +76,6 @@ PY2 = not PY3
 string_types = str,
 text_type = str
 getcwdu = os.getcwd
-u = lambda x: x
 
 def surrogate_escape(error):
     """
@@ -91,7 +92,6 @@ if PY2:
     string_types = __builtin__.basestring,
     text_type = __builtin__.unicode
     getcwdu = os.getcwdu
-    u = lambda x: codecs.unicode_escape_decode(x)[0]
     codecs.register_error('surrogateescape', surrogate_escape)
 
 @contextlib.contextmanager
@@ -110,12 +110,12 @@ def io_error_compat():
 __all__ = ['Path', 'CaseInsensitivePattern']
 
 
-LINESEPS = [u('\r\n'), u('\r'), u('\n')]
-U_LINESEPS = LINESEPS + [u('\u0085'), u('\u2028'), u('\u2029')]
+LINESEPS = ['\r\n', '\r', '\n']
+U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
 NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
-NL_END = re.compile(u(r'(?:{0})$').format(NEWLINE.pattern))
-U_NL_END = re.compile(u(r'(?:{0})$').format(U_NEWLINE.pattern))
+NL_END = re.compile(r'(?:{0})$'.format(NEWLINE.pattern))
+U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 
 
 try:
@@ -202,6 +202,8 @@ class Path(text_type):
     @simple_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
+        if PY2:
+            subclass_name = str(subclass_name)
         bases = (cls,)
         ns = {'module': module}
         return type(subclass_name, bases, ns)
@@ -1086,11 +1088,11 @@ class Path(text_type):
         return os.lstat(self)
 
     def __get_owner_windows(self):
-        r"""
+        """
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ``ur'DOMAIN\User Name'``; may be a group.
+        Return a name of the form ``r'DOMAIN\\User Name'``; may be a group.
 
         .. seealso:: :attr:`owner`
         """
@@ -1098,7 +1100,7 @@ class Path(text_type):
             self, win32security.OWNER_SECURITY_INFORMATION)
         sid = desc.GetSecurityDescriptorOwner()
         account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + u('\\') + account
+        return domain + '\\' + account
 
     def __get_owner_unix(self):
         """
@@ -1558,6 +1560,8 @@ class Multi:
     @classmethod
     def for_class(cls, path_cls):
         name = 'Multi' + path_cls.__name__
+        if PY2:
+            name = str(name)
         return type(name, (cls, path_cls), {})
 
     @classmethod
