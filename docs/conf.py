@@ -1,13 +1,21 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+import setuptools_scm
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'rst.linker',
+]
+
+# General information about the project.
 project = 'path.py'
-copyright = '2013, Mikhail Gusarov, Jason R. Coombs'
+copyright = '2013-2016 Mikhail Gusarov, Jason R. Coombs'
 
-import path
-import re
-
-release = path.__version__
-version = re.match('[^.]+[.][^.]+', release).group(0)
+# The short X.Y version.
+version = setuptools_scm.get_version(root='..', relative_to=__file__)
+# The full version, including alpha/beta/rc tags.
+release = version
 
 pygments_style = 'sphinx'
 html_theme = 'alabaster'
@@ -26,15 +34,20 @@ link_files = {
 	'CHANGES.rst': dict(
 		using=dict(
 			GH='https://github.com',
+			project=project,
 		),
 		replace=[
 			dict(
 				pattern=r"(Issue )?#(?P<issue>\d+)",
-				url='{GH}/jaraco/path.py/issues/{issue}',
+				url='{GH}/jaraco/{project}/issues/{issue}',
 			),
 			dict(
 				pattern=r"Pull Request ?#(?P<pull_request>\d+)",
-				url='{GH}/jaraco/path.py/pull/{pull_request}',
+				url='{GH}/jaraco/{project}/pull/{pull_request}',
+			),
+			dict(
+				pattern=r"^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n",
+				with_scm="{text}\n{rev[timestamp]:%d %b %Y}\n",
 			),
 		],
 	),
