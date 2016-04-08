@@ -56,3 +56,9 @@ Tests are continuously run by Travis-CI: |BuildStatus|_
 
 To run the tests, refer to the ``.travis.yml`` file for the steps run on the
 Travis-CI hosts.
+
+Releasing
+=========
+
+Tagged releases are automatically published to PyPI by Travis-CI, assuming
+the Python 3 build passes.
