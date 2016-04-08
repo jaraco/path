@@ -16,6 +16,7 @@ deploy:
     tags: true
     all_branches: true
   user: jaraco
-  # supply password with `travis encrypt --add deploy.password`
   distributions: release
   python: 3.5
+  password:
+    secure: fggUs33qP6DB+j/q7KGScfohgGq7OwsW5BMW6ZZvSlq+9pnNDZxSVrfCw0wb9vdq/Hb9nH4Of+wDoyh+Ul6GN28GRX7qj1HTjbc65nhRp9aA1Ib9Y3KJwGR8k5gPJZmx/zKP0r7COSXsOdXDkVSJ/UjCfuKhcsSHpi0lAYG6BSA=
