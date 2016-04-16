@@ -1,3 +1,8 @@
+8.2.1
+-----
+
+- #112: Update Travis CI usage to only deploy on Python 3.5.
+
 8.2
 ---
 
