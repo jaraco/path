@@ -529,12 +529,12 @@ class Path(text_type):
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
-        if pattern is None:
-            pattern = '*'
-
         children = os.listdir(self)
         if not PY3:
             children = map(self._always_unicode, children)
+
+        if pattern is None:
+            return [self / child for child in children]
 
         return [
             self / child
