@@ -220,7 +220,7 @@ class Path(text_type):
         Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
-        if PY3 or isinstance(path, text_type):
+        if isinstance(path, text_type):
             return path
         return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
 
@@ -531,9 +531,14 @@ class Path(text_type):
         """
         if pattern is None:
             pattern = '*'
+
+        children = os.listdir(self)
+        if not PY3:
+            children = map(self._always_unicode, children)
+
         return [
             self / child
-            for child in map(self._always_unicode, os.listdir(self))
+            for child in children
             if self._next_class(child).fnmatch(pattern)
         ]
 
