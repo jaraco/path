@@ -1,3 +1,9 @@
+8.3
+---
+
+- Merge with latest skeleton, adding badges and test runs by
+  default under tox instead of pytest-runner.
+
 8.2.1
 -----
 

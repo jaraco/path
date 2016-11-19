@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import setuptools_scm
+import pkg_resources
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -13,7 +13,7 @@ project = 'path.py'
 copyright = '2013-2016 Mikhail Gusarov, Jason R. Coombs'
 
 # The short X.Y version.
-version = setuptools_scm.get_version(root='..', relative_to=__file__)
+version = pkg_resources.require(project)[0].version
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -31,7 +31,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'rst.linker']
 intersphinx_mapping = {'python': ('http://docs.python.org/', None)}
 
 link_files = {
-	'CHANGES.rst': dict(
+	'../CHANGES.rst': dict(
 		using=dict(
 			GH='https://github.com',
 			project=project,
