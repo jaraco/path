@@ -1,3 +1,9 @@
+9.0
+---
+
+- Drop support for Python 2.6 and 3.2 as integration
+  dependencies (pip) no longer support these versions.
+
 8.3
 ---
 

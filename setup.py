@@ -10,7 +10,7 @@ import setuptools
 with io.open('README.rst', encoding='utf-8') as readme:
     long_description = readme.read()
 
-needs_wheel = set(['release', 'bdist_wheel', 'dists']).intersection(sys.argv)
+needs_wheel = {'release', 'bdist_wheel', 'dists'}.intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
 name = 'path.py'
@@ -40,9 +40,11 @@ setup_params = dict(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     entry_points={
