@@ -52,6 +52,7 @@ import contextlib
 import io
 from distutils import dir_util
 import importlib
+import itertools
 
 try:
     import win32security
@@ -93,6 +94,7 @@ if PY2:
     text_type = __builtin__.unicode
     getcwdu = os.getcwdu
     codecs.register_error('surrogateescape', surrogate_escape)
+    map = itertools.imap
 
 @contextlib.contextmanager
 def io_error_compat():
