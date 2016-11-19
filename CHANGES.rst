@@ -3,6 +3,7 @@
 
 - Merge with latest skeleton, adding badges and test runs by
   default under tox instead of pytest-runner.
+- Documentation is no longer hosted with PyPI.
 
 8.2.1
 -----
