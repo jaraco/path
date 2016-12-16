@@ -23,3 +23,4 @@ deploy:
   distributions: dists
   password:
     secure: fggUs33qP6DB+j/q7KGScfohgGq7OwsW5BMW6ZZvSlq+9pnNDZxSVrfCw0wb9vdq/Hb9nH4Of+wDoyh+Ul6GN28GRX7qj1HTjbc65nhRp9aA1Ib9Y3KJwGR8k5gPJZmx/zKP0r7COSXsOdXDkVSJ/UjCfuKhcsSHpi0lAYG6BSA=
+  skip_upload_docs: true
