@@ -222,7 +222,7 @@ class Path(text_type):
         Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
-        if PY3 or isinstance(path, text_type):
+        if isinstance(path, text_type):
             return path
         return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
 
@@ -531,12 +531,18 @@ class Path(text_type):
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
+        children = os.listdir(self)
+        if not PY3:
+            children = map(self._always_unicode, children)
+
         if pattern is None:
-            pattern = '*'
+            return [self / child for child in children]
+
+        pattern, normcase = self._prepare_fnmatch_pattern(pattern)
         return [
             self / child
-            for child in map(self._always_unicode, os.listdir(self))
-            if self._next_class(child).fnmatch(pattern)
+            for child in children
+            if self._next_class(child)._prepared_fnmatch(pattern, normcase)
         ]
 
     def dirs(self, pattern=None):
@@ -595,6 +601,15 @@ class Path(text_type):
             raise ValueError("invalid errors parameter")
         errors = vars(Handlers).get(errors, errors)
 
+        if pattern:
+            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+        else:
+            normcase = None
+
+        return self._prepared_walk(pattern, normcase, errors)
+
+    def _prepared_walk(self, pattern, normcase, errors):
+        """ Prepared version of walk """
         try:
             childList = self.listdir()
         except Exception:
@@ -605,7 +620,7 @@ class Path(text_type):
             return
 
         for child in childList:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child._prepared_fnmatch(pattern, normcase):
                 yield child
             try:
                 isdir = child.isdir()
@@ -617,7 +632,7 @@ class Path(text_type):
                 isdir = False
 
             if isdir:
-                for item in child.walk(pattern, errors):
+                for item in child._prepared_walk(pattern, normcase, errors):
                     yield item
 
     def walkdirs(self, pattern=None, errors='strict'):
@@ -636,6 +651,15 @@ class Path(text_type):
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
 
+        if pattern:
+            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+        else:
+            normcase = None
+
+        return self._prepared_walkdirs(pattern, normcase, errors)
+
+    def _prepared_walkdirs(self, pattern, normcase, errors):
+        """ Prepared version of walkdirs """
         try:
             dirs = self.dirs()
         except Exception:
@@ -651,9 +675,9 @@ class Path(text_type):
                 raise
 
         for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
+            if pattern is None or child._prepared_fnmatch(pattern, normcase):
                 yield child
-            for subsubdir in child.walkdirs(pattern, errors):
+            for subsubdir in child._prepared_walkdirs(pattern, normcase, errors):
                 yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict'):
@@ -667,6 +691,15 @@ class Path(text_type):
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
 
+        if pattern:
+            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+        else:
+            normcase = None
+
+        return self._prepared_walkfiles(pattern, normcase, errors)
+
+    def _prepared_walkfiles(self, pattern, normcase, errors):
+        """ Prepared version of walkfiles """
         try:
             childList = self.listdir()
         except Exception:
@@ -698,11 +731,44 @@ class Path(text_type):
                     raise
 
             if isfile:
-                if pattern is None or child.fnmatch(pattern):
+                if pattern is None or child._prepared_fnmatch(pattern, normcase):
                     yield child
             elif isdir:
-                for f in child.walkfiles(pattern, errors):
+                for f in child._prepared_walkfiles(pattern, normcase, errors):
                     yield f
+
+    def _prepared_fnmatch(self, pattern, normcase):
+        """ Return ``True`` if `self.name` matches the given `pattern`,
+        prepared version.
+
+        `pattern` - A filename pattern with wildcards,
+            for example ``'*.py'``. The pattern is expected to be normcase'd
+            already.
+
+        `normcase` - A function used to normalize the pattern and
+            filename before matching.
+
+        .. seealso:: :func:`Path.fnmatch`
+        """
+        return fnmatch.fnmatchcase(normcase(self.name), pattern)
+
+    def _prepare_fnmatch_pattern(self, pattern, normcase=None):
+        """ Prepares a fmatch_pattern for use with ``Path._prepared_fnmatch`.
+
+        `pattern` - A filename pattern with wildcards,
+            for example ``'*.py'``. If the pattern contains a `normcase`
+            attribute, it is applied to the name and path prior to comparison.
+
+        `normcase` - (optional) A function used to normalize the pattern and
+            filename before matching. Defaults to :meth:`self.module`, which defaults
+            to :meth:`os.path.normcase`.
+
+        .. seealso:: :func:`Path._prepared_fnmatch`
+        """
+        if not normcase:
+            normcase = getattr(pattern, 'normcase', self.module.normcase)
+        pattern = normcase(pattern)
+        return pattern, normcase
 
     def fnmatch(self, pattern, normcase=None):
         """ Return ``True`` if `self.name` matches the given `pattern`.
@@ -717,11 +783,11 @@ class Path(text_type):
 
         .. seealso:: :func:`fnmatch.fnmatch`
         """
-        default_normcase = getattr(pattern, 'normcase', self.module.normcase)
-        normcase = normcase or default_normcase
-        name = normcase(self.name)
-        pattern = normcase(pattern)
-        return fnmatch.fnmatchcase(name, pattern)
+        if not pattern:
+            raise ValueError("No pattern provided")
+
+        pattern, normcase = self._prepare_fnmatch_pattern(pattern, normcase)
+        return self._prepared_fnmatch(pattern, normcase)
 
     def glob(self, pattern):
         """ Return a list of Path objects that match the pattern.
