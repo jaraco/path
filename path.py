@@ -1308,11 +1308,16 @@ class Path(text_type):
             return self._next_class(newpath)
 
     if hasattr(os, 'symlink'):
-        def symlink(self, newlink):
+        def symlink(self, newlink=None):
             """ Create a symbolic link at `newlink`, pointing here.
+
+            If newlink is not supplied, the symbolic link will assume
+            the name self.basename(), creating the link in the cwd.
 
             .. seealso:: :func:`os.symlink`
             """
+            if newlink is None:
+                newlink = self.basename()
             os.symlink(self, newlink)
             return self._next_class(newlink)
 
