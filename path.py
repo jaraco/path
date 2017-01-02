@@ -1730,7 +1730,7 @@ class FastPath(Path):
         pattern, normcase = self.__prepare(pattern)
         return [
             self / child
-            for child in map(self._always_unicode, children)
+            for child in children
             if self._next_class(child).__fnmatch(pattern, normcase)
         ]
 
