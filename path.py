@@ -220,7 +220,7 @@ class Path(text_type):
         Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
         is a proper Unicode string.
         """
-        if isinstance(path, text_type):
+        if PY3 or isinstance(path, text_type):
             return path
         return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
 
@@ -529,17 +529,10 @@ class Path(text_type):
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
-        children = os.listdir(self)
-        if not PY3:
-            children = map(self._always_unicode, children)
-
-        if pattern is None:
-            return [self / child for child in children]
-
         pattern, normcase = self._prepare_fnmatch_pattern(pattern)
         return [
             self / child
-            for child in children
+            for child in map(self._always_unicode, os.listdir(self))
             if self._next_class(child)._prepared_fnmatch(pattern, normcase)
         ]
 
@@ -1774,6 +1767,30 @@ class CaseInsensitivePattern(text_type):
     @property
     def normcase(self):
         return __import__('ntpath').normcase
+
+
+class FastPath(Path):
+    """
+    Performance optimized version of SimplePath for use
+    on embedded platforms and other systems with limited
+    CPU. See #115 and #116 for background.
+    """
+
+    def listdir(self, pattern=None):
+        children = os.listdir(self)
+        if not PY3:
+            children = map(self._always_unicode, children)
+
+        if pattern is None:
+            return [self / child for child in children]
+
+        pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+        return [
+            self / child
+            for child in map(self._always_unicode, children)
+            if self._next_class(child)._prepared_fnmatch(pattern, normcase)
+        ]
+
 
 ########################
 # Backward-compatibility
