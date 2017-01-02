@@ -216,16 +216,6 @@ class Path(text_type):
         """
         return cls
 
-    @classmethod
-    def _always_unicode(cls, path):
-        """
-        Ensure the path as retrieved from a Python API, such as :func:`os.listdir`,
-        is a proper Unicode string.
-        """
-        if PY3 or isinstance(path, text_type):
-            return path
-        return path.decode(sys.getfilesystemencoding(), 'surrogateescape')
-
     # --- Special Python methods.
 
     def __repr__(self):
@@ -535,7 +525,7 @@ class Path(text_type):
             pattern = '*'
         return [
             self / child
-            for child in map(self._always_unicode, os.listdir(self))
+            for child in os.listdir(self)
             if self._next_class(child).fnmatch(pattern)
         ]
 

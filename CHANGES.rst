@@ -1,3 +1,12 @@
+9.1
+---
+
+- #121: Removed workaround for #61 added in 5.2. ``path.py``
+  now only supports file system paths that can be effectively
+  decoded to text. It is the responsibility of the system
+  implementer to ensure that filenames on the system are
+  decodeable by ``sys.getfilesystemencoding()``.
+
 9.0
 ---
 
