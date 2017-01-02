@@ -1711,9 +1711,6 @@ class FastPath(Path):
 
     def listdir(self, pattern=None):
         children = os.listdir(self)
-        if not PY3:
-            children = map(self._always_unicode, children)
-
         if pattern is None:
             return [self / child for child in children]
 
