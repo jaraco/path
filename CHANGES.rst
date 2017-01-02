@@ -1,3 +1,8 @@
+10.0
+----
+
+- Once again as in 8.0 remove deprecated ``path.path``.
+
 9.1
 ---
 
