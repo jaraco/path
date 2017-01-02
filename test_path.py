@@ -30,15 +30,26 @@ import importlib
 
 import pytest
 
-from path import Path, tempdir
+import path
+from path import tempdir
 from path import CaseInsensitivePattern as ci
 from path import SpecialResolver
 from path import Multi
+
+Path = None
 
 
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
+
+
+@pytest.fixture(autouse=True, params=[path.Path, path.FastPath])
+def path_class(request, monkeypatch):
+    """
+    Invoke tests on any number of Path classes.
+    """
+    monkeypatch.setitem(globals(), 'Path', request.param)
 
 
 class TestBasics:
@@ -781,17 +792,17 @@ class TestChdir:
 
 
 class TestSubclass:
-    class PathSubclass(Path):
-        pass
 
     def test_subclass_produces_same_class(self):
         """
         When operations are invoked on a subclass, they should produce another
         instance of that subclass.
         """
-        p = self.PathSubclass('/foo')
+        class PathSubclass(Path):
+            pass
+        p = PathSubclass('/foo')
         subdir = p / 'bar'
-        assert isinstance(subdir, self.PathSubclass)
+        assert isinstance(subdir, PathSubclass)
 
 
 class TestTempDir:
@@ -801,7 +812,7 @@ class TestTempDir:
         One should be able to readily construct a temporary directory
         """
         d = tempdir()
-        assert isinstance(d, Path)
+        assert isinstance(d, path.Path)
         assert d.exists()
         assert d.isdir()
         d.rmdir()
@@ -814,7 +825,7 @@ class TestTempDir:
         """
         d = tempdir()
         sub = d / 'subdir'
-        assert isinstance(sub, Path)
+        assert isinstance(sub, path.Path)
         d.rmdir()
 
     def test_context_manager(self):
@@ -1075,7 +1086,8 @@ class TestMultiPath:
         cls = Multi.for_class(Path)
         assert issubclass(cls, Path)
         assert issubclass(cls, Multi)
-        assert cls.__name__ == 'MultiPath'
+        expected_name = 'Multi' + Path.__name__
+        assert cls.__name__ == expected_name
 
     def test_detect_no_pathsep(self):
         """
