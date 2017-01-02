@@ -50,7 +50,7 @@ import operator
 import re
 import contextlib
 import io
-from distutils import dir_util
+import distutils.dir_util
 import importlib
 import itertools
 
@@ -1382,8 +1382,12 @@ class Path(text_type):
             self.copytree(stage, symlinks, *args, **kwargs)
             # now copy everything from the stage directory using
             #  the semantics of dir_util.copy_tree
-            dir_util.copy_tree(stage, dst, preserve_symlinks=symlinks,
-                update=update)
+            distutils.dir_util.copy_tree(
+                stage,
+                dst,
+                preserve_symlinks=symlinks,
+                update=update,
+            )
 
     #
     # --- Special stuff from os
