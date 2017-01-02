@@ -30,6 +30,7 @@ import importlib
 
 import pytest
 
+import path
 from path import Path, tempdir
 from path import CaseInsensitivePattern as ci
 from path import SpecialResolver
@@ -351,6 +352,8 @@ class TestScratchDir:
                 except:
                     pass
 
+    @pytest.mark.xfail(platform.system() == 'Linux' and path.PY2,
+        reason="Can't decode bytes in FS. See #121")
     def test_listdir_other_encoding(self, tmpdir):
         """
         Some filesystems allow non-character sequences in path names.
