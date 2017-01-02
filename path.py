@@ -1725,11 +1725,11 @@ class FastPath(Path):
         if pattern is None:
             return [self / child for child in children]
 
-        pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+        pattern, normcase = self.__prepare(pattern)
         return [
             self / child
             for child in map(self._always_unicode, children)
-            if self._next_class(child)._prepared_fnmatch(pattern, normcase)
+            if self._next_class(child).__fnmatch(pattern, normcase)
         ]
 
     def walk(self, pattern=None, errors='strict'):
@@ -1748,13 +1748,13 @@ class FastPath(Path):
         errors = vars(Handlers).get(errors, errors)
 
         if pattern:
-            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+            pattern, normcase = self.__prepare(pattern)
         else:
             normcase = None
 
-        return self._prepared_walk(pattern, normcase, errors)
+        return self.__walk(pattern, normcase, errors)
 
-    def _prepared_walk(self, pattern, normcase, errors):
+    def __walk(self, pattern, normcase, errors):
         """ Prepared version of walk """
         try:
             childList = self.listdir()
@@ -1766,7 +1766,7 @@ class FastPath(Path):
             return
 
         for child in childList:
-            if pattern is None or child._prepared_fnmatch(pattern, normcase):
+            if pattern is None or child.__fnmatch(pattern, normcase):
                 yield child
             try:
                 isdir = child.isdir()
@@ -1778,7 +1778,7 @@ class FastPath(Path):
                 isdir = False
 
             if isdir:
-                for item in child._prepared_walk(pattern, normcase, errors):
+                for item in child.__walk(pattern, normcase, errors):
                     yield item
 
     def walkdirs(self, pattern=None, errors='strict'):
@@ -1786,13 +1786,13 @@ class FastPath(Path):
             raise ValueError("invalid errors parameter")
 
         if pattern:
-            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+            pattern, normcase = self.__prepare(pattern)
         else:
             normcase = None
 
-        return self._prepared_walkdirs(pattern, normcase, errors)
+        return self.__walkdirs(pattern, normcase, errors)
 
-    def _prepared_walkdirs(self, pattern, normcase, errors):
+    def __walkdirs(self, pattern, normcase, errors):
         """ Prepared version of walkdirs """
         try:
             dirs = self.dirs()
@@ -1809,9 +1809,9 @@ class FastPath(Path):
                 raise
 
         for child in dirs:
-            if pattern is None or child._prepared_fnmatch(pattern, normcase):
+            if pattern is None or child.__fnmatch(pattern, normcase):
                 yield child
-            for subsubdir in child._prepared_walkdirs(pattern, normcase, errors):
+            for subsubdir in child.__walkdirs(pattern, normcase, errors):
                 yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict'):
@@ -1819,13 +1819,13 @@ class FastPath(Path):
             raise ValueError("invalid errors parameter")
 
         if pattern:
-            pattern, normcase = self._prepare_fnmatch_pattern(pattern)
+            pattern, normcase = self.__prepare(pattern)
         else:
             normcase = None
 
-        return self._prepared_walkfiles(pattern, normcase, errors)
+        return self.__walkfiles(pattern, normcase, errors)
 
-    def _prepared_walkfiles(self, pattern, normcase, errors):
+    def __walkfiles(self, pattern, normcase, errors):
         """ Prepared version of walkfiles """
         try:
             childList = self.listdir()
@@ -1858,13 +1858,13 @@ class FastPath(Path):
                     raise
 
             if isfile:
-                if pattern is None or child._prepared_fnmatch(pattern, normcase):
+                if pattern is None or child.__fnmatch(pattern, normcase):
                     yield child
             elif isdir:
-                for f in child._prepared_walkfiles(pattern, normcase, errors):
+                for f in child.__walkfiles(pattern, normcase, errors):
                     yield f
 
-    def _prepared_fnmatch(self, pattern, normcase):
+    def __fnmatch(self, pattern, normcase):
         """ Return ``True`` if `self.name` matches the given `pattern`,
         prepared version.
         `pattern` - A filename pattern with wildcards,
@@ -1876,15 +1876,15 @@ class FastPath(Path):
         """
         return fnmatch.fnmatchcase(normcase(self.name), pattern)
 
-    def _prepare_fnmatch_pattern(self, pattern, normcase=None):
-        """ Prepares a fmatch_pattern for use with ``Path._prepared_fnmatch`.
+    def __prepare(self, pattern, normcase=None):
+        """ Prepares a fmatch_pattern for use with ``FastPath.__fnmatch`.
         `pattern` - A filename pattern with wildcards,
             for example ``'*.py'``. If the pattern contains a `normcase`
             attribute, it is applied to the name and path prior to comparison.
         `normcase` - (optional) A function used to normalize the pattern and
             filename before matching. Defaults to :meth:`self.module`, which defaults
             to :meth:`os.path.normcase`.
-        .. seealso:: :func:`Path._prepared_fnmatch`
+        .. seealso:: :func:`FastPath.__fnmatch`
         """
         if not normcase:
             normcase = getattr(pattern, 'normcase', self.module.normcase)
@@ -1895,8 +1895,8 @@ class FastPath(Path):
         if not pattern:
             raise ValueError("No pattern provided")
 
-        pattern, normcase = self._prepare_fnmatch_pattern(pattern, normcase)
-        return self._prepared_fnmatch(pattern, normcase)
+        pattern, normcase = self.__prepare(pattern, normcase)
+        return self.__fnmatch(pattern, normcase)
 
 
 ########################
