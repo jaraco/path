@@ -1,3 +1,21 @@
+.. image:: https://img.shields.io/pypi/v/path.py.svg
+   :target: https://pypi.org/project/path.py
+
+.. image:: https://img.shields.io/pypi/pyversions/path.py.svg
+
+.. image:: https://img.shields.io/pypi/dm/path.py.svg
+
+.. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
+   :target: http://travis-ci.org/jaraco/path.py
+
+
+License
+=======
+
+License is indicated in the project metadata (typically one or more
+of the Trove classifiers). For more details, see `this explanation
+<https://github.com/jaraco/skeleton/issues/1>`_.
+
 path.py
 =======
 
@@ -14,7 +32,7 @@ example:
 
 ``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
-Documentation is `hosted with PyPI <https://pythonhosted.org/path.py/>`_.
+Find `the documentatation here <https://pathpy.readthedocs.io>`_.
 
 Guides and Testimonials
 =======================
