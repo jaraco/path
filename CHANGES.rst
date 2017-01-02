@@ -43,12 +43,12 @@
 8.1.1
 -----
 
-Reluctantly restored reference to path.path in ``__all__``.
+- #102: Reluctantly restored reference to path.path in ``__all__``.
 
 8.1
 ---
 
-Restored ``path.path`` with a DeprecationWarning.
+- #102: Restored ``path.path`` with a DeprecationWarning.
 
 8.0
 ---
