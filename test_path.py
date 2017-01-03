@@ -1026,6 +1026,7 @@ class TestSpecialPaths:
     def test_unix_paths_fallback(self, tmpdir, monkeypatch, feign_linux):
         "Without XDG_CONFIG_HOME set, ~/.config should be used."
         fake_home = tmpdir / '_home'
+        monkeypatch.delitem(os.environ, 'XDG_CONFIG_HOME', raising=False)
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
         expected = str(tmpdir / '_home' / '.config')
         assert SpecialResolver(Path).user.config == expected
