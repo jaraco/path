@@ -1,3 +1,8 @@
+10.1
+----
+
+- #123: Implement ``Path.__fspath__`` per PEP 519.
+
 10.0
 ----
 
