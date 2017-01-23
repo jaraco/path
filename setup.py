@@ -26,7 +26,6 @@ params = dict(
     install_requires=[
     ],
     extras_require={
-        ':python_version=="2.6"': ['importlib'],
     },
     setup_requires=[
         'setuptools_scm>=1.15.0',
