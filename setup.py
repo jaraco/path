@@ -23,6 +23,7 @@ params = dict(
     long_description=long_description,
     url="https://github.com/jaraco/" + name,
     py_modules=['path', 'test_path'],
+    python_requires='>=2.7',
     install_requires=[
     ],
     extras_require={
