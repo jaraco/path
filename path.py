@@ -1712,3 +1712,189 @@ class CaseInsensitivePattern(text_type):
     @property
     def normcase(self):
         return __import__('ntpath').normcase
+
+
+class FastPath(Path):
+    """
+    Performance optimized version of Path for use
+    on embedded platforms and other systems with limited
+    CPU. See #115 and #116 for background.
+    """
+
+    def listdir(self, pattern=None):
+        children = os.listdir(self)
+        if pattern is None:
+            return [self / child for child in children]
+
+        pattern, normcase = self.__prepare(pattern)
+        return [
+            self / child
+            for child in children
+            if self._next_class(child).__fnmatch(pattern, normcase)
+        ]
+
+    def walk(self, pattern=None, errors='strict'):
+        class Handlers:
+            def strict(msg):
+                raise
+
+            def warn(msg):
+                warnings.warn(msg, TreeWalkWarning)
+
+            def ignore(msg):
+                pass
+
+        if not callable(errors) and errors not in vars(Handlers):
+            raise ValueError("invalid errors parameter")
+        errors = vars(Handlers).get(errors, errors)
+
+        if pattern:
+            pattern, normcase = self.__prepare(pattern)
+        else:
+            normcase = None
+
+        return self.__walk(pattern, normcase, errors)
+
+    def __walk(self, pattern, normcase, errors):
+        """ Prepared version of walk """
+        try:
+            childList = self.listdir()
+        except Exception:
+            exc = sys.exc_info()[1]
+            tmpl = "Unable to list directory '%(self)s': %(exc)s"
+            msg = tmpl % locals()
+            errors(msg)
+            return
+
+        for child in childList:
+            if pattern is None or child.__fnmatch(pattern, normcase):
+                yield child
+            try:
+                isdir = child.isdir()
+            except Exception:
+                exc = sys.exc_info()[1]
+                tmpl = "Unable to access '%(child)s': %(exc)s"
+                msg = tmpl % locals()
+                errors(msg)
+                isdir = False
+
+            if isdir:
+                for item in child.__walk(pattern, normcase, errors):
+                    yield item
+
+    def walkdirs(self, pattern=None, errors='strict'):
+        if errors not in ('strict', 'warn', 'ignore'):
+            raise ValueError("invalid errors parameter")
+
+        if pattern:
+            pattern, normcase = self.__prepare(pattern)
+        else:
+            normcase = None
+
+        return self.__walkdirs(pattern, normcase, errors)
+
+    def __walkdirs(self, pattern, normcase, errors):
+        """ Prepared version of walkdirs """
+        try:
+            dirs = self.dirs()
+        except Exception:
+            if errors == 'ignore':
+                return
+            elif errors == 'warn':
+                warnings.warn(
+                    "Unable to list directory '%s': %s"
+                    % (self, sys.exc_info()[1]),
+                    TreeWalkWarning)
+                return
+            else:
+                raise
+
+        for child in dirs:
+            if pattern is None or child.__fnmatch(pattern, normcase):
+                yield child
+            for subsubdir in child.__walkdirs(pattern, normcase, errors):
+                yield subsubdir
+
+    def walkfiles(self, pattern=None, errors='strict'):
+        if errors not in ('strict', 'warn', 'ignore'):
+            raise ValueError("invalid errors parameter")
+
+        if pattern:
+            pattern, normcase = self.__prepare(pattern)
+        else:
+            normcase = None
+
+        return self.__walkfiles(pattern, normcase, errors)
+
+    def __walkfiles(self, pattern, normcase, errors):
+        """ Prepared version of walkfiles """
+        try:
+            childList = self.listdir()
+        except Exception:
+            if errors == 'ignore':
+                return
+            elif errors == 'warn':
+                warnings.warn(
+                    "Unable to list directory '%s': %s"
+                    % (self, sys.exc_info()[1]),
+                    TreeWalkWarning)
+                return
+            else:
+                raise
+
+        for child in childList:
+            try:
+                isfile = child.isfile()
+                isdir = not isfile and child.isdir()
+            except:
+                if errors == 'ignore':
+                    continue
+                elif errors == 'warn':
+                    warnings.warn(
+                        "Unable to access '%s': %s"
+                        % (self, sys.exc_info()[1]),
+                        TreeWalkWarning)
+                    continue
+                else:
+                    raise
+
+            if isfile:
+                if pattern is None or child.__fnmatch(pattern, normcase):
+                    yield child
+            elif isdir:
+                for f in child.__walkfiles(pattern, normcase, errors):
+                    yield f
+
+    def __fnmatch(self, pattern, normcase):
+        """ Return ``True`` if `self.name` matches the given `pattern`,
+        prepared version.
+        `pattern` - A filename pattern with wildcards,
+            for example ``'*.py'``. The pattern is expected to be normcase'd
+            already.
+        `normcase` - A function used to normalize the pattern and
+            filename before matching.
+        .. seealso:: :func:`Path.fnmatch`
+        """
+        return fnmatch.fnmatchcase(normcase(self.name), pattern)
+
+    def __prepare(self, pattern, normcase=None):
+        """ Prepares a fmatch_pattern for use with ``FastPath.__fnmatch`.
+        `pattern` - A filename pattern with wildcards,
+            for example ``'*.py'``. If the pattern contains a `normcase`
+            attribute, it is applied to the name and path prior to comparison.
+        `normcase` - (optional) A function used to normalize the pattern and
+            filename before matching. Defaults to :meth:`self.module`, which defaults
+            to :meth:`os.path.normcase`.
+        .. seealso:: :func:`FastPath.__fnmatch`
+        """
+        if not normcase:
+            normcase = getattr(pattern, 'normcase', self.module.normcase)
+        pattern = normcase(pattern)
+        return pattern, normcase
+
+    def fnmatch(self, pattern, normcase=None):
+        if not pattern:
+            raise ValueError("No pattern provided")
+
+        pattern, normcase = self.__prepare(pattern, normcase)
+        return self.__fnmatch(pattern, normcase)

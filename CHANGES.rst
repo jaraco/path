@@ -1,3 +1,15 @@
+10.3
+----
+
+- #115: Added a new performance-optimized implementation
+  for listdir operations, optimizing ``listdir``, ``walk``,
+  ``walkfiles``, ``walkdirs``, and ``fnmatch``, presented
+  as the ``FastPath`` class.
+
+  Please direct feedback on this implementation to the ticket,
+  especially if the performance benefits justify it replacing
+  the default ``Path`` class.
+
 10.2
 ----
 
