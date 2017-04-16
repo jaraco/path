@@ -1716,7 +1716,7 @@ class CaseInsensitivePattern(text_type):
 
 class FastPath(Path):
     """
-    Performance optimized version of SimplePath for use
+    Performance optimized version of Path for use
     on embedded platforms and other systems with limited
     CPU. See #115 and #116 for background.
     """
