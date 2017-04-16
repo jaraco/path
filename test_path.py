@@ -704,6 +704,9 @@ class TestMergeTree:
         else:
             self.test_file.copy(self.test_link)
 
+    def check_link(self):
+        assert Path(self.subdir_b / self.test_link.name).islink()
+
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
@@ -712,7 +715,7 @@ class TestMergeTree:
             self.subdir_b / self.test_link.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
@@ -722,7 +725,7 @@ class TestMergeTree:
             self.subdir_b / self.test_link.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
 
     def test_with_existing_dst(self):
         self.subdir_b.rmtree()
@@ -743,7 +746,7 @@ class TestMergeTree:
             self.subdir_b / test_new.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
     def test_copytree_parameters(self):
