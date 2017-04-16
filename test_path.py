@@ -705,7 +705,9 @@ class TestMergeTree:
             self.test_file.copy(self.test_link)
 
     def check_link(self):
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        target = Path(self.subdir_b / self.test_link.name)
+        check = target.islink if hasattr(os, 'symlink') else target.isfile
+        assert check()
 
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
