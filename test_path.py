@@ -1028,7 +1028,7 @@ class TestSpecialPaths:
         fake_home = tmpdir / '_home'
         monkeypatch.delitem(os.environ, 'XDG_CONFIG_HOME', raising=False)
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
-        expected = str(tmpdir / '_home' / '.config')
+        expected = Path('~/.config').expanduser()
         assert SpecialResolver(Path).user.config == expected
 
     def test_property(self):
