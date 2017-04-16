@@ -5,6 +5,7 @@ python:
 - 3.3
 - 3.4
 - 3.5
+- 3.6
 install:
 - pip install tox "setuptools>=28.2"
 script:
@@ -18,7 +19,7 @@ deploy:
   on:
     tags: true
     all_branches: true
-    python: 3.5
+    python: 3.6
   user: jaraco
   distributions: dists
   password:

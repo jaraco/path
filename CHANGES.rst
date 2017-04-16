@@ -1,3 +1,20 @@
+10.2
+----
+
+- Symlink no longer requires the ``newlink`` parameter
+  and will default to the basename of the target in the
+  current working directory.
+
+10.1
+----
+
+- #123: Implement ``Path.__fspath__`` per PEP 519.
+
+10.0
+----
+
+- Once again as in 8.0 remove deprecated ``path.path``.
+
 9.1
 ---
 
@@ -43,12 +60,12 @@
 8.1.1
 -----
 
-Reluctantly restored reference to path.path in ``__all__``.
+- #102: Reluctantly restored reference to path.path in ``__all__``.
 
 8.1
 ---
 
-Restored ``path.path`` with a DeprecationWarning.
+- #102: Restored ``path.path`` with a DeprecationWarning.
 
 8.0
 ---

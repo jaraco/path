@@ -50,7 +50,7 @@ import operator
 import re
 import contextlib
 import io
-from distutils import dir_util
+import distutils.dir_util
 import importlib
 import itertools
 
@@ -268,6 +268,9 @@ class Path(text_type):
 
     def __exit__(self, *_):
         os.chdir(self._old_dir)
+
+    def __fspath__(self):
+        return self
 
     @classmethod
     def getcwd(cls):
@@ -1298,11 +1301,16 @@ class Path(text_type):
             return self._next_class(newpath)
 
     if hasattr(os, 'symlink'):
-        def symlink(self, newlink):
+        def symlink(self, newlink=None):
             """ Create a symbolic link at `newlink`, pointing here.
+
+            If newlink is not supplied, the symbolic link will assume
+            the name self.basename(), creating the link in the cwd.
 
             .. seealso:: :func:`os.symlink`
             """
+            if newlink is None:
+                newlink = self.basename()
             os.symlink(self, newlink)
             return self._next_class(newlink)
 
@@ -1382,8 +1390,12 @@ class Path(text_type):
             self.copytree(stage, symlinks, *args, **kwargs)
             # now copy everything from the stage directory using
             #  the semantics of dir_util.copy_tree
-            dir_util.copy_tree(stage, dst, preserve_symlinks=symlinks,
-                update=update)
+            distutils.dir_util.copy_tree(
+                stage,
+                dst,
+                preserve_symlinks=symlinks,
+                update=update,
+            )
 
     #
     # --- Special stuff from os
@@ -1886,16 +1898,3 @@ class FastPath(Path):
 
         pattern, normcase = self.__prepare(pattern, normcase)
         return self.__fnmatch(pattern, normcase)
-
-
-########################
-# Backward-compatibility
-class path(Path):
-    def __new__(cls, *args, **kwargs):
-        msg = "path is deprecated. Use Path instead."
-        warnings.warn(msg, DeprecationWarning)
-        return Path.__new__(cls, *args, **kwargs)
-
-
-__all__ += ['path']
-########################

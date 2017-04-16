@@ -714,6 +714,11 @@ class TestMergeTree:
         else:
             self.test_file.copy(self.test_link)
 
+    def check_link(self):
+        target = Path(self.subdir_b / self.test_link.name)
+        check = target.islink if hasattr(os, 'symlink') else target.isfile
+        assert check()
+
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
@@ -722,7 +727,7 @@ class TestMergeTree:
             self.subdir_b / self.test_link.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
@@ -732,7 +737,7 @@ class TestMergeTree:
             self.subdir_b / self.test_link.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
 
     def test_with_existing_dst(self):
         self.subdir_b.rmtree()
@@ -753,7 +758,7 @@ class TestMergeTree:
             self.subdir_b / test_new.name,
         ))
         assert set(self.subdir_b.listdir()) == expected
-        assert Path(self.subdir_b / self.test_link.name).islink()
+        self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
     def test_copytree_parameters(self):
@@ -1036,8 +1041,9 @@ class TestSpecialPaths:
     def test_unix_paths_fallback(self, tmpdir, monkeypatch, feign_linux):
         "Without XDG_CONFIG_HOME set, ~/.config should be used."
         fake_home = tmpdir / '_home'
+        monkeypatch.delitem(os.environ, 'XDG_CONFIG_HOME', raising=False)
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
-        expected = str(tmpdir / '_home' / '.config')
+        expected = Path('~/.config').expanduser()
         assert SpecialResolver(Path).user.config == expected
 
     def test_property(self):
