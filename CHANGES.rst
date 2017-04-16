@@ -1,3 +1,10 @@
+10.2
+----
+
+- Symlink no longer requires the ``newlink`` parameter
+  and will default to the basename of the target in the
+  current working directory.
+
 9.0
 ---
 
