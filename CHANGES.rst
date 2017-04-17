@@ -1,3 +1,7 @@
+0.0.1
+----
+- #124: Fixed ``rmdir_p`` raise ``FileNotFoundError `` when directory does not exist.
+
 10.3
 ----
 
