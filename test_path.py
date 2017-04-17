@@ -693,6 +693,18 @@ class TestScratchDir:
             self.fail("Calling `rmtree_p` on non-existent directory "
                       "should not raise an exception.")
 
+    def test_rmdir_p(self, tmpdir):
+        d = Path(tmpdir)
+        sub = d / 'subfolder'
+        sub.mkdir()
+        sub.rmdir_p()
+        assert not sub.exists()
+        try:
+            sub.rmdir_p()
+        except OSError:
+            raise Exception("Calling `rmdir_p` on non-existent directory "
+                      "should not raise an exception.")
+                  
 
 class TestMergeTree:
     @pytest.fixture(autouse=True)
