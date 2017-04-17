@@ -1231,7 +1231,7 @@ class Path(text_type):
             self.rmdir()
         except OSError:
             _, e, _ = sys.exc_info()
-            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST and e.errno != errno.ENOENT:
                 raise
         return self
 
