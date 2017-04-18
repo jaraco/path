@@ -1,6 +1,8 @@
-0.0.1
-----
-- #124: Fixed ``rmdir_p`` raise ``FileNotFoundError `` when directory does not exist.
+10.3.1
+------
+
+- #124: Fixed ``rmdir_p`` raising ``FileNotFoundError`` when
+  directory does not exist on Windows.
 
 10.3
 ----
