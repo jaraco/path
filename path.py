@@ -127,6 +127,8 @@ except Exception:
     __version__ = 'unknown'
 
 
+warnings.simplefilter('ignore', DeprecationWarning, 116)
+
 class TreeWalkWarning(Warning):
     pass
 
