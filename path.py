@@ -137,7 +137,7 @@ class TreeWalkWarning(Warning):
 
 # from jaraco.functools
 def compose(*funcs):
-    compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))
+    compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))  # noqa
     return functools.reduce(compose_two, funcs)
 
 
