@@ -78,6 +78,7 @@ string_types = str,
 text_type = str
 getcwdu = os.getcwd
 
+
 def surrogate_escape(error):
     """
     Simulate the Python 3 ``surrogateescape`` handler, but for Python 2 only.
@@ -88,6 +89,7 @@ def surrogate_escape(error):
     val += 0xdc00
     return __builtin__.unichr(val), error.end
 
+
 if PY2:
     import __builtin__
     string_types = __builtin__.basestring,
@@ -95,6 +97,7 @@ if PY2:
     getcwdu = os.getcwdu
     codecs.register_error('surrogateescape', surrogate_escape)
     map = itertools.imap
+
 
 @contextlib.contextmanager
 def io_error_compat():
@@ -108,6 +111,7 @@ def io_error_compat():
         raise os_err
 
 ##############################################################################
+
 
 __all__ = ['Path', 'CaseInsensitivePattern']
 
@@ -432,8 +436,9 @@ class Path(text_type):
     @multimethod
     def joinpath(cls, first, *others):
         """
-        Join first to zero or more :class:`Path` components, adding a separator
-        character (:samp:`{first}.module.sep`) if needed.  Returns a new instance of
+        Join first to zero or more :class:`Path` components,
+        adding a separator character (:samp:`{first}.module.sep`)
+        if needed.  Returns a new instance of
         :samp:`{first}._next_class`.
 
         .. seealso:: :func:`os.path.join`
@@ -705,8 +710,8 @@ class Path(text_type):
             attribute, it is applied to the name and path prior to comparison.
 
         `normcase` - (optional) A function used to normalize the pattern and
-            filename before matching. Defaults to :meth:`self.module`, which defaults
-            to :meth:`os.path.normcase`.
+            filename before matching. Defaults to :meth:`self.module`, which
+            defaults to :meth:`os.path.normcase`.
 
         .. seealso:: :func:`fnmatch.fnmatch`
         """
@@ -947,8 +952,8 @@ class Path(text_type):
     def _hash(self, hash_name):
         """ Returns a hash object for the file at the current path.
 
-            `hash_name` should be a hash algo name (such as ``'md5'`` or ``'sha1'``)
-            that's available in the :mod:`hashlib` module.
+        `hash_name` should be a hash algo name (such as ``'md5'``
+        or ``'sha1'``) that's available in the :mod:`hashlib` module.
         """
         m = hashlib.new(hash_name)
         for chunk in self.chunks(8192, mode="rb"):
@@ -1171,7 +1176,8 @@ class Path(text_type):
                 gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
         else:
-            raise NotImplementedError("Ownership not available on this platform.")
+            msg = "Ownership not available on this platform."
+            raise NotImplementedError(msg)
         return self
 
     def rename(self, new):
@@ -1415,19 +1421,23 @@ class Path(text_type):
     # in-place re-writing, courtesy of Martijn Pieters
     # http://www.zopatista.com/python/2013/11/26/inplace-file-rewriting/
     @contextlib.contextmanager
-    def in_place(self, mode='r', buffering=-1, encoding=None, errors=None,
-            newline=None, backup_extension=None):
+    def in_place(
+            self, mode='r', buffering=-1, encoding=None, errors=None,
+            newline=None, backup_extension=None,
+    ):
         """
-        A context in which a file may be re-written in-place with new content.
+        A context in which a file may be re-written in-place with
+        new content.
 
-        Yields a tuple of :samp:`({readable}, {writable})` file objects, where `writable`
-        replaces `readable`.
+        Yields a tuple of :samp:`({readable}, {writable})` file
+        objects, where `writable` replaces `readable`.
 
         If an exception occurs, the old file is restored, removing the
         written data.
 
-        Mode *must not* use ``'w'``, ``'a'``, or ``'+'``; only read-only-modes are
-        allowed. A :exc:`ValueError` is raised on invalid modes.
+        Mode *must not* use ``'w'``, ``'a'``, or ``'+'``; only
+        read-only-modes are allowed. A :exc:`ValueError` is raised
+        on invalid modes.
 
         For example, to add line numbers to a file::
 
@@ -1453,22 +1463,28 @@ class Path(text_type):
         except os.error:
             pass
         os.rename(self, backup_fn)
-        readable = io.open(backup_fn, mode, buffering=buffering,
-            encoding=encoding, errors=errors, newline=newline)
+        readable = io.open(
+            backup_fn, mode, buffering=buffering,
+            encoding=encoding, errors=errors, newline=newline,
+        )
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
-            writable = open(self, 'w' + mode.replace('r', ''),
+            writable = open(
+                self, 'w' + mode.replace('r', ''),
                 buffering=buffering, encoding=encoding, errors=errors,
-                newline=newline)
+                newline=newline,
+            )
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             if hasattr(os, 'O_BINARY'):
                 os_mode |= os.O_BINARY
             fd = os.open(self, os_mode, perm)
-            writable = io.open(fd, "w" + mode.replace('r', ''),
+            writable = io.open(
+                fd, "w" + mode.replace('r', ''),
                 buffering=buffering, encoding=encoding, errors=errors,
-                newline=newline)
+                newline=newline,
+            )
             try:
                 if hasattr(os, 'chmod'):
                     os.chmod(self, perm)
@@ -1591,8 +1607,9 @@ class Multi:
 
 class tempdir(Path):
     """
-    A temporary directory via :func:`tempfile.mkdtemp`, and constructed with the
-    same parameters that you can use as a context manager.
+    A temporary directory via :func:`tempfile.mkdtemp`, and
+    constructed with the same parameters that you can use
+    as a context manager.
 
     Example:
 
@@ -1884,8 +1901,8 @@ class FastPath(Path):
             for example ``'*.py'``. If the pattern contains a `normcase`
             attribute, it is applied to the name and path prior to comparison.
         `normcase` - (optional) A function used to normalize the pattern and
-            filename before matching. Defaults to :meth:`self.module`, which defaults
-            to :meth:`os.path.normcase`.
+            filename before matching. Defaults to :meth:`self.module`,
+            which defaults to :meth:`os.path.normcase`.
         .. seealso:: :func:`FastPath.__fnmatch`
         """
         if not normcase:
