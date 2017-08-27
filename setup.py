@@ -11,6 +11,11 @@ with io.open('README.rst', encoding='utf-8') as readme:
 
 name = 'path.py'
 description = 'A module wrapper for os.path'
+nspkg_technique = 'native'
+"""
+Does this package use "native" namespace packages or
+pkg_resources "managed" namespace packages?
+"""
 
 params = dict(
     name=name,
@@ -27,6 +32,16 @@ params = dict(
     install_requires=[
     ],
     extras_require={
+        'testing': [
+            'pytest>=2.8',
+            'pytest-sugar',
+            'appdirs',
+        ],
+        'docs': [
+            'sphinx',
+            'jaraco.packaging>=3.2',
+            'rst.linker>=1.9',
+        ],
     },
     setup_requires=[
         'setuptools_scm>=1.15.0',
@@ -48,4 +63,4 @@ params = dict(
     },
 )
 if __name__ == '__main__':
-	setuptools.setup(**params)
+    setuptools.setup(**params)
