@@ -1,3 +1,9 @@
+10.4
+----
+
+- #130: Removed surrogate_escape handler as it's no longer
+  used.
+
 10.3.1
 ------
 

@@ -41,7 +41,6 @@ import os
 import fnmatch
 import glob
 import shutil
-import codecs
 import hashlib
 import errno
 import tempfile
@@ -79,23 +78,11 @@ text_type = str
 getcwdu = os.getcwd
 
 
-def surrogate_escape(error):
-    """
-    Simulate the Python 3 ``surrogateescape`` handler, but for Python 2 only.
-    """
-    chars = error.object[error.start:error.end]
-    assert len(chars) == 1
-    val = ord(chars)
-    val += 0xdc00
-    return __builtin__.unichr(val), error.end
-
-
 if PY2:
     import __builtin__
     string_types = __builtin__.basestring,
     text_type = __builtin__.unicode
     getcwdu = os.getcwdu
-    codecs.register_error('surrogateescape', surrogate_escape)
     map = itertools.imap
 
 
