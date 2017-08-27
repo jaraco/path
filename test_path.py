@@ -62,14 +62,14 @@ class TestBasics:
         up = Path(os.pardir)
 
         # basics
-        assert root.relpathto(boz) == Path('foo')/'bar'/'Baz'/'Boz'
-        assert bar.relpathto(boz) == Path('Baz')/'Boz'
-        assert quux.relpathto(boz) == up/'bar'/'Baz'/'Boz'
-        assert boz.relpathto(quux) == up/up/up/'quux'
-        assert boz.relpathto(bar) == up/up
+        assert root.relpathto(boz) == Path('foo') / 'bar' / 'Baz' / 'Boz'
+        assert bar.relpathto(boz) == Path('Baz') / 'Boz'
+        assert quux.relpathto(boz) == up / 'bar' / 'Baz' / 'Boz'
+        assert boz.relpathto(quux) == up / up / up / 'quux'
+        assert boz.relpathto(bar) == up / up
 
         # Path is not the first element in concatenation
-        assert root.relpathto(boz) == 'foo'/Path('bar')/'Baz'/'Boz'
+        assert root.relpathto(boz) == 'foo' / Path('bar') / 'Baz' / 'Boz'
 
         # x.relpathto(x) == curdir
         assert root.relpathto(root) == os.curdir
@@ -123,7 +123,7 @@ class TestBasics:
         # Test p1/p1.
         p1 = Path("foo")
         p2 = Path("bar")
-        assert p1/p2 == p(nt='foo\\bar', posix='foo/bar')
+        assert p1 / p2 == p(nt='foo\\bar', posix='foo/bar')
 
     def test_properties(self):
         # Create sample path object.
@@ -293,12 +293,12 @@ class TestScratchDir:
             ct = f.ctime
             assert t0 <= ct <= t1
 
-        time.sleep(threshold*2)
+        time.sleep(threshold * 2)
         fobj = open(f, 'ab')
         fobj.write('some bytes'.encode('utf-8'))
         fobj.close()
 
-        time.sleep(threshold*2)
+        time.sleep(threshold * 2)
         t2 = time.time() - threshold
         f.touch()
         t3 = time.time() + threshold
@@ -362,8 +362,10 @@ class TestScratchDir:
                 except:
                     pass
 
-    @pytest.mark.xfail(platform.system() == 'Linux' and path.PY2,
-        reason="Can't decode bytes in FS. See #121")
+    @pytest.mark.xfail(
+        platform.system() == 'Linux' and path.PY2,
+        reason="Can't decode bytes in FS. See #121",
+    )
     def test_listdir_other_encoding(self, tmpdir):
         """
         Some filesystems allow non-character sequences in path names.
@@ -511,28 +513,28 @@ class TestScratchDir:
     def test_patterns(self, tmpdir):
         d = Path(tmpdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
-        dirs = [d, d/'xdir', d/'xdir.tmp', d/'xdir.tmp'/'xsubdir']
+        dirs = [d, d / 'xdir', d / 'xdir.tmp', d / 'xdir.tmp' / 'xsubdir']
 
         for e in dirs:
             if not e.isdir():
                 e.makedirs()
 
             for name in names:
-                (e/name).touch()
-        self.assertList(d.listdir('*.tmp'), [d/'x.tmp', d/'xdir.tmp'])
-        self.assertList(d.files('*.tmp'), [d/'x.tmp'])
-        self.assertList(d.dirs('*.tmp'), [d/'xdir.tmp'])
+                (e / name).touch()
+        self.assertList(d.listdir('*.tmp'), [d / 'x.tmp', d / 'xdir.tmp'])
+        self.assertList(d.files('*.tmp'), [d / 'x.tmp'])
+        self.assertList(d.dirs('*.tmp'), [d / 'xdir.tmp'])
         self.assertList(d.walk(), [e for e in dirs
-                                   if e != d] + [e/n for e in dirs
+                                   if e != d] + [e / n for e in dirs
                                                  for n in names])
         self.assertList(d.walk('*.tmp'),
-                        [e/'x.tmp' for e in dirs] + [d/'xdir.tmp'])
-        self.assertList(d.walkfiles('*.tmp'), [e/'x.tmp' for e in dirs])
-        self.assertList(d.walkdirs('*.tmp'), [d/'xdir.tmp'])
+                        [e / 'x.tmp' for e in dirs] + [d / 'xdir.tmp'])
+        self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
+        self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
     def test_unicode(self, tmpdir):
         d = Path(tmpdir)
-        p = d/'unicode.txt'
+        p = d / 'unicode.txt'
 
         def test(enc):
             """ Test that path works with the specified encoding,
@@ -540,18 +542,22 @@ class TestScratchDir:
             Unicode codepoints.
             """
 
-            given = ('Hello world\n'
-                      '\u0d0a\u0a0d\u0d15\u0a15\r\n'
-                      '\u0d0a\u0a0d\u0d15\u0a15\x85'
-                      '\u0d0a\u0a0d\u0d15\u0a15\u2028'
-                      '\r'
-                      'hanging')
-            clean = ('Hello world\n'
-                      '\u0d0a\u0a0d\u0d15\u0a15\n'
-                      '\u0d0a\u0a0d\u0d15\u0a15\n'
-                      '\u0d0a\u0a0d\u0d15\u0a15\n'
-                      '\n'
-                      'hanging')
+            given = (
+                'Hello world\n'
+                '\u0d0a\u0a0d\u0d15\u0a15\r\n'
+                '\u0d0a\u0a0d\u0d15\u0a15\x85'
+                '\u0d0a\u0a0d\u0d15\u0a15\u2028'
+                '\r'
+                'hanging'
+            )
+            clean = (
+                'Hello world\n'
+                '\u0d0a\u0a0d\u0d15\u0a15\n'
+                '\u0d0a\u0a0d\u0d15\u0a15\n'
+                '\u0d0a\u0a0d\u0d15\u0a15\n'
+                '\n'
+                'hanging'
+            )
             givenLines = [
                 ('Hello world\n'),
                 ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
@@ -594,8 +600,9 @@ class TestScratchDir:
                 return
 
             # Write Unicode to file using path.write_text().
-            cleanNoHanging = clean + '\n'  # This test doesn't work with a
-                                              # hanging line.
+            # This test doesn't work with a hanging line.
+            cleanNoHanging = clean + '\n'
+
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
             # Check the result.
@@ -663,8 +670,10 @@ class TestScratchDir:
 
         assert i == len(txt) / size - 1
 
-    @pytest.mark.skipif(not hasattr(os.path, 'samefile'),
-        reason="samefile not present")
+    @pytest.mark.skipif(
+        not hasattr(os.path, 'samefile'),
+        reason="samefile not present",
+    )
     def test_samefile(self, tmpdir):
         f1 = (tempdir() / '1.txt').touch()
         f1.write_text('foo')
@@ -703,7 +712,7 @@ class TestScratchDir:
         sub.mkdir()
         sub.rmdir_p()
         assert not sub.exists()
-       
+
     def test_rmdir_p_nonexistent(self, tmpdir):
         """
         A non-existent file should not raise an exception.
@@ -712,7 +721,7 @@ class TestScratchDir:
         sub = d / 'subfolder'
         assert not sub.exists()
         sub.rmdir_p()
-                  
+
 
 class TestMergeTree:
     @pytest.fixture(autouse=True)
@@ -929,8 +938,8 @@ class TestPatternMatching:
 
     def test_listdir_patterns(self, tmpdir):
         p = Path(tmpdir)
-        (p/'sub').mkdir()
-        (p/'File').touch()
+        (p / 'sub').mkdir()
+        (p / 'File').touch()
         assert p.listdir('s*') == [p / 'sub']
         assert len(p.listdir('*')) == 2
 
@@ -941,14 +950,14 @@ class TestPatternMatching:
         """
         always_unix = Path.using_module(posixpath)
         p = always_unix(tmpdir)
-        (p/'sub').mkdir()
-        (p/'File').touch()
+        (p / 'sub').mkdir()
+        (p / 'File').touch()
         assert p.listdir('S*') == []
 
         always_win = Path.using_module(ntpath)
         p = always_win(tmpdir)
-        assert p.listdir('S*') == [p/'sub']
-        assert p.listdir('f*') == [p/'File']
+        assert p.listdir('S*') == [p / 'sub']
+        assert p.listdir('f*') == [p / 'File']
 
     def test_listdir_case_insensitive(self, tmpdir):
         """
@@ -956,27 +965,30 @@ class TestPatternMatching:
         used by that Path class.
         """
         p = Path(tmpdir)
-        (p/'sub').mkdir()
-        (p/'File').touch()
-        assert p.listdir(ci('S*')) == [p/'sub']
-        assert p.listdir(ci('f*')) == [p/'File']
+        (p / 'sub').mkdir()
+        (p / 'File').touch()
+        assert p.listdir(ci('S*')) == [p / 'sub']
+        assert p.listdir(ci('f*')) == [p / 'File']
         assert p.files(ci('S*')) == []
         assert p.dirs(ci('f*')) == []
 
     def test_walk_case_insensitive(self, tmpdir):
         p = Path(tmpdir)
-        (p/'sub1'/'foo').makedirs_p()
-        (p/'sub2'/'foo').makedirs_p()
-        (p/'sub1'/'foo'/'bar.Txt').touch()
-        (p/'sub2'/'foo'/'bar.TXT').touch()
-        (p/'sub2'/'foo'/'bar.txt.bz2').touch()
+        (p / 'sub1' / 'foo').makedirs_p()
+        (p / 'sub2' / 'foo').makedirs_p()
+        (p / 'sub1' / 'foo' / 'bar.Txt').touch()
+        (p / 'sub2' / 'foo' / 'bar.TXT').touch()
+        (p / 'sub2' / 'foo' / 'bar.txt.bz2').touch()
         files = list(p.walkfiles(ci('*.txt')))
         assert len(files) == 2
-        assert p/'sub2'/'foo'/'bar.TXT' in files
-        assert p/'sub1'/'foo'/'bar.Txt' in files
+        assert p / 'sub2' / 'foo' / 'bar.TXT' in files
+        assert p / 'sub1' / 'foo' / 'bar.Txt' in files
 
-@pytest.mark.skipif(sys.version_info < (2, 6),
-    reason="in_place requires io module in Python 2.6")
+
+@pytest.mark.skipif(
+    sys.version_info < (2, 6),
+    reason="in_place requires io module in Python 2.6",
+)
 class TestInPlace:
     reference_content = textwrap.dedent("""
         The quick brown fox jumped over the lazy dog.
@@ -997,7 +1009,7 @@ class TestInPlace:
 
     @classmethod
     def create_reference(cls, tmpdir):
-        p = Path(tmpdir)/'document'
+        p = Path(tmpdir) / 'document'
         with p.open('w') as stream:
             stream.write(cls.reference_content)
         return p
@@ -1022,7 +1034,7 @@ class TestInPlace:
         assert "some error" in str(exc)
         with doc.open() as stream:
             data = stream.read()
-        assert not 'Lorem' in data
+        assert 'Lorem' not in data
         assert 'lazy dog' in data
 
 
