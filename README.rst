@@ -18,7 +18,7 @@ example:
     from path import Path
     d = Path('/home/guido/bin')
     for f in d.files('*.py'):
-        f.chmod(0755)
+        f.chmod(0o755)
 
 ``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
