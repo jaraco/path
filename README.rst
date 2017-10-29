@@ -44,6 +44,41 @@ The latest release is always updated to the `Python Package Index
 You may also always download the source distribution (zip/tarball), extract
 it, and run ``python setup.py`` to install it.
 
+Advantages
+==========
+
+Python 3.4 introduced
+`pathlib <https://docs.python.org/3/library/pathlib.html>`_,
+which shares many characteristics with ``path.py``. In particular,
+it provides an object encapsulation for representing filesystem paths.
+One may have imagined ``pathlib`` would supersede ``path.py``.
+
+But the implementation and the usage quickly diverge, and ``path.py``
+has several advantages over ``pathlib``:
+
+- ``path.py`` implementsbits ``Path`` objects as a subclass of
+  ``str`` (unicode on Python 2), and as a result these ``Path``
+  objects may be passed directly to other APIs that expect simple
+  text representations of paths, whereas with ``pathlib``, one
+  must first cast values to strings before passing them to
+  APIs unaware of pathlib.
+- ``path.py`` goes beyond exposing basic functionality of a path
+  and exposes commonly-used behaviors on a path, providing
+  methods like ``rmtree`` (from shlib) and ``remove_p`` (remove
+  a file if it exists).
+- As a PyPI-hosted package, ``path.py`` is free to iterate
+  more quickly than a stdlib package. Contributions are welcomed
+  and encouraged.
+
+Alternatives
+============
+
+In addition to
+`pathlib <https://docs.python.org/3/library/pathlib.html>`_, the
+`pylib project <https://pypi.org/project/py/>`_ implements a
+`LocalPath <https://github.com/pytest-dev/py/blob/72601dc8bbb5e11298bf9775bb23b0a395deb09b/py/_path/local.py#L106>`_
+class, which shares some behaviors and interfaces with ``path.py``.
+
 Development
 ===========
 
