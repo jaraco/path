@@ -3,21 +3,11 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/path.py.svg
 
-.. image:: https://img.shields.io/pypi/dm/path.py.svg
-
 .. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
    :target: http://travis-ci.org/jaraco/path.py
 
-
-License
-=======
-
-License is indicated in the project metadata (typically one or more
-of the Trove classifiers). For more details, see `this explanation
-<https://github.com/jaraco/skeleton/issues/1>`_.
-
-path.py
-=======
+.. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
+   :target: http://pathpy.readthedocs.io/en/latest/?badge=latest
 
 ``path.py`` implements a path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For
@@ -79,4 +69,4 @@ Releasing
 =========
 
 Tagged releases are automatically published to PyPI by Travis-CI, assuming
-the Python 3 build passes.
+the tests pass.
