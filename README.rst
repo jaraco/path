@@ -84,7 +84,7 @@ Development
 
 To install an in-development version, use the Github links to clone or
 download a snapshot of the latest code. Alternatively, if you have git
-installed, you may be able to use ``pip`` or ``easy_install`` to install directly from
+installed, you may be able to use ``pip`` to install directly from
 the repository::
 
     pip install git+https://github.com/jaraco/path.py.git
