@@ -359,7 +359,7 @@ class TestScratchDir:
             for f in files:
                 try:
                     f.remove()
-                except:
+                except Exception:
                     pass
 
     @pytest.mark.xfail(
@@ -923,7 +923,8 @@ class TestPatternMatching:
         assert p.fnmatch('FOO[ABC]AR')
 
     def test_fnmatch_custom_normcase(self):
-        normcase = lambda path: path.upper()
+        def normcase(path):
+            return path.upper()
         p = Path('FooBar')
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
