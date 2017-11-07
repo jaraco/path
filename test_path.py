@@ -27,8 +27,10 @@ import posixpath
 import textwrap
 import platform
 import importlib
+import operator
 
 import pytest
+import packaging.version
 
 import path
 from path import tempdir
@@ -50,6 +52,18 @@ def path_class(request, monkeypatch):
     Invoke tests on any number of Path classes.
     """
     monkeypatch.setitem(globals(), 'Path', request.param)
+
+
+def mac_version(target, comparator=operator.ge):
+    """
+    Return True if on a Mac whose version passes the comparator.
+    """
+    current_ver = packaging.version.parse(platform.mac_ver()[0])
+    target_ver = packaging.version.parse(target)
+    return (
+        platform.system() == 'Darwin'
+        and comparator(current_ver, target_ver)
+    )
 
 
 class TestBasics:
@@ -365,6 +379,10 @@ class TestScratchDir:
     @pytest.mark.xfail(
         platform.system() == 'Linux' and path.PY2,
         reason="Can't decode bytes in FS. See #121",
+    )
+    @pytest.mark.xfail(
+        mac_version('10.13'),
+        reason="macOS disallows invalid encodings",
     )
     def test_listdir_other_encoding(self, tmpdir):
         """

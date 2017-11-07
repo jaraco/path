@@ -37,6 +37,7 @@ params = dict(
             'pytest-sugar',
             'collective.checkdocs',
             'appdirs',
+            'packaging',
 
             # required for checkdocs on README.rst
             'pygments',
