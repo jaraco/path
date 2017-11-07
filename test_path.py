@@ -387,6 +387,10 @@ class TestScratchDir:
         mac_version('10.13'),
         reason="macOS disallows invalid encodings",
     )
+    @pytest.mark.xfail(
+        platform.system() == 'Windows' and path.PY3,
+        reason="Can't write latin characters. See #133",
+    )
     def test_listdir_other_encoding(self, tmpdir):
         """
         Some filesystems allow non-character sequences in path names.
