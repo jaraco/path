@@ -329,6 +329,9 @@ class TestScratchDir:
                 # On Windows, "ctime" is CREATION time
                 assert ct == ct2
                 assert ct2 < t2
+            elif mac_version('10.13'):
+                # On macOS High Sierra, f.mtime will be close
+                assert ct2 == pytest.approx(f.mtime, 0.001)
             else:
                 # On other systems, it might be the CHANGE time
                 # (especially on Unix, time of inode changes)
