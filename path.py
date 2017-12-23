@@ -363,6 +363,18 @@ class Path(text_type):
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """)
 
+    def setext(self, new_ext):
+        """ Set a new extension for this file.
+        If the new extension does not start with a dot,
+        one will be added.
+        """
+        fname, ext = self.module.splitext(self)
+        if not new_ext.startswith('.'):
+            new_ext = '.' + new_ext
+        new = fname + new_ext
+        os.rename(self, new)
+        return self._next_class(new)
+
     def splitpath(self):
         """ p.splitpath() -> Return ``(p.parent, p.name)``.
 
