@@ -670,7 +670,7 @@ class Path(text_type):
             try:
                 isfile = child.isfile()
                 isdir = not isfile and child.isdir()
-            except:
+            except Exception:
                 if errors == 'ignore':
                     continue
                 elif errors == 'warn':
@@ -918,14 +918,15 @@ class Path(text_type):
             to read the file later.
         """
         with self.open('ab' if append else 'wb') as f:
-            for l in lines:
-                isUnicode = isinstance(l, text_type)
+            for line in lines:
+                isUnicode = isinstance(line, text_type)
                 if linesep is not None:
                     pattern = U_NL_END if isUnicode else NL_END
-                    l = pattern.sub('', l) + linesep
+                    line = pattern.sub('', line) + linesep
                 if isUnicode:
-                    l = l.encode(encoding or sys.getdefaultencoding(), errors)
-                f.write(l)
+                    line = line.encode(
+                        encoding or sys.getdefaultencoding(), errors)
+                f.write(line)
 
     def read_md5(self):
         """ Calculate the md5 hash for this file.
@@ -1635,7 +1636,8 @@ def _multi_permission_mask(mode):
     >>> _multi_permission_mask('a=r,u+w')(0) == 0o644
     True
     """
-    compose = lambda f, g: lambda *args, **kwargs: g(f(*args, **kwargs))
+    def compose(f, g):
+        return lambda *args, **kwargs: g(f(*args, **kwargs))
     return functools.reduce(compose, map(_permission_mask, mode.split(',')))
 
 
@@ -1851,7 +1853,7 @@ class FastPath(Path):
             try:
                 isfile = child.isfile()
                 isdir = not isfile and child.isdir()
-            except:
+            except Exception:
                 if errors == 'ignore':
                     continue
                 elif errors == 'warn':
