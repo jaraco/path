@@ -56,7 +56,7 @@ One may have imagined ``pathlib`` would supersede ``path.py``.
 But the implementation and the usage quickly diverge, and ``path.py``
 has several advantages over ``pathlib``:
 
-- ``path.py`` implementsbits ``Path`` objects as a subclass of
+- ``path.py`` implements ``Path`` objects as a subclass of
   ``str`` (unicode on Python 2), and as a result these ``Path``
   objects may be passed directly to other APIs that expect simple
   text representations of paths, whereas with ``pathlib``, one
