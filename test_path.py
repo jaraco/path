@@ -258,6 +258,16 @@ class TestSelfReturn:
         ret = p.rename(target)
         assert target == ret
 
+    def test_setext(self, tmpdir):
+        p = Path(tmpdir) / "a file"
+        p.touch()
+        new_ext = ".py"
+        ret = p.setext(new_ext)
+        assert ret.ext == ".py"
+        new_ext = ".txt"
+        ret = ret.setext(new_ext)
+        assert ret.ext == ".txt"
+
     def test_mkdir(self, tmpdir):
         p = Path(tmpdir) / "newdir"
         ret = p.mkdir()
