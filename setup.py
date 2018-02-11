@@ -28,7 +28,7 @@ params = dict(
     long_description=long_description,
     url="https://github.com/jaraco/" + name,
     py_modules=['path', 'test_path'],
-    python_requires='>=2.7',
+    python_requires='>=2.7,!=3.1,!=3.2,!=3.3',
     install_requires=[
     ],
     extras_require={
@@ -58,10 +58,6 @@ params = dict(
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     entry_points={

@@ -1,3 +1,8 @@
+11.0
+----
+
+- Drop support for Python 3.3.
+
 10.6
 ----
 
