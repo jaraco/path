@@ -4,10 +4,10 @@
 .. image:: https://img.shields.io/pypi/pyversions/path.py.svg
 
 .. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
-   :target: http://travis-ci.org/jaraco/path.py
+   :target: https://travis-ci.org/jaraco/path.py
 
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
-   :target: http://pathpy.readthedocs.io/en/latest/?badge=latest
+   :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
 
 ``path.py`` implements a path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For

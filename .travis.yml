@@ -2,12 +2,14 @@ dist: trusty
 sudo: false
 language: python
 
+python:
+- 2.7
+- 3.3
+- &latest_py3 3.6
+
 jobs:
   fast_finish: true
   include:
-  - python: 2.7
-  - python: 3.3
-  - python: &latest_py3 3.6
   - stage: deploy
     if: tag IS present
     python: *latest_py3
@@ -28,6 +30,6 @@ jobs:
 cache: pip
 
 install:
-- pip install tox
+- pip install tox tox-venv
 
 script: tox
