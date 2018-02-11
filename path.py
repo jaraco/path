@@ -336,6 +336,25 @@ class Path(text_type):
         f, ext = self.module.splitext(self)
         return ext
 
+    def with_suffix(self, suffix):
+        """ Return a new path with the file suffix changed (or added, if none)
+
+        >>> Path('/home/guido/python.tar.gz').with_suffix(".foo")
+        Path('/home/guido/python.tar.foo')
+
+        >>> Path('python').with_suffix('.zip')
+        Path('python.zip')
+
+        >>> Path('filename.ext').with_suffix('zip')
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid suffix 'zip'
+        """
+        if not suffix.startswith('.'):
+            raise ValueError("Invalid suffix {suffix!r}".format(**locals()))
+
+        return self.stripext() + suffix
+
     @property
     def drive(self):
         """ The drive specifier, for example ``'C:'``.

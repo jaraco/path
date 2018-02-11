@@ -4,6 +4,12 @@
 - Renamed ``namebase`` to ``stem`` to match API of pathlib.
   Kept ``namebase`` as a deprecated alias for compatibility.
 
+- Added new ``with_suffix`` method, useful for renaming the
+  extension on a Path::
+
+    orig = Path('mydir/mypath.bat')
+    renamed = orig.rename(orig.with_suffix('.cmd'))
+
 10.5
 ----
 
