@@ -316,16 +316,19 @@ class Path(text_type):
         return self.expandvars().expanduser().normpath()
 
     @property
-    def namebase(self):
+    def stem(self):
         """ The same as :meth:`name`, but with one file extension stripped off.
 
-        For example,
-        ``Path('/home/guido/python.tar.gz').name == 'python.tar.gz'``,
-        but
-        ``Path('/home/guido/python.tar.gz').namebase == 'python.tar'``.
+        >>> Path('/home/guido/python.tar.gz').stem
+        'python.tar'
         """
         base, ext = self.module.splitext(self.name)
         return base
+
+    @property
+    def namebase(self):
+        warnings.warn("Use .stem instead of .namebase", DeprecationWarning)
+        return self.stem
 
     @property
     def ext(self):

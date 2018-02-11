@@ -1,3 +1,9 @@
+10.6
+----
+
+- Renamed ``namebase`` to ``stem`` to match API of pathlib.
+  Kept ``namebase`` as a deprecated alias for compatibility.
+
 10.5
 ----
 
