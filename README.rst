@@ -9,7 +9,7 @@
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
    :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
 
-``path.py`` implements a path objects as first-class entities, allowing
+``path.py`` implements path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For
 example:
 
@@ -22,12 +22,12 @@ example:
 
 ``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
-Find `the documentatation here <https://pathpy.readthedocs.io>`_.
+Find `the documentation here <https://pathpy.readthedocs.io>`_.
 
 Guides and Testimonials
 =======================
 
-Yasoob has written the Python 101 `Writing a Cleanup Script
+Yasoob wrote the Python 101 `Writing a Cleanup Script
 <http://freepythontips.wordpress.com/2014/01/23/python-101-writing-a-cleanup-script/>`_
 based on ``path.py``.
 
@@ -61,13 +61,13 @@ has several advantages over ``pathlib``:
   objects may be passed directly to other APIs that expect simple
   text representations of paths, whereas with ``pathlib``, one
   must first cast values to strings before passing them to
-  APIs unaware of pathlib.
+  APIs unaware of ``pathlib``.
 - ``path.py`` goes beyond exposing basic functionality of a path
   and exposes commonly-used behaviors on a path, providing
   methods like ``rmtree`` (from shlib) and ``remove_p`` (remove
   a file if it exists).
 - As a PyPI-hosted package, ``path.py`` is free to iterate
-  more quickly than a stdlib package. Contributions are welcomed
+  faster than a stdlib package. Contributions are welcome
   and encouraged.
 
 Alternatives
@@ -82,7 +82,7 @@ class, which shares some behaviors and interfaces with ``path.py``.
 Development
 ===========
 
-To install an in-development version, use the Github links to clone or
+To install a development version, use the Github links to clone or
 download a snapshot of the latest code. Alternatively, if you have git
 installed, you may be able to use ``pip`` to install directly from
 the repository::
