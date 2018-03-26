@@ -329,13 +329,13 @@ class TestScratchDir:
                 # On Windows, "ctime" is CREATION time
                 assert ct == ct2
                 assert ct2 < t2
-            elif mac_version('10.13'):
-                # On macOS High Sierra, f.mtime will be close
-                assert ct2 == pytest.approx(f.mtime, 0.001)
             else:
-                # On other systems, it might be the CHANGE time
-                # (especially on Unix, time of inode changes)
-                assert ct == ct2 or ct2 == f.mtime
+                assert (
+                    # ctime is unchanged
+                    ct == ct2 or
+                    # ctime is approximately the mtime
+                    ct2 == pytest.approx(f.mtime, 0.001)
+                )
 
     def test_listing(self, tmpdir):
         d = Path(tmpdir)
