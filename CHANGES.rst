@@ -1,3 +1,10 @@
+11.0.1
+------
+
+- #136: Fixed test failures on BSD.
+
+- Refreshed package metadata.
+
 11.0
 ----
 
