@@ -6,6 +6,9 @@
 .. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
    :target: https://travis-ci.org/jaraco/path.py
 
+.. image:: https://img.shields.io/appveyor/ci/jaraco/path.py/master.svg
+   :target: https://ci.appveyor.com/project/jaraco/path.py/branch/master
+
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
    :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
 
