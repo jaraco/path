@@ -261,7 +261,7 @@ class Path(text_type):
         os.chdir(self._old_dir)
 
     def __fspath__(self):
-        return self
+        return text_type(self)
 
     @classmethod
     def getcwd(cls):
