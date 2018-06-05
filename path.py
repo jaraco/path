@@ -29,8 +29,18 @@ Example::
 
     from path import Path
     d = Path('/home/guido/bin')
+
+    # Globbing
     for f in d.files('*.py'):
         f.chmod(0o755)
+
+    # Changing the working directory:
+    with Path("somewhere"):
+        # cwd in now `somewhere`
+        ...
+
+    # Concatenate paths with /
+    foo_txt = Path("bar") / "foo.txt"
 """
 
 from __future__ import unicode_literals

@@ -23,6 +23,18 @@ example:
     for f in d.files('*.py'):
         f.chmod(0o755)
 
+    # Globbing
+    for f in d.files('*.py'):
+        f.chmod(0o755)
+
+    # Changing the working directory:
+    with Path("somewhere"):
+        # cwd in now `somewhere`
+        ...
+
+    # Concatenate paths with /
+    foo_txt = Path("bar") / "foo.txt"
+
 ``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
 
 Find `the documentation here <https://pathpy.readthedocs.io>`_.
