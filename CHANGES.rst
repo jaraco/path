@@ -99,7 +99,8 @@
 ---
 
 - Refreshed project metadata based on `jaraco's project
-  skeleton <https://github.com/jaraco/skeleton/tree/spaces>_.
+  skeleton <https://github.com/jaraco/skeleton/tree/spaces>`_.
+
 - Releases are now automatically published via Travis-CI.
 - #111: More aggressively trap errors when importing
   ``pkg_resources``.

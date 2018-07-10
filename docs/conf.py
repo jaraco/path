@@ -10,7 +10,7 @@ extensions = [
 
 pygments_style = 'sphinx'
 html_theme = 'alabaster'
-html_static_path = ['_static']
+html_static_path = []
 htmlhelp_basename = 'pathpydoc'
 templates_path = ['_templates']
 exclude_patterns = ['_build']

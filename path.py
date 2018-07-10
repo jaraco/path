@@ -749,6 +749,10 @@ class Path(text_type):
         of all the files users have in their :file:`bin` directories.
 
         .. seealso:: :func:`glob.glob`
+
+        .. note:: Glob is **not** recursive, even when using ``**``.
+                  To do recursive globbing see :func:`walk`,
+                  :func:`walkdirs` or :func:`walkfiles`.
         """
         cls = self._next_class
         return [cls(s) for s in glob.glob(self / pattern)]
