@@ -896,7 +896,7 @@ class TestTempDir:
         """
         d = TempDir()
         res = d.__enter__()
-        assert res is d
+        assert res == path.Path(d)
         (d / 'somefile.txt').touch()
         assert not isinstance(d / 'somefile.txt', TempDir)
         d.__exit__(None, None, None)

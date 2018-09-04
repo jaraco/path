@@ -1658,7 +1658,11 @@ class TempDir(Path):
         pass
 
     def __enter__(self):
-        return self
+        # TempDir should return a Path version of itself and not itself
+        # so that a second context manager does not create a second
+        # temporary directory, but rather changes CWD to the location
+        # of the temporary directory.
+        return self._next_class(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
