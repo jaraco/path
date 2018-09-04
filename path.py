@@ -757,6 +757,24 @@ class Path(text_type):
         cls = self._next_class
         return [cls(s) for s in glob.glob(self / pattern)]
 
+    def iglob(self, pattern):
+        """ Return an iterator of Path objects that match the pattern.
+
+        `pattern` - a path relative to this directory, with wildcards.
+
+        For example, ``Path('/users').iglob('*/bin/*')`` returns an
+        iterator of all the files users have in their :file:`bin`
+        directories.
+
+        .. seealso:: :func:`glob.iglob`
+
+        .. note:: Glob is **not** recursive, even when using ``**``.
+                  To do recursive globbing see :func:`walk`,
+                  :func:`walkdirs` or :func:`walkfiles`.
+        """
+        cls = self._next_class
+        return (cls(s) for s in glob.iglob(self / pattern))
+
     #
     # --- Reading or writing an entire file at once.
 

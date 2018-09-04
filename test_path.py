@@ -22,6 +22,7 @@ import os
 import sys
 import shutil
 import time
+import types
 import ntpath
 import posixpath
 import textwrap
@@ -358,6 +359,11 @@ class TestScratchDir:
             assert d.glob('*') == [af]
             assert d.glob('*.html') == []
             assert d.glob('testfile') == []
+
+            # .iglob matches .glob but as an iterator.
+            assert list(d.iglob('*')) == d.glob('*')
+            assert isinstance(d.iglob('*'), types.GeneratorType)
+
         finally:
             af.remove()
 
