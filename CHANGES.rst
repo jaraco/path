@@ -1,3 +1,14 @@
+11.1.0
+------
+
+- #143, #144: Add iglob method.
+- #142, #145: Rename ``tempdir`` to ``TempDir`` and declare
+  it as part of ``__all__``. Retain ``tempdir`` for compatibility
+  for now.
+- #145: ``TempDir.__enter__`` no longer returns the ``TempDir``
+  instance, but instead returns a ``Path`` instance, suitable for
+  entering to change the current working directory.
+
 11.0.1
 ------
 
