@@ -110,7 +110,7 @@ def io_error_compat():
 ##############################################################################
 
 
-__all__ = ['Path', 'CaseInsensitivePattern']
+__all__ = ['Path', 'TempDir', 'CaseInsensitivePattern']
 
 
 LINESEPS = ['\r\n', '\r', '\n']
@@ -1635,7 +1635,7 @@ class TempDir(Path):
     constructed with the same parameters that you can use
     as a context manager.
 
-    Example:
+    Example::
 
         with TempDir() as d:
             # do stuff with the Path object "d"
