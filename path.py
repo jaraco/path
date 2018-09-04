@@ -110,7 +110,7 @@ def io_error_compat():
 ##############################################################################
 
 
-__all__ = ['Path', 'CaseInsensitivePattern']
+__all__ = ['Path', 'TempDir', 'CaseInsensitivePattern']
 
 
 LINESEPS = ['\r\n', '\r', '\n']
@@ -1432,7 +1432,7 @@ class Path(text_type):
         is not capable of storing a copy of the entire source tree.
         """
         update = kwargs.pop('update', False)
-        with tempdir() as _temp_dir:
+        with TempDir() as _temp_dir:
             # first copy the tree to a stage directory to support
             #  the parameters and behavior of copytree.
             stage = _temp_dir / str(hash(self))
@@ -1647,15 +1647,15 @@ class Multi:
         )
 
 
-class tempdir(Path):
+class TempDir(Path):
     """
     A temporary directory via :func:`tempfile.mkdtemp`, and
     constructed with the same parameters that you can use
     as a context manager.
 
-    Example:
+    Example::
 
-        with tempdir() as d:
+        with TempDir() as d:
             # do stuff with the Path object "d"
 
         # here the directory is deleted automatically
@@ -1670,17 +1670,25 @@ class tempdir(Path):
 
     def __new__(cls, *args, **kwargs):
         dirname = tempfile.mkdtemp(*args, **kwargs)
-        return super(tempdir, cls).__new__(cls, dirname)
+        return super(TempDir, cls).__new__(cls, dirname)
 
     def __init__(self, *args, **kwargs):
         pass
 
     def __enter__(self):
-        return self
+        # TempDir should return a Path version of itself and not itself
+        # so that a second context manager does not create a second
+        # temporary directory, but rather changes CWD to the location
+        # of the temporary directory.
+        return self._next_class(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
             self.rmtree()
+
+
+# For backwards compatibility.
+tempdir = TempDir
 
 
 def _multi_permission_mask(mode):

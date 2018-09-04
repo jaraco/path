@@ -34,7 +34,7 @@ import pytest
 import packaging.version
 
 import path
-from path import tempdir
+from path import TempDir
 from path import CaseInsensitivePattern as ci
 from path import SpecialResolver
 from path import Multi
@@ -272,7 +272,7 @@ class TestSelfReturn:
 
 class TestScratchDir:
     """
-    Tests that run in a temporary directory (does not test tempdir class)
+    Tests that run in a temporary directory (does not test TempDir class)
     """
     def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
@@ -692,7 +692,7 @@ class TestScratchDir:
         test('UTF-16')
 
     def test_chunks(self, tmpdir):
-        p = (tempdir() / 'test.txt').touch()
+        p = (TempDir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
         p.write_text(txt)
@@ -706,13 +706,13 @@ class TestScratchDir:
         reason="samefile not present",
     )
     def test_samefile(self, tmpdir):
-        f1 = (tempdir() / '1.txt').touch()
+        f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
-        f2 = (tempdir() / '2.txt').touch()
+        f2 = (TempDir() / '2.txt').touch()
         f1.write_text('foo')
-        f3 = (tempdir() / '3.txt').touch()
+        f3 = (TempDir() / '3.txt').touch()
         f1.write_text('bar')
-        f4 = (tempdir() / '4.txt')
+        f4 = (TempDir() / '4.txt')
         f1.copyfile(f4)
 
         assert os.path.samefile(f1, f2) == f1.samefile(f2)
@@ -878,7 +878,7 @@ class TestTempDir:
         """
         One should be able to readily construct a temporary directory
         """
-        d = tempdir()
+        d = TempDir()
         assert isinstance(d, path.Path)
         assert d.exists()
         assert d.isdir()
@@ -887,24 +887,24 @@ class TestTempDir:
 
     def test_next_class(self):
         """
-        It should be possible to invoke operations on a tempdir and get
+        It should be possible to invoke operations on a TempDir and get
         Path classes.
         """
-        d = tempdir()
+        d = TempDir()
         sub = d / 'subdir'
         assert isinstance(sub, path.Path)
         d.rmdir()
 
     def test_context_manager(self):
         """
-        One should be able to use a tempdir object as a context, which will
+        One should be able to use a TempDir object as a context, which will
         clean up the contents after.
         """
-        d = tempdir()
+        d = TempDir()
         res = d.__enter__()
-        assert res is d
+        assert res == path.Path(d)
         (d / 'somefile.txt').touch()
-        assert not isinstance(d / 'somefile.txt', tempdir)
+        assert not isinstance(d / 'somefile.txt', TempDir)
         d.__exit__(None, None, None)
         assert not d.exists()
 
@@ -912,10 +912,10 @@ class TestTempDir:
         """
         The context manager will not clean up if an exception occurs.
         """
-        d = tempdir()
+        d = TempDir()
         d.__enter__()
         (d / 'somefile.txt').touch()
-        assert not isinstance(d / 'somefile.txt', tempdir)
+        assert not isinstance(d / 'somefile.txt', TempDir)
         d.__exit__(TypeError, TypeError('foo'), None)
         assert d.exists()
 
@@ -925,7 +925,7 @@ class TestTempDir:
         provide a temporry directory that will be deleted after that.
         """
 
-        with tempdir() as d:
+        with TempDir() as d:
             assert d.isdir()
         assert not d.isdir()
 
