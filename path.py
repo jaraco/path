@@ -94,6 +94,7 @@ if PY2:
     text_type = __builtin__.unicode
     getcwdu = os.getcwdu
     map = itertools.imap
+    FileNotFoundError = OSError
 
 
 @contextlib.contextmanager
@@ -1321,9 +1322,8 @@ class Path(text_type):
         file does not exist. """
         try:
             self.unlink()
-        except OSError:
-            _, e, _ = sys.exc_info()
-            if e.errno != errno.ENOENT:
+        except FileNotFoundError as exc:
+            if PY2 and exc.errno != errno.ENOENT:
                 raise
         return self
 
