@@ -410,10 +410,6 @@ class TestScratchDir:
                     pass
 
     @pytest.mark.xfail(
-        platform.system() == 'Linux' and path.PY2,
-        reason="Can't decode bytes in FS. See #121",
-    )
-    @pytest.mark.xfail(
         mac_version('10.13'),
         reason="macOS disallows invalid encodings",
     )
