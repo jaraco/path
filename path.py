@@ -123,8 +123,8 @@ U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 
 
 try:
-    import pkg_resources
-    __version__ = pkg_resources.require('path.py')[0].version
+    import importlib_metadata
+    __version__ = importlib_metadata.version('path.py')
 except Exception:
     __version__ = 'unknown'
 

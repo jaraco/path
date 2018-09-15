@@ -24,6 +24,7 @@ params = dict(
     py_modules=['path', 'test_path'],
     python_requires='>=2.7,!=3.1,!=3.2,!=3.3',
     install_requires=[
+        'importlib_metadata',
     ],
     extras_require={
         'testing': [
