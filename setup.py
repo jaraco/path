@@ -2,12 +2,7 @@
 
 # Project skeleton maintained at https://github.com/jaraco/skeleton
 
-import io
-
 import setuptools
-
-with io.open('README.rst', encoding='utf-8') as readme:
-    long_description = readme.read()
 
 name = 'path.py'
 description = 'A module wrapper for os.path'
@@ -25,7 +20,6 @@ params = dict(
     maintainer="Jason R. Coombs",
     maintainer_email="jaraco@jaraco.com",
     description=description or name,
-    long_description=long_description,
     url="https://github.com/jaraco/" + name,
     py_modules=['path', 'test_path'],
     python_requires='>=2.7,!=3.1,!=3.2,!=3.3',
@@ -34,7 +28,7 @@ params = dict(
     extras_require={
         'testing': [
             # upstream
-            'pytest>=3.5',
+            'pytest>=3.5,!=3.7.3',
             'pytest-sugar>=0.9.1',
             'collective.checkdocs',
             'pytest-flake8',
