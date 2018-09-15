@@ -59,7 +59,6 @@ import operator
 import re
 import contextlib
 import io
-import distutils.dir_util
 import importlib
 import itertools
 import platform
@@ -96,6 +95,7 @@ if PY2:
     getcwdu = os.getcwdu
     map = itertools.imap
     FileNotFoundError = OSError
+    itertools.filterfalse = itertools.ifilterfalse
 
 
 @contextlib.contextmanager
@@ -1412,7 +1412,12 @@ class Path(text_type):
 
     cd = chdir
 
-    def merge_tree(self, dst, symlinks=False, *args, **kwargs):
+    def merge_tree(
+            self, dst, symlinks=False,
+            # *
+            update=False,
+            copy_function=shutil.copy2,
+            ignore=lambda dir, contents: []):
         """
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
@@ -1420,26 +1425,43 @@ class Path(text_type):
         If the additional keyword `update` is True, each
         `src` will only be copied if `dst` does not exist,
         or `src` is newer than `dst`.
-
-        Note that the technique employed stages the files in a temporary
-        directory first, so this function is not suitable for merging
-        trees with large files, especially if the temporary directory
-        is not capable of storing a copy of the entire source tree.
         """
-        update = kwargs.pop('update', False)
-        with TempDir() as _temp_dir:
-            # first copy the tree to a stage directory to support
-            #  the parameters and behavior of copytree.
-            stage = _temp_dir / str(hash(self))
-            self.copytree(stage, symlinks, *args, **kwargs)
-            # now copy everything from the stage directory using
-            #  the semantics of dir_util.copy_tree
-            distutils.dir_util.copy_tree(
-                stage,
-                dst,
-                preserve_symlinks=symlinks,
-                update=update,
+        def copy_newer(src, dst, follow_symlinks=True):
+            is_newer_dst = (
+                self.module.exists(dst)
+                and self.module.getmtime(dst) >= self.module.getmtime(src)
             )
+            if is_newer_dst:
+                return dst
+            return copy_function(src, dst, follow_symlinks=follow_symlinks)
+
+        dst = self._next_class(dst)
+        dst.makedirs_p()
+
+        copy_func = copy_newer if update else copy_function
+
+        _ignored = ignore(self, os.listdir(self))
+
+        def ignored(item):
+            return item.name in _ignored
+
+        for source in itertools.filterfalse(ignored, self.listdir()):
+            dest = dst / source.name
+            if symlinks and source.islink():
+                target = source.readlink()
+                target.symlink(dest)
+            elif source.isdir():
+                source.mergetree(
+                    dest,
+                    symlinks=symlinks,
+                    update=update,
+                    copy_function=copy_func,
+                    ignore=ignore,
+                )
+            else:
+                copy_func(source, dest)
+
+        self.copystat(dst)
 
     #
     # --- Special stuff from os
