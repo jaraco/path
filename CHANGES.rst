@@ -1,3 +1,14 @@
+11.2.0
+------
+
+- #146: Rely on `importlib_metadata
+  <https://pypi.org/project/importlib_metadata>`_ instead of
+  setuptools/pkg_resources to load the version of the module.
+  Added tests ensuring a <100ms import time for the ``path``
+  module. This change adds an explicit dependency on the
+  importlib_metadata package, but the project still supports
+  copying of the ``path.py`` module without any dependencies.
+
 11.1.0
 ------
 
