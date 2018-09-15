@@ -1438,12 +1438,13 @@ class Path(text_type):
             )
             copy_function = only_newer(copy_function)
 
-        _ignored = ignore(self, os.listdir(self))
+        sources = self.listdir()
+        _ignored = ignore(self, [item.name for item in sources])
 
         def ignored(item):
             return item.name in _ignored
 
-        for source in itertools.filterfalse(ignored, self.listdir()):
+        for source in itertools.filterfalse(ignored, sources):
             dest = dst / source.name
             if symlinks and source.islink():
                 target = source.readlink()
