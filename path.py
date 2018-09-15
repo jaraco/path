@@ -1426,19 +1426,10 @@ class Path(text_type):
         `src` will only be copied if `dst` does not exist,
         or `src` is newer than `dst`.
         """
-        def copy_newer(src, dst, follow_symlinks=True):
-            is_newer_dst = (
-                self.module.exists(dst)
-                and self.module.getmtime(dst) >= self.module.getmtime(src)
-            )
-            if is_newer_dst:
-                return dst
-            return copy_function(src, dst, follow_symlinks=follow_symlinks)
-
         dst = self._next_class(dst)
         dst.makedirs_p()
 
-        copy_func = copy_newer if update else copy_function
+        copy_func = only_newer(copy_function) if update else copy_function
 
         _ignored = ignore(self, os.listdir(self))
 
@@ -1594,6 +1585,23 @@ class Path(text_type):
         of special will raise an ImportError.
         """
         return functools.partial(SpecialResolver, cls)
+
+
+def only_newer(copy_func):
+    """
+    Wrap a copy function (like shutil.copy2) to return
+    the dst if it's newer than the source.
+    """
+    @functools.wraps(copy_func)
+    def wrapper(src, dst, *args, **kwargs):
+        is_newer_dst = (
+            dst.exists()
+            and dst.getmtime() >= src.getmtime()
+        )
+        if is_newer_dst:
+            return dst
+        return copy_func(src, dst, *args, **kwargs)
+    return wrapper
 
 
 class SpecialResolver(object):
