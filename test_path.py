@@ -1223,6 +1223,7 @@ class TestMultiPath:
         assert path == input
 
 
+@pytest.mark.xfail('path.PY2', reason="Python 2 has no __future__")
 def test_no_dependencies():
     """
     Path.py guarantees that the path module can be
