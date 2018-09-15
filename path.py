@@ -1422,14 +1422,21 @@ class Path(text_type):
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
 
-        If the additional keyword `update` is True, each
-        `src` will only be copied if `dst` does not exist,
-        or `src` is newer than `dst`.
+        To avoid overwriting newer files, supply a copy function
+        wrapped in ``only_newer``. For example::
+
+            src.merge_tree(dst, copy_function=only_newer(shutil.copy2))
         """
         dst = self._next_class(dst)
         dst.makedirs_p()
 
-        copy_func = only_newer(copy_function) if update else copy_function
+        if update:
+            warnings.warn(
+                "Update is deprecated; "
+                "use copy_function=only_newer(shutil.copy2)",
+                DeprecationWarning,
+            )
+            copy_function = only_newer(copy_function)
 
         _ignored = ignore(self, os.listdir(self))
 
@@ -1446,11 +1453,11 @@ class Path(text_type):
                     dest,
                     symlinks=symlinks,
                     update=update,
-                    copy_function=copy_func,
+                    copy_function=copy_function,
                     ignore=ignore,
                 )
             else:
-                copy_func(source, dest)
+                copy_function(source, dest)
 
         self.copystat(dst)
 
