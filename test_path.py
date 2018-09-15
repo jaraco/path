@@ -29,6 +29,9 @@ import textwrap
 import platform
 import importlib
 import operator
+import datetime
+import subprocess
+import re
 
 import pytest
 import packaging.version
@@ -231,6 +234,27 @@ class TestBasics:
         res2 = res.joinpath('bar')
         assert isinstance(res2, path_posix)
         assert res2 == 'foo/bar'
+
+
+class TestPerformance:
+    def test_import_time(self, monkeypatch):
+        """
+        Import of path.py should take less than 100ms.
+
+        Run tests in a subprocess to isolate from test suite overhead.
+        """
+        cmd = [
+            sys.executable,
+            '-m', 'timeit',
+            '-n', '1',
+            '-r', '1',
+            'import path',
+        ]
+        res = subprocess.check_output(cmd, universal_newlines=True)
+        dur = re.search(r'(\d+) msec per loop', res).group(1)
+        limit = datetime.timedelta(milliseconds=100)
+        duration = datetime.timedelta(milliseconds=int(dur))
+        assert duration < limit
 
 
 class TestSelfReturn:
