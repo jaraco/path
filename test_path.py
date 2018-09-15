@@ -1221,7 +1221,3 @@ class TestMultiPath:
         assert not isinstance(first, Multi)
         assert next(items) == '/baz/bing'
         assert path == input
-
-
-if __name__ == '__main__':
-    pytest.main()
