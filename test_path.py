@@ -1221,3 +1221,16 @@ class TestMultiPath:
         assert not isinstance(first, Multi)
         assert next(items) == '/baz/bing'
         assert path == input
+
+
+def test_no_dependencies():
+    """
+    Path.py guarantees that the path module can be
+    transplanted into an environment without any dependencies.
+    """
+    cmd = [
+        sys.executable,
+        '-S',
+        '-c', 'import path',
+    ]
+    subprocess.check_call(cmd)
