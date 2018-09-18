@@ -1,3 +1,10 @@
+11.3.0
+------
+
+- #151: No longer use two techniques for splitting lines.
+  Instead, unconditionally rely on io.open for universal
+  newlines support and always use splitlines.
+
 11.2.0
 ------
 
