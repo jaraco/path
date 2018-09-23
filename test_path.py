@@ -587,6 +587,10 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
+    @pytest.mark.skipif(
+        not hasattr(os, 'symlink'),
+        reason="os.symlink not supported"
+    )
     def test_follow_symlink(self, tmpdir):
         d = Path(tmpdir)
         dirs = [
