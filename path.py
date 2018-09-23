@@ -720,7 +720,7 @@ class Path(text_type):
                     continue
                 else:
                     raise
-                    
+
             if child.islink() and not follow_symlinks:
                 continue
 
@@ -1887,7 +1887,8 @@ class FastPath(Path):
 
             if pattern is None or child.__fnmatch(pattern, normcase):
                 yield child
-            for subsubdir in child.__walkdirs(pattern, normcase, errors, follow_symlinks):
+            for subsubdir in child.__walkdirs(
+                    pattern, normcase, errors, follow_symlinks):
                 yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict', follow_symlinks=True):
@@ -1940,7 +1941,8 @@ class FastPath(Path):
                 if pattern is None or child.__fnmatch(pattern, normcase):
                     yield child
             elif isdir:
-                for f in child.__walkfiles(pattern, normcase, errors, follow_symlinks):
+                for f in child.__walkfiles(
+                        pattern, normcase, errors, follow_symlinks):
                     yield f
 
     def __fnmatch(self, pattern, normcase):
