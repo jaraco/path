@@ -587,6 +587,42 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
+    def test_follow_symlink(self, tmpdir):
+        d = Path(tmpdir)
+        dirs = [
+            d,
+            d / 'xdir1',
+            d / 'xdir1' / 'xsubdir',
+            d / 'xdir2',
+        ]
+
+        for e in dirs:
+            if not e.isdir():
+                e.makedirs()
+
+        Path(d / 'xdir1' / 'x.tmp').touch()
+        Path(d / 'xdir1').symlink(d / 'xdir2' / 'symldir')
+
+        # Follow symbolic link
+        self.assertList(
+            d.walkdirs(),
+            [
+                d / 'xdir1',
+                d / 'xdir1' / 'xsubdir',
+                d / 'xdir2',
+                d / 'xdir2' / 'symldir',
+                d / 'xdir2' / 'symldir' / 'xsubdir',
+            ])
+
+        # Not follow symbolic link
+        self.assertList(
+            d.walkdirs(follow_symlinks=False),
+            [
+                d / 'xdir1',
+                d / 'xdir1' / 'xsubdir',
+                d / 'xdir2',
+            ])
+
     def test_unicode(self, tmpdir):
         d = Path(tmpdir)
         p = d / 'unicode.txt'
