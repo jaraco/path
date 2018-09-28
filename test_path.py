@@ -851,6 +851,20 @@ class TestMergeTree:
         assert self.subdir_b.isdir()
         assert self.subdir_b.listdir() == [self.subdir_b / self.test_file.name]
 
+    def test_only_newer(self):
+        """
+        merge_tree should accept a copy_function in which only
+        newer files are copied and older files do not overwrite
+        newer copies in the dest.
+        """
+        target = self.subdir_b / 'testfile.txt'
+        target.write_text('this is newer')
+        self.subdir_a.merge_tree(
+            self.subdir_b,
+            copy_function=path.only_newer(shutil.copy2),
+        )
+        assert target.text() == 'this is newer'
+
 
 class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
