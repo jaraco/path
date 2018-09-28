@@ -1,3 +1,14 @@
+11.4.0
+------
+
+- #130: Path.py now supports non-decodable filenames on
+  Linux and Python 2, leveraging the
+  `backports.os <https://pypi.org/project/backports.os>`_
+  package (as an optional dependency). Currently, only
+  ``listdir`` is patched, but other ``os`` primitives may
+  be patched similarly in the ``patch_for_linux_python2``
+  function.
+
 11.3.0
 ------
 

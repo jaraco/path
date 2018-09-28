@@ -62,6 +62,7 @@ import io
 import distutils.dir_util
 import importlib
 import itertools
+import platform
 
 try:
     import win32security
@@ -1961,3 +1962,38 @@ class FastPath(Path):
 
         pattern, normcase = self.__prepare(pattern, normcase)
         return self.__fnmatch(pattern, normcase)
+
+
+def patch_for_linux_python2():
+    """
+    As reported in #130, when Linux users create filenames
+    not in the file system encoding, it creates problems on
+    Python 2. This function attempts to patch the os module
+    to make it behave more like that on Python 3.
+    """
+    if not PY2 or platform.system() != 'Linux':
+        return
+
+    try:
+        import backports.os
+    except ImportError:
+        return
+
+    class OS:
+        """
+        The proxy to the os module
+        """
+        def __init__(self, wrapped):
+            self._orig = wrapped
+
+        def __getattr__(self, name):
+            return getattr(self._orig, name)
+
+        def listdir(self, *args, **kwargs):
+            items = self._orig.listdir(*args, **kwargs)
+            return list(map(backports.os.fsdecode, items))
+
+    globals().update(os=OS(os))
+
+
+patch_for_linux_python2()
