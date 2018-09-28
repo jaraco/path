@@ -1422,6 +1422,10 @@ class Path(text_type):
         Copy entire contents of self to dst, overwriting existing
         contents in dst with those in self.
 
+        Pass ``symlinks=True`` to copy symbolic links as links.
+
+        Accepts a ``copy_function``, similar to copytree.
+
         To avoid overwriting newer files, supply a copy function
         wrapped in ``only_newer``. For example::
 
@@ -1435,6 +1439,7 @@ class Path(text_type):
                 "Update is deprecated; "
                 "use copy_function=only_newer(shutil.copy2)",
                 DeprecationWarning,
+                stacklevel=2,
             )
             copy_function = only_newer(copy_function)
 

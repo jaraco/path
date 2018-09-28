@@ -9,6 +9,12 @@
   be patched similarly in the ``patch_for_linux_python2``
   function.
 
+- #141: For merge_tree, instead of relying on the deprecated
+  distutils module, implement merge_tree explicitly. The
+  ``update`` parameter is deprecated, instead superseded
+  by a ``copy_function`` parameter and an ``only_newer``
+  wrapper for any copy function.
+
 11.3.0
 ------
 
