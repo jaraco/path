@@ -1455,7 +1455,7 @@ class Path(text_type):
                 target = source.readlink()
                 target.symlink(dest)
             elif source.isdir():
-                source.mergetree(
+                source.merge_tree(
                     dest,
                     symlinks=symlinks,
                     update=update,
