@@ -6,8 +6,8 @@
 .. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
    :target: https://travis-ci.org/jaraco/path.py
 
-.. image:: https://img.shields.io/appveyor/ci/jaraco/path.py/master.svg
-   :target: https://ci.appveyor.com/project/jaraco/path.py/branch/master
+.. image:: https://img.shields.io/appveyor/ci/jaraco/path-py/master.svg
+   :target: https://ci.appveyor.com/project/jaraco/path-py/branch/master
 
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
    :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
@@ -76,7 +76,9 @@ has several advantages over ``pathlib``:
   objects may be passed directly to other APIs that expect simple
   text representations of paths, whereas with ``pathlib``, one
   must first cast values to strings before passing them to
-  APIs unaware of ``pathlib``.
+  APIs unaware of ``pathlib``. This shortcoming was `addressed
+  by PEP 519 <https://www.python.org/dev/peps/pep-0519/>`_,
+  in Python 3.6.
 - ``path.py`` goes beyond exposing basic functionality of a path
   and exposes commonly-used behaviors on a path, providing
   methods like ``rmtree`` (from shlib) and ``remove_p`` (remove
@@ -84,6 +86,16 @@ has several advantages over ``pathlib``:
 - As a PyPI-hosted package, ``path.py`` is free to iterate
   faster than a stdlib package. Contributions are welcome
   and encouraged.
+- ``path.py`` provides a uniform abstraction over its Path object,
+  freeing the implementer to subclass it readily. One cannot
+  subclass a ``pathlib.Path`` to add functionality, but must
+  subclass ``Path``, ``PosixPath``, and ``WindowsPath``, even
+  if one only wishes to add a ``__dict__`` to the subclass
+  instances.  ``path.py`` instead allows the ``Path.module``
+  object to be overridden by subclasses, defaulting to the
+  ``os.path``. Even advanced uses of ``path.Path`` that
+  subclass the model do not need to be concerned with
+  OS-specific nuances.
 
 Alternatives
 ============
