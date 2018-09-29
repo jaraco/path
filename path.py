@@ -639,7 +639,7 @@ class Path(text_type):
                 for item in child.walk(pattern, errors):
                     yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', follow_symlinks=True):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional `pattern` argument, this yields only
@@ -651,6 +651,9 @@ class Path(text_type):
         error occurs.  The default is ``'strict'``, which causes an
         exception.  The other allowed values are ``'warn'`` (which
         reports the error via :func:`warnings.warn()`), and ``'ignore'``.
+
+        If the `follow_symlinks=` keyword argument value is ``False``,
+        not to follow symbolic links.
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -670,12 +673,15 @@ class Path(text_type):
                 raise
 
         for child in dirs:
+            if child.islink() and not follow_symlinks:
+                continue
+
             if pattern is None or child.fnmatch(pattern):
                 yield child
-            for subsubdir in child.walkdirs(pattern, errors):
+            for subsubdir in child.walkdirs(pattern, errors, follow_symlinks):
                 yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, pattern=None, errors='strict', follow_symlinks=True):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument `pattern` limits the results to files
@@ -716,11 +722,14 @@ class Path(text_type):
                 else:
                     raise
 
+            if child.islink() and not follow_symlinks:
+                continue
+
             if isfile:
                 if pattern is None or child.fnmatch(pattern):
                     yield child
             elif isdir:
-                for f in child.walkfiles(pattern, errors):
+                for f in child.walkfiles(pattern, errors, follow_symlinks):
                     yield f
 
     def fnmatch(self, pattern, normcase=None):
@@ -1889,7 +1898,7 @@ class FastPath(Path):
                 for item in child.__walk(pattern, normcase, errors):
                     yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', follow_symlinks=True):
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
 
@@ -1898,9 +1907,9 @@ class FastPath(Path):
         else:
             normcase = None
 
-        return self.__walkdirs(pattern, normcase, errors)
+        return self.__walkdirs(pattern, normcase, errors, follow_symlinks)
 
-    def __walkdirs(self, pattern, normcase, errors):
+    def __walkdirs(self, pattern, normcase, errors, follow_symlinks):
         """ Prepared version of walkdirs """
         try:
             dirs = self.dirs()
@@ -1917,12 +1926,16 @@ class FastPath(Path):
                 raise
 
         for child in dirs:
+            if child.islink() and not follow_symlinks:
+                continue
+
             if pattern is None or child.__fnmatch(pattern, normcase):
                 yield child
-            for subsubdir in child.__walkdirs(pattern, normcase, errors):
+            for subsubdir in child.__walkdirs(
+                    pattern, normcase, errors, follow_symlinks):
                 yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, pattern=None, errors='strict', follow_symlinks=True):
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
 
@@ -1931,9 +1944,9 @@ class FastPath(Path):
         else:
             normcase = None
 
-        return self.__walkfiles(pattern, normcase, errors)
+        return self.__walkfiles(pattern, normcase, errors, follow_symlinks)
 
-    def __walkfiles(self, pattern, normcase, errors):
+    def __walkfiles(self, pattern, normcase, errors, follow_symlinks):
         """ Prepared version of walkfiles """
         try:
             childList = self.listdir()
@@ -1965,11 +1978,15 @@ class FastPath(Path):
                 else:
                     raise
 
+            if child.islink() and not follow_symlinks:
+                continue
+
             if isfile:
                 if pattern is None or child.__fnmatch(pattern, normcase):
                     yield child
             elif isdir:
-                for f in child.__walkfiles(pattern, normcase, errors):
+                for f in child.__walkfiles(
+                        pattern, normcase, errors, follow_symlinks):
                     yield f
 
     def __fnmatch(self, pattern, normcase):
