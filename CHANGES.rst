@@ -1,3 +1,9 @@
+11.4.1
+------
+
+- #153: Skip intermittently failing performance test on
+  Python 2.
+
 11.4.0
 ------
 

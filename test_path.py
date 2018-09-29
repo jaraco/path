@@ -237,6 +237,9 @@ class TestBasics:
 
 
 class TestPerformance:
+    @pytest.mark.skipif(
+        path.PY2,
+        reason="Tests fail frequently on Python 2; see #153")
     def test_import_time(self, monkeypatch):
         """
         Import of path.py should take less than 100ms.
