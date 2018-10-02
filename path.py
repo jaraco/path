@@ -181,22 +181,6 @@ class matchers(object):
     # TODO: make this class a module
 
     @staticmethod
-    def from_pattern(pattern):
-        if pattern is None:
-            return
-        warnings.warn(
-            "'pattern' is deprecated, supply 'match' instead",
-            DeprecationWarning,
-            stacklevel=3,
-        )
-        match = matchers.Pattern(pattern)
-        try:
-            match.normcase = pattern.normcase
-        except AttributeError:
-            pass
-        return match
-
-    @staticmethod
     def load(param):
         """
         If the supplied parameter is a string, assum it's a simple
@@ -204,7 +188,8 @@ class matchers(object):
         """
         return (
             matchers.Pattern(param) if isinstance(param, string_types)
-            else param
+            else param if param is not None
+            else matchers.Null()
         )
 
     class Base(object):
@@ -232,6 +217,17 @@ class matchers(object):
             return fnmatch.fnmatchcase(normcase(path.name), pattern)
 
     class CaseInsensitive(Pattern):
+        """
+        A Pattern with a ``'normcase'`` property, suitable for passing to
+        :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
+        :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
+
+        For example, to get all files ending in .py, .Py, .pY, or .PY in the
+        current directory::
+
+            from path import Path, matchers
+            Path('.').files(matchers.CaseInsensitive('*.py'))
+        """
         normcase = staticmethod(ntpath.normcase)
 
 
@@ -597,7 +593,7 @@ class Path(text_type):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None, match=matchers.Null()):
+    def listdir(self, match=None):
         """ D.listdir() -> List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -610,7 +606,7 @@ class Path(text_type):
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
-        match = matchers.from_pattern(pattern) or matchers.load(match)
+        match = matchers.load(match)
         return list(filter(match, (
             self / child for child in os.listdir(self)
         )))
@@ -637,7 +633,7 @@ class Path(text_type):
 
         return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
 
-    def walk(self, pattern=None, errors='strict', match=matchers.Null()):
+    def walk(self, match=None, errors='strict'):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields Path objects naming each child item of
@@ -667,7 +663,7 @@ class Path(text_type):
             raise ValueError("invalid errors parameter")
         errors = vars(Handlers).get(errors, errors)
 
-        match = matchers.from_pattern(pattern) or matchers.load(match)
+        match = matchers.load(match)
 
         try:
             childList = self.listdir()
@@ -1792,125 +1788,24 @@ def _permission_mask(mode):
     return functools.partial(op_map[op], mask)
 
 
-class CaseInsensitivePattern(text_type):
-    """
-    A string with a ``'normcase'`` property, suitable for passing to
-    :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
-    :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
-
-    For example, to get all files ending in .py, .Py, .pY, or .PY in the
-    current directory::
-
-        from path import Path, CaseInsensitivePattern as ci
-        Path('.').files(ci('*.py'))
-    """
-
-    @property
-    def normcase(self):
-        return __import__('ntpath').normcase
+class CaseInsensitivePattern(matchers.CaseInsensitive):
+    def __init__(self, value):
+        warnings.warn(
+            "Use matchers.CaseInsensitive instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super(CaseInsensitivePattern, self).__init__(value)
 
 
 class FastPath(Path):
-    """
-    Performance optimized version of Path for use
-    on embedded platforms and other systems with limited
-    CPU. See #115 and #116 for background.
-    """
-
-    def listdir(self, pattern=None):
-        children = os.listdir(self)
-        if pattern is None:
-            return [self / child for child in children]
-
-        pattern, normcase = self.__prepare(pattern)
-        return [
-            self / child
-            for child in children
-            if self._next_class(child).__fnmatch(pattern, normcase)
-        ]
-
-    def walk(self, pattern=None, errors='strict'):
-        class Handlers:
-            def strict(msg):
-                raise
-
-            def warn(msg):
-                warnings.warn(msg, TreeWalkWarning)
-
-            def ignore(msg):
-                pass
-
-        if not callable(errors) and errors not in vars(Handlers):
-            raise ValueError("invalid errors parameter")
-        errors = vars(Handlers).get(errors, errors)
-
-        if pattern:
-            pattern, normcase = self.__prepare(pattern)
-        else:
-            normcase = None
-
-        return self.__walk(pattern, normcase, errors)
-
-    def __walk(self, pattern, normcase, errors):
-        """ Prepared version of walk """
-        try:
-            childList = self.listdir()
-        except Exception:
-            exc = sys.exc_info()[1]
-            tmpl = "Unable to list directory '%(self)s': %(exc)s"
-            msg = tmpl % locals()
-            errors(msg)
-            return
-
-        for child in childList:
-            if pattern is None or child.__fnmatch(pattern, normcase):
-                yield child
-            try:
-                isdir = child.isdir()
-            except Exception:
-                exc = sys.exc_info()[1]
-                tmpl = "Unable to access '%(child)s': %(exc)s"
-                msg = tmpl % locals()
-                errors(msg)
-                isdir = False
-
-            if isdir:
-                for item in child.__walk(pattern, normcase, errors):
-                    yield item
-
-    def __fnmatch(self, pattern, normcase):
-        """ Return ``True`` if `self.name` matches the given `pattern`,
-        prepared version.
-        `pattern` - A filename pattern with wildcards,
-            for example ``'*.py'``. The pattern is expected to be normcase'd
-            already.
-        `normcase` - A function used to normalize the pattern and
-            filename before matching.
-        .. seealso:: :func:`Path.fnmatch`
-        """
-        return fnmatch.fnmatchcase(normcase(self.name), pattern)
-
-    def __prepare(self, pattern, normcase=None):
-        """ Prepares a fmatch_pattern for use with ``FastPath.__fnmatch`.
-        `pattern` - A filename pattern with wildcards,
-            for example ``'*.py'``. If the pattern contains a `normcase`
-            attribute, it is applied to the name and path prior to comparison.
-        `normcase` - (optional) A function used to normalize the pattern and
-            filename before matching. Defaults to :meth:`self.module`,
-            which defaults to :meth:`os.path.normcase`.
-        .. seealso:: :func:`FastPath.__fnmatch`
-        """
-        if not normcase:
-            normcase = getattr(pattern, 'normcase', self.module.normcase)
-        pattern = normcase(pattern)
-        return pattern, normcase
-
-    def fnmatch(self, pattern, normcase=None):
-        if not pattern:
-            raise ValueError("No pattern provided")
-
-        pattern, normcase = self.__prepare(pattern, normcase)
-        return self.__fnmatch(pattern, normcase)
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "Use Path, as FastPath no longer holds any advantage",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super(FastPath, self).__init__(*args, **kwargs)
 
 
 def patch_for_linux_python2():
