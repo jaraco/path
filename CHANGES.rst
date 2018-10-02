@@ -1,3 +1,16 @@
+11.5.0
+------
+
+- #156: Re-wrote the handling of pattern matches for
+  ``listdir``, ``walk``, and related methods, allowing
+  the pattern to be a more complex object. This approach
+  drastically simplifies the code and obviates the
+  ``CaseInsensitivePattern`` and ``FastPath`` classes.
+  Now the main ``Path`` class should be as performant
+  as ``FastPath`` and case-insensitive matches can be
+  readily constructed using the new
+  ``path.matchers.CaseInsensitive`` class.
+
 11.4.1
 ------
 
