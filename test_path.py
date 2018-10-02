@@ -38,7 +38,7 @@ import packaging.version
 
 import path
 from path import TempDir
-from path import CaseInsensitivePattern as ci
+from path import matchers
 from path import SpecialResolver
 from path import Multi
 
@@ -1036,10 +1036,10 @@ class TestPatternMatching:
         p = Path(tmpdir)
         (p / 'sub').mkdir()
         (p / 'File').touch()
-        assert p.listdir(ci('S*')) == [p / 'sub']
-        assert p.listdir(ci('f*')) == [p / 'File']
-        assert p.files(ci('S*')) == []
-        assert p.dirs(ci('f*')) == []
+        assert p.listdir(matchers.CaseInsensitive('S*')) == [p / 'sub']
+        assert p.listdir(matchers.CaseInsensitive('f*')) == [p / 'File']
+        assert p.files(matchers.CaseInsensitive('S*')) == []
+        assert p.dirs(matchers.CaseInsensitive('f*')) == []
 
     def test_walk_case_insensitive(self, tmpdir):
         p = Path(tmpdir)
@@ -1048,7 +1048,7 @@ class TestPatternMatching:
         (p / 'sub1' / 'foo' / 'bar.Txt').touch()
         (p / 'sub2' / 'foo' / 'bar.TXT').touch()
         (p / 'sub2' / 'foo' / 'bar.txt.bz2').touch()
-        files = list(p.walkfiles(ci('*.txt')))
+        files = list(p.walkfiles(matchers.CaseInsensitive('*.txt')))
         assert len(files) == 2
         assert p / 'sub2' / 'foo' / 'bar.TXT' in files
         assert p / 'sub1' / 'foo' / 'bar.Txt' in files
