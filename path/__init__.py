@@ -766,7 +766,7 @@ class Path(text_type):
            :example:
 
                >>> hash = hashlib.md5()
-               >>> for chunk in Path("path.py").chunks(8192, mode='rb'):
+               >>> for chunk in Path("CHANGES.rst").chunks(8192, mode='rb'):
                ...     hash.update(chunk)
 
             This will read the file by chunks of 8192 bytes.

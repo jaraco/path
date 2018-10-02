@@ -21,7 +21,7 @@ params = dict(
     maintainer_email="jaraco@jaraco.com",
     description=description or name,
     url="https://github.com/jaraco/" + name,
-    py_modules=['path', 'test_path'],
+    packages=setuptools.find_packages(),
     python_requires='>=2.7,!=3.1,!=3.2,!=3.3',
     install_requires=[
         'importlib_metadata>=0.5',
