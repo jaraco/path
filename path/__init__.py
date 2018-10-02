@@ -40,7 +40,6 @@ import io
 import importlib
 import itertools
 import platform
-import ntpath
 
 try:
     import win32security
@@ -56,6 +55,8 @@ try:
     import grp
 except ImportError:
     pass
+
+from . import matchers
 
 ##############################################################################
 # Python 2/3 support
@@ -153,60 +154,6 @@ class multimethod(object):
             functools.partial(self.func, owner) if instance is None
             else functools.partial(self.func, owner, instance)
         )
-
-
-class matchers(object):
-    # TODO: make this class a module
-
-    @staticmethod
-    def load(param):
-        """
-        If the supplied parameter is a string, assum it's a simple
-        pattern.
-        """
-        return (
-            matchers.Pattern(param) if isinstance(param, string_types)
-            else param if param is not None
-            else matchers.Null()
-        )
-
-    class Base(object):
-        pass
-
-    class Null(Base):
-        def __call__(self, path):
-            return True
-
-    class Pattern(Base):
-        def __init__(self, pattern):
-            self.pattern = pattern
-
-        def get_pattern(self, normcase):
-            try:
-                return self._pattern
-            except AttributeError:
-                pass
-            self._pattern = normcase(self.pattern)
-            return self._pattern
-
-        def __call__(self, path):
-            normcase = getattr(self, 'normcase', path.module.normcase)
-            pattern = self.get_pattern(normcase)
-            return fnmatch.fnmatchcase(normcase(path.name), pattern)
-
-    class CaseInsensitive(Pattern):
-        """
-        A Pattern with a ``'normcase'`` property, suitable for passing to
-        :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
-        :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
-
-        For example, to get all files ending in .py, .Py, .pY, or .PY in the
-        current directory::
-
-            from path import Path, matchers
-            Path('.').files(matchers.CaseInsensitive('*.py'))
-        """
-        normcase = staticmethod(ntpath.normcase)
 
 
 class Path(text_type):
