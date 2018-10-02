@@ -119,6 +119,12 @@ class multimethod(object):
         )
 
 
+def skip_links(walker):
+    for item in walker:
+        walker.send(lambda: (item.isdir() and not item.islink()))
+        yield item
+
+
 class Path(str):
     """
     Represents a filesystem path.
@@ -561,10 +567,15 @@ class Path(str):
             return
 
         for child in childList:
+            traverse = None
             if match(child):
-                yield child
+                traverse = (yield child)
+                if traverse is not None:
+                    # caller sent a custom traversal; respond
+                    yield None
+            traverse = traverse or child.isdir
             try:
-                isdir = child.isdir()
+                do_traverse = traverse()
             except Exception:
                 exc = sys.exc_info()[1]
                 tmpl = "Unable to access '%(child)s': %(exc)s"
@@ -572,7 +583,7 @@ class Path(str):
                 errors(msg)
                 isdir = False
 
-            if isdir:
+            if do_traverse:
                 for item in child.walk(errors=errors, match=match):
                     yield item
 

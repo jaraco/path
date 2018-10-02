@@ -263,6 +263,20 @@ class TestPerformance:
         assert duration < limit
 
 
+class TestSymbolicLinksWalk:
+    def test_skip_symlinks(self, tmpdir):
+        root = Path(tmpdir)
+        sub = root / 'subdir'
+        sub.mkdir()
+        sub.symlink(root / 'link')
+        (sub / 'file').touch()
+        assert len(list(root.walk())) == 4
+
+        from path import skip_links
+
+        assert len(list(skip_links(root.walk()))) == 2
+
+
 class TestSelfReturn:
     """
     Some methods don't necessarily return any value (e.g. makedirs,
