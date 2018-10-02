@@ -62,6 +62,7 @@ import io
 import importlib
 import itertools
 import platform
+import ntpath
 
 try:
     import win32security
@@ -94,6 +95,7 @@ if PY2:
     text_type = __builtin__.unicode
     getcwdu = os.getcwdu
     map = itertools.imap
+    filter = itertools.ifilter
     FileNotFoundError = OSError
     itertools.filterfalse = itertools.ifilterfalse
 
@@ -173,6 +175,64 @@ class multimethod(object):
             functools.partial(self.func, owner) if instance is None
             else functools.partial(self.func, owner, instance)
         )
+
+
+class matchers(object):
+    # TODO: make this class a module
+
+    @staticmethod
+    def from_pattern(pattern):
+        if pattern is None:
+            return
+        warnings.warn(
+            "'pattern' is deprecated, supply 'match' instead",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        match = matchers.Pattern(pattern)
+        try:
+            match.normcase = pattern.normcase
+        except AttributeError:
+            pass
+        return match
+
+    @staticmethod
+    def load(param):
+        """
+        If the supplied parameter is a string, assum it's a simple
+        pattern.
+        """
+        return (
+            matchers.Pattern(param) if isinstance(param, string_types)
+            else param
+        )
+
+    class Base(object):
+        pass
+
+    class Null(Base):
+        def __call__(self, path):
+            return True
+
+    class Pattern(Base):
+        def __init__(self, pattern):
+            self.pattern = pattern
+
+        def get_pattern(self, normcase):
+            try:
+                return self._pattern
+            except AttributeError:
+                pass
+            self._pattern = normcase(self.pattern)
+            return self._pattern
+
+        def __call__(self, path):
+            normcase = getattr(self, 'normcase', path.module.normcase)
+            pattern = self.get_pattern(normcase)
+            return fnmatch.fnmatchcase(normcase(path.name), pattern)
+
+    class CaseInsensitive(Pattern):
+        normcase = staticmethod(ntpath.normcase)
 
 
 class Path(text_type):
@@ -537,7 +597,7 @@ class Path(text_type):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None):
+    def listdir(self, pattern=None, match=matchers.Null()):
         """ D.listdir() -> List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -545,18 +605,15 @@ class Path(text_type):
 
         The elements of the list are Path objects.
 
-        With the optional `pattern` argument, this only lists
-        items whose names match the given pattern.
+        With the optional `match` argument, a callable,
+        only return items whose names match the given pattern.
 
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
-        if pattern is None:
-            pattern = '*'
-        return [
-            self / child
-            for child in os.listdir(self)
-            if self._next_class(child).fnmatch(pattern)
-        ]
+        match = matchers.from_pattern(pattern) or matchers.load(match)
+        return list(filter(match, (
+            self / child for child in os.listdir(self)
+        )))
 
     def dirs(self, *args, **kwargs):
         """ D.dirs() -> List of this directory's subdirectories.
@@ -580,7 +637,7 @@ class Path(text_type):
 
         return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
 
-    def walk(self, pattern=None, errors='strict'):
+    def walk(self, pattern=None, errors='strict', match=matchers.Null()):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields Path objects naming each child item of
@@ -610,6 +667,8 @@ class Path(text_type):
             raise ValueError("invalid errors parameter")
         errors = vars(Handlers).get(errors, errors)
 
+        match = matchers.from_pattern(pattern) or matchers.load(match)
+
         try:
             childList = self.listdir()
         except Exception:
@@ -620,7 +679,7 @@ class Path(text_type):
             return
 
         for child in childList:
-            if pattern is None or child.fnmatch(pattern):
+            if match(child):
                 yield child
             try:
                 isdir = child.isdir()
@@ -632,7 +691,7 @@ class Path(text_type):
                 isdir = False
 
             if isdir:
-                for item in child.walk(pattern, errors):
+                for item in child.walk(errors=errors, match=match):
                     yield item
 
     def walkdirs(self, *args, **kwargs):
