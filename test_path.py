@@ -50,7 +50,7 @@ def p(**choices):
     return choices[os.name]
 
 
-@pytest.fixture(autouse=True, params=[path.Path, path.FastPath])
+@pytest.fixture(autouse=True, params=[path.Path])
 def path_class(request, monkeypatch):
     """
     Invoke tests on any number of Path classes.
