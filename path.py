@@ -558,31 +558,27 @@ class Path(text_type):
             if self._next_class(child).fnmatch(pattern)
         ]
 
-    def dirs(self, pattern=None):
+    def dirs(self, *args, **kwargs):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are Path objects.
         This does not walk recursively into subdirectories
         (but see :meth:`walkdirs`).
 
-        With the optional `pattern` argument, this only lists
-        directories whose names match the given pattern.  For
-        example, ``d.dirs('build-*')``.
+        Accepts parameters to :meth:`listdir`.
         """
-        return [p for p in self.listdir(pattern) if p.isdir()]
+        return [p for p in self.listdir(*args, **kwargs) if p.isdir()]
 
-    def files(self, pattern=None):
+    def files(self, *args, **kwargs):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are Path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
 
-        With the optional `pattern` argument, this only lists files
-        whose names match the given pattern.  For example,
-        ``d.files('*.pyc')``.
+        Accepts parameters to :meth:`listdir`.
         """
 
-        return [p for p in self.listdir(pattern) if p.isfile()]
+        return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
 
     def walk(self, pattern=None, errors='strict'):
         """ D.walk() -> iterator over files and subdirs, recursively.
