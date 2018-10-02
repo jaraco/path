@@ -639,89 +639,23 @@ class Path(text_type):
                 for item in child.walk(pattern, errors):
                     yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, *args, **kwargs):
         """ D.walkdirs() -> iterator over subdirs, recursively.
-
-        With the optional `pattern` argument, this yields only
-        directories whose names match the given pattern.  For
-        example, ``mydir.walkdirs('*test')`` yields only directories
-        with names ending in ``'test'``.
-
-        The `errors=` keyword argument controls behavior when an
-        error occurs.  The default is ``'strict'``, which causes an
-        exception.  The other allowed values are ``'warn'`` (which
-        reports the error via :func:`warnings.warn()`), and ``'ignore'``.
         """
-        if errors not in ('strict', 'warn', 'ignore'):
-            raise ValueError("invalid errors parameter")
+        return (
+            item
+            for item in self.walk(*args, **kwargs)
+            if item.isdir()
+        )
 
-        try:
-            dirs = self.dirs()
-        except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-                return
-            else:
-                raise
-
-        for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
-                yield child
-            for subsubdir in child.walkdirs(pattern, errors):
-                yield subsubdir
-
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, *args, **kwargs):
         """ D.walkfiles() -> iterator over files in D, recursively.
-
-        The optional argument `pattern` limits the results to files
-        with names that match the pattern.  For example,
-        ``mydir.walkfiles('*.tmp')`` yields only files with the ``.tmp``
-        extension.
         """
-        if errors not in ('strict', 'warn', 'ignore'):
-            raise ValueError("invalid errors parameter")
-
-        try:
-            childList = self.listdir()
-        except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-                return
-            else:
-                raise
-
-        for child in childList:
-            try:
-                isfile = child.isfile()
-                isdir = not isfile and child.isdir()
-            except Exception:
-                if errors == 'ignore':
-                    continue
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (self, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    continue
-                else:
-                    raise
-
-            if isfile:
-                if pattern is None or child.fnmatch(pattern):
-                    yield child
-            elif isdir:
-                for f in child.walkfiles(pattern, errors):
-                    yield f
+        return (
+            item
+            for item in self.walk(*args, **kwargs)
+            if item.isfile()
+        )
 
     def fnmatch(self, pattern, normcase=None):
         """ Return ``True`` if `self.name` matches the given `pattern`.
@@ -1888,89 +1822,6 @@ class FastPath(Path):
             if isdir:
                 for item in child.__walk(pattern, normcase, errors):
                     yield item
-
-    def walkdirs(self, pattern=None, errors='strict'):
-        if errors not in ('strict', 'warn', 'ignore'):
-            raise ValueError("invalid errors parameter")
-
-        if pattern:
-            pattern, normcase = self.__prepare(pattern)
-        else:
-            normcase = None
-
-        return self.__walkdirs(pattern, normcase, errors)
-
-    def __walkdirs(self, pattern, normcase, errors):
-        """ Prepared version of walkdirs """
-        try:
-            dirs = self.dirs()
-        except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-                return
-            else:
-                raise
-
-        for child in dirs:
-            if pattern is None or child.__fnmatch(pattern, normcase):
-                yield child
-            for subsubdir in child.__walkdirs(pattern, normcase, errors):
-                yield subsubdir
-
-    def walkfiles(self, pattern=None, errors='strict'):
-        if errors not in ('strict', 'warn', 'ignore'):
-            raise ValueError("invalid errors parameter")
-
-        if pattern:
-            pattern, normcase = self.__prepare(pattern)
-        else:
-            normcase = None
-
-        return self.__walkfiles(pattern, normcase, errors)
-
-    def __walkfiles(self, pattern, normcase, errors):
-        """ Prepared version of walkfiles """
-        try:
-            childList = self.listdir()
-        except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-                return
-            else:
-                raise
-
-        for child in childList:
-            try:
-                isfile = child.isfile()
-                isdir = not isfile and child.isdir()
-            except Exception:
-                if errors == 'ignore':
-                    continue
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (self, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    continue
-                else:
-                    raise
-
-            if isfile:
-                if pattern is None or child.__fnmatch(pattern, normcase):
-                    yield child
-            elif isdir:
-                for f in child.__walkfiles(pattern, normcase, errors):
-                    yield f
 
     def __fnmatch(self, pattern, normcase):
         """ Return ``True`` if `self.name` matches the given `pattern`,
