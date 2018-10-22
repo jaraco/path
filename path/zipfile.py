@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import zipfile
 import operator
+import posixpath
 
 import path
 
@@ -20,7 +21,7 @@ class ZipAware:
 
         def constructor(*args, **kwargs):
             ob = self.__class__(*args, **kwargs)
-            ob.container = self
+            ob.container = self.archive and self
             return ob
         return constructor
 
@@ -41,14 +42,19 @@ class ZipAware:
         if not self.archive:
             return super(ZipAware, self).listdir()
 
-        paths = map(operator.attrgetter('filename'), self.archive.infolist())
-
         def is_child(path):
-            pre, _, rest = path.partition(self)
-            return not pre and '/' not in rest.rstrip('/')
+            pre, _, post = path.partition(self)
+            rest = post.strip('/')
+            return not pre and rest and '/' not in rest
+
+        items = [
+            posixpath.join(self.archive.filename, info.filename)
+            for info in self.archive.infolist()
+        ]
+
         return [
             self._next_class(path)
-            for path in paths
+            for path in items
             if is_child(path)
         ]
 
