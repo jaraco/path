@@ -40,7 +40,6 @@ import io
 import importlib
 import itertools
 import platform
-import ntpath
 
 try:
     import win32security
@@ -56,6 +55,8 @@ try:
     import grp
 except ImportError:
     pass
+
+import matchers
 
 ##############################################################################
 # Python 2/3 support
@@ -136,7 +137,8 @@ def simple_cache(func):
 
 
 class ClassProperty(property):
-    def __get__(self, cls, owner):
+
+    def __get__(self, obj, owner):
         return self.fget.__get__(None, owner)()
 
 
@@ -153,60 +155,6 @@ class multimethod(object):
             functools.partial(self.func, owner) if instance is None
             else functools.partial(self.func, owner, instance)
         )
-
-
-class matchers(object):
-    # TODO: make this class a module
-
-    @staticmethod
-    def load(param):
-        """
-        If the supplied parameter is a string, assum it's a simple
-        pattern.
-        """
-        return (
-            matchers.Pattern(param) if isinstance(param, string_types)
-            else param if param is not None
-            else matchers.Null()
-        )
-
-    class Base(object):
-        pass
-
-    class Null(Base):
-        def __call__(self, path):
-            return True
-
-    class Pattern(Base):
-        def __init__(self, pattern):
-            self.pattern = pattern
-
-        def get_pattern(self, normcase):
-            try:
-                return self._pattern
-            except AttributeError:
-                pass
-            self._pattern = normcase(self.pattern)
-            return self._pattern
-
-        def __call__(self, path):
-            normcase = getattr(self, 'normcase', path.module.normcase)
-            pattern = self.get_pattern(normcase)
-            return fnmatch.fnmatchcase(normcase(path.name), pattern)
-
-    class CaseInsensitive(Pattern):
-        """
-        A Pattern with a ``'normcase'`` property, suitable for passing to
-        :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
-        :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
-
-        For example, to get all files ending in .py, .Py, .pY, or .PY in the
-        current directory::
-
-            from path import Path, matchers
-            Path('.').files(matchers.CaseInsensitive('*.py'))
-        """
-        normcase = staticmethod(ntpath.normcase)
 
 
 class Path(text_type):
@@ -231,9 +179,11 @@ class Path(text_type):
     .. seealso:: :mod:`os.path`
     """
 
-    def __init__(self, other=''):
+    def __new__(cls, other=''):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
+
+        return super(Path, cls).__new__(cls, other)
 
     @classmethod
     @simple_cache
@@ -317,6 +267,8 @@ class Path(text_type):
         """
         return cls(getcwdu())
 
+    cwd = classmethod(getcwd)
+
     @classmethod
     def home(cls):
         """ This class method works like pathlib "Path.home" class method.
@@ -332,6 +284,8 @@ class Path(text_type):
     def abspath(self):
         """ .. seealso:: :func:`os.path.abspath` """
         return self._next_class(self.module.abspath(self))
+
+    absolute = abspath
 
     def normcase(self):
         """ .. seealso:: :func:`os.path.normcase` """
@@ -766,6 +720,8 @@ class Path(text_type):
         with self.open('rb') as f:
             return f.read()
 
+    read_bytes = bytes
+
     def chunks(self, size, *args, **kwargs):
         """ Returns a generator yielding chunks of the file, so it can
             be read piece by piece with a simple for loop.
@@ -807,6 +763,8 @@ class Path(text_type):
         """
         with self.open(mode='r', encoding=encoding, errors=errors) as f:
             return U_NEWLINE.sub('\n', f.read())
+
+    read_text = text
 
     def write_text(self, text, encoding=None, errors='strict',
                    linesep=os.linesep, append=False):
@@ -1007,9 +965,13 @@ class Path(text_type):
         """ .. seealso:: :func:`os.path.isdir` """
         return self.module.isdir(self)
 
+    is_dir = isdir
+
     def isfile(self):
         """ .. seealso:: :func:`os.path.isfile` """
         return self.module.isfile(self)
+
+    is_file = isfile
 
     def islink(self):
         """ .. seealso:: :func:`os.path.islink` """
@@ -1173,6 +1135,28 @@ class Path(text_type):
         os.chmod(self, mode)
         return self
 
+    def lchmod(self, mode):
+        """
+        Set the mode. May be the new mode (os.chmod behavior) or a `symbolic
+        mode <http://en.wikipedia.org/wiki/Chmod#Symbolic_modes>`_.
+
+        .. seealso:: :func:`os.chmod`
+        """
+        if isinstance(mode, string_types):
+            mask = _multi_permission_mask(mode)
+            mode = mask(self.stat().st_mode)
+        os.lchmod(self, mode)
+        return self
+
+    if 'grp' in globals():
+        def group(self):
+            if self.exists():
+                gid = os.stat(self)
+                gruoup_data = grp.getgrgid(gid.st_gid)
+                return gruoup_data.gr_name
+
+            return
+
     def chown(self, uid=-1, gid=-1):
         """
         Change the owner and group by names rather than the uid or gid numbers.
@@ -1330,6 +1314,8 @@ class Path(text_type):
             os.symlink(self, newlink)
             return self._next_class(newlink)
 
+        symlink_to = symlink
+
     if hasattr(os, 'readlink'):
         def readlink(self):
             """ Return the path to which this symbolic link points.
@@ -1371,7 +1357,7 @@ class Path(text_type):
         """ Like :meth:`rmtree`, but does not raise an exception if the
         directory does not exist. """
         try:
-            self.rmtree()
+            shutil.rmtree(self)
         except OSError:
             _, e, _ = sys.exc_info()
             if e.errno != errno.ENOENT:
@@ -1437,7 +1423,7 @@ class Path(text_type):
             else:
                 copy_function(source, dest)
 
-        self.copystat(dst)
+        shutil.copystat(self, dst)
 
     #
     # --- Special stuff from os
@@ -1694,7 +1680,7 @@ class TempDir(Path):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_value:
-            self.rmtree()
+            shutil.rmtree(self)
 
 
 # For backwards compatibility.
@@ -1828,3 +1814,5 @@ def patch_for_linux_python2():
 
 
 patch_for_linux_python2()
+
+
