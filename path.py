@@ -317,6 +317,15 @@ class Path(text_type):
         """
         return cls(getcwdu())
 
+    @classmethod
+    def home(cls):
+        """ This class method works like pathlib "Path.home" class method.
+
+        :return: a Path object pointing to user home directory.
+        :rtype: Path
+        """
+        return cls(os.path.expanduser('~'))
+
     #
     # --- Operations on Path strings.
 
