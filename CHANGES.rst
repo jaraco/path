@@ -234,7 +234,7 @@ name, ``path.Path`` as introduced in 6.2.
 7.6
 ---
 
-- Pull Request #100: Add ``merge_tree`` method for merging
+- #100: Add ``merge_tree`` method for merging
   two existing directory trees.
 - Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
   for version management.
