@@ -1562,6 +1562,8 @@ class Path(text_type):
         """
         return functools.partial(SpecialResolver, cls)
 
+path = Path
+
 
 def only_newer(copy_func):
     """
