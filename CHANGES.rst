@@ -1,3 +1,8 @@
+11.5.2
+------
+
+- #163: Corrected 'pymodules' typo in package declaration.
+
 11.5.1
 ------
 
