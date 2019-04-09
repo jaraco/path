@@ -1162,12 +1162,8 @@ class Path(str):
     def mkdir_p(self, mode=0o777):
         """ Like :meth:`mkdir`, but does not raise an exception if the
         directory already exists. """
-        try:
+        with contextlib.suppress(FileExistsError):
             self.mkdir(mode)
-        except OSError:
-            _, e, _ = sys.exc_info()
-            if e.errno != errno.EEXIST:
-                raise
         return self
 
     def makedirs(self, mode=0o777):
@@ -1178,12 +1174,8 @@ class Path(str):
     def makedirs_p(self, mode=0o777):
         """ Like :meth:`makedirs`, but does not raise an exception if the
         directory already exists. """
-        try:
+        with contextlib.suppress(FileExistsError):
             self.makedirs(mode)
-        except OSError:
-            _, e, _ = sys.exc_info()
-            if e.errno != errno.EEXIST:
-                raise
         return self
 
     def rmdir(self):
@@ -1195,11 +1187,11 @@ class Path(str):
         """ Like :meth:`rmdir`, but does not raise an exception if the
         directory is not empty or does not exist. """
         try:
-            self.rmdir()
+            with contextlib.suppress(FileNotFoundError, FileExistsError):
+                self.rmdir()
         except OSError:
             _, e, _ = sys.exc_info()
-            bypass_codes = errno.ENOTEMPTY, errno.EEXIST, errno.ENOENT
-            if e.errno not in bypass_codes:
+            if e.errno != errno.ENOTEMPTY:
                 raise
         return self
 
@@ -1212,10 +1204,11 @@ class Path(str):
         """ Like :meth:`removedirs`, but does not raise an exception if the
         directory is not empty or does not exist. """
         try:
-            self.removedirs()
+            with contextlib.suppress(FileExistsError):
+                self.removedirs()
         except OSError:
             _, e, _ = sys.exc_info()
-            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+            if e.errno != errno.ENOTEMPTY:
                 raise
         return self
 
