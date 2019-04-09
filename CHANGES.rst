@@ -1,3 +1,8 @@
+11.5.1
+------
+
+- Minor packaging refresh.
+
 11.5.0
 ------
 
