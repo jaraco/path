@@ -21,8 +21,6 @@ Example::
     foo_txt = Path("bar") / "foo.txt"
 """
 
-from __future__ import unicode_literals
-
 import sys
 import warnings
 import os
@@ -39,7 +37,6 @@ import contextlib
 import io
 import importlib
 import itertools
-import platform
 import ntpath
 
 try:
@@ -56,40 +53,6 @@ try:
     import grp
 except ImportError:
     pass
-
-##############################################################################
-# Python 2/3 support
-PY3 = sys.version_info >= (3,)
-PY2 = not PY3
-
-string_types = str,
-text_type = str
-getcwdu = os.getcwd
-
-
-if PY2:
-    import __builtin__
-    string_types = __builtin__.basestring,
-    text_type = __builtin__.unicode
-    getcwdu = os.getcwdu
-    map = itertools.imap
-    filter = itertools.ifilter
-    FileNotFoundError = OSError
-    itertools.filterfalse = itertools.ifilterfalse
-
-
-@contextlib.contextmanager
-def io_error_compat():
-    try:
-        yield
-    except IOError as io_err:
-        # On Python 2, io.open raises IOError; transform to OSError for
-        # future compatibility.
-        os_err = OSError(*io_err.args)
-        os_err.filename = getattr(io_err, 'filename', None)
-        raise os_err
-
-##############################################################################
 
 
 __all__ = ['Path', 'TempDir', 'CaseInsensitivePattern']
@@ -165,7 +128,7 @@ class matchers(object):
         pattern.
         """
         return (
-            matchers.Pattern(param) if isinstance(param, string_types)
+            matchers.Pattern(param) if isinstance(param, str)
             else param if param is not None
             else matchers.Null()
         )
@@ -209,7 +172,7 @@ class matchers(object):
         normcase = staticmethod(ntpath.normcase)
 
 
-class Path(text_type):
+class Path(str):
     """
     Represents a filesystem path.
 
@@ -239,8 +202,6 @@ class Path(text_type):
     @simple_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
-        if PY2:
-            subclass_name = str(subclass_name)
         bases = (cls,)
         ns = {'module': module}
         return type(subclass_name, bases, ns)
@@ -266,7 +227,7 @@ class Path(text_type):
             return NotImplemented
 
     def __radd__(self, other):
-        if not isinstance(other, string_types):
+        if not isinstance(other, str):
             return NotImplemented
         return self._next_class(other.__add__(self))
 
@@ -315,7 +276,7 @@ class Path(text_type):
 
         .. seealso:: :func:`os.getcwdu`
         """
-        return cls(getcwdu())
+        return cls(os.getcwd())
 
     #
     # --- Operations on Path strings.
@@ -749,8 +710,7 @@ class Path(text_type):
         Keyword arguments work as in :func:`io.open`.  If the file cannot be
         opened, an :class:`~exceptions.OSError` is raised.
         """
-        with io_error_compat():
-            return io.open(self, *args, **kwargs)
+        return io.open(self, *args, **kwargs)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -864,7 +824,7 @@ class Path(text_type):
         conversion.
 
         """
-        if isinstance(text, text_type):
+        if isinstance(text, str):
             if linesep is not None:
                 text = U_NEWLINE.sub(linesep, text)
             text = text.encode(encoding or sys.getdefaultencoding(), errors)
@@ -932,7 +892,7 @@ class Path(text_type):
         """
         with self.open('ab' if append else 'wb') as f:
             for line in lines:
-                isUnicode = isinstance(line, text_type)
+                isUnicode = isinstance(line, str)
                 if linesep is not None:
                     pattern = U_NL_END if isUnicode else NL_END
                     line = pattern.sub('', line) + linesep
@@ -1158,7 +1118,7 @@ class Path(text_type):
 
         .. seealso:: :func:`os.chmod`
         """
-        if isinstance(mode, string_types):
+        if isinstance(mode, str):
             mask = _multi_permission_mask(mode)
             mode = mask(self.stat().st_mode)
         os.chmod(self, mode)
@@ -1171,9 +1131,9 @@ class Path(text_type):
         .. seealso:: :func:`os.chown`
         """
         if hasattr(os, 'chown'):
-            if 'pwd' in globals() and isinstance(uid, string_types):
+            if 'pwd' in globals() and isinstance(uid, str):
                 uid = pwd.getpwnam(uid).pw_uid
-            if 'grp' in globals() and isinstance(gid, string_types):
+            if 'grp' in globals() and isinstance(gid, str):
                 gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
         else:
@@ -1278,11 +1238,8 @@ class Path(text_type):
     def remove_p(self):
         """ Like :meth:`remove`, but does not raise an exception if the
         file does not exist. """
-        try:
+        with contextlib.suppress(FileNotFoundError):
             self.unlink()
-        except FileNotFoundError as exc:
-            if PY2 and exc.errno != errno.ENOENT:
-                raise
         return self
 
     def unlink(self):
@@ -1361,12 +1318,8 @@ class Path(text_type):
     def rmtree_p(self):
         """ Like :meth:`rmtree`, but does not raise an exception if the
         directory does not exist. """
-        try:
+        with contextlib.suppress(FileNotFoundError):
             self.rmtree()
-        except OSError:
-            _, e, _ = sys.exc_info()
-            if e.errno != errno.ENOENT:
-                raise
         return self
 
     def chdir(self):
@@ -1377,7 +1330,7 @@ class Path(text_type):
 
     def merge_tree(
             self, dst, symlinks=False,
-            # *
+            *,
             update=False,
             copy_function=shutil.copy2,
             ignore=lambda dir, contents: []):
@@ -1622,8 +1575,6 @@ class Multi:
     @classmethod
     def for_class(cls, path_cls):
         name = 'Multi' + path_cls.__name__
-        if PY2:
-            name = str(name)
         return type(name, (cls, path_cls), {})
 
     @classmethod
@@ -1784,38 +1735,3 @@ class FastPath(Path):
             stacklevel=2,
         )
         super(FastPath, self).__init__(*args, **kwargs)
-
-
-def patch_for_linux_python2():
-    """
-    As reported in #130, when Linux users create filenames
-    not in the file system encoding, it creates problems on
-    Python 2. This function attempts to patch the os module
-    to make it behave more like that on Python 3.
-    """
-    if not PY2 or platform.system() != 'Linux':
-        return
-
-    try:
-        import backports.os
-    except ImportError:
-        return
-
-    class OS:
-        """
-        The proxy to the os module
-        """
-        def __init__(self, wrapped):
-            self._orig = wrapped
-
-        def __getattr__(self, name):
-            return getattr(self._orig, name)
-
-        def listdir(self, *args, **kwargs):
-            items = self._orig.listdir(*args, **kwargs)
-            return list(map(backports.os.fsdecode, items))
-
-    globals().update(os=OS(os))
-
-
-patch_for_linux_python2()
