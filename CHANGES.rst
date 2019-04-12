@@ -2,6 +2,7 @@
 ---
 
 - #148: Dropped support for Python 2.7 and 3.4.
+- Moved 'path' into a package.
 
 11.5.2
 ------
