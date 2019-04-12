@@ -119,13 +119,12 @@ the repository::
 Testing
 =======
 
-Tests are continuously run by Travis-CI: |BuildStatus|_
+Tests are invoked with `tox <https://pypi.org/project/tox>`_. After
+having installed tox, simply invoke ``tox`` in a checkout of the repo
+to invoke the tests.
 
-.. |BuildStatus| image:: https://secure.travis-ci.org/jaraco/path.py.png
-.. _BuildStatus: http://travis-ci.org/jaraco/path.py
-
-To run the tests, refer to the ``.travis.yml`` file for the steps run on the
-Travis-CI hosts.
+Tests are also run in continuous integration. See the badges above
+for links to the CI runs.
 
 Releasing
 =========
