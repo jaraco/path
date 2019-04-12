@@ -237,9 +237,6 @@ class TestBasics:
 
 
 class TestPerformance:
-    @pytest.mark.skipif(
-        path.PY2,
-        reason="Tests fail frequently on Python 2; see #153")
     def test_import_time(self, monkeypatch):
         """
         Import of path.py should take less than 100ms.
@@ -417,7 +414,7 @@ class TestScratchDir:
         reason="macOS disallows invalid encodings",
     )
     @pytest.mark.xfail(
-        platform.system() == 'Windows' and path.PY3,
+        platform.system() == 'Windows',
         reason="Can't write latin characters. See #133",
     )
     def test_listdir_other_encoding(self, tmpdir):
@@ -1236,7 +1233,6 @@ class TestMultiPath:
         assert path == input
 
 
-@pytest.mark.xfail('path.PY2', reason="Python 2 has no __future__")
 def test_no_dependencies():
     """
     Path.py guarantees that the path module can be
