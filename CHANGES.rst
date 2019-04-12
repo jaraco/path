@@ -1,3 +1,18 @@
+12.0
+---
+
+- #148: Dropped support for Python 2.7 and 3.4.
+
+11.5.2
+------
+
+- #163: Corrected 'pymodules' typo in package declaration.
+
+11.5.1
+------
+
+- Minor packaging refresh.
+
 11.5.0
 ------
 
@@ -234,7 +249,7 @@ name, ``path.Path`` as introduced in 6.2.
 7.6
 ---
 
-- Pull Request #100: Add ``merge_tree`` method for merging
+- #100: Add ``merge_tree`` method for merging
   two existing directory trees.
 - Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
   for version management.

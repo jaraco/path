@@ -1,23 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
-import sys
 import ntpath
 import fnmatch
-
-
-##############################################################################
-# Python 2/3 support
-PY3 = sys.version_info >= (3,)
-PY2 = not PY3
-
-string_types = str,
-
-
-if PY2:
-    import __builtin__
-    string_types = __builtin__.basestring,
-
-##############################################################################
 
 
 def load(param):
@@ -26,7 +10,7 @@ def load(param):
     pattern.
     """
     return (
-        Pattern(param) if isinstance(param, string_types)
+        Pattern(param) if isinstance(param, str)
         else param if param is not None
         else Null()
     )
