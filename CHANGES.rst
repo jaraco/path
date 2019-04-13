@@ -1,3 +1,8 @@
+12.0.1
+------
+
+- #166: Removed 'universal' wheel support.
+
 12.0
 ---
 
