@@ -126,15 +126,14 @@ class Traversal:
     `follow` is a function that takes an item and returns
     True if that item should be followed and False otherwise.
     """
-    def __init__(self, walker, follow):
+    def __init__(self, follow):
         self.follow = follow
-        self.walker = walker
 
-    def __iter__(self):
+    def __call__(self, walker):
         traverse = None
         while True:
             try:
-                item = self.walker.send(traverse)
+                item = walker.send(traverse)
             except StopIteration:
                 return
             yield item

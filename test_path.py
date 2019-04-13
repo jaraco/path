@@ -272,9 +272,10 @@ class TestSymbolicLinksWalk:
         (sub / 'file').touch()
         assert len(list(root.walk())) == 4
 
-        def skip_links(item):
-            return item.isdir() and not item.islink()
-        assert len(list(path.Traversal(root.walk(), skip_links))) == 3
+        skip_links = path.Traversal(
+            lambda item: item.isdir() and not item.islink(),
+        )
+        assert len(list(skip_links(root.walk()))) == 3
 
 
 class TestSelfReturn:
