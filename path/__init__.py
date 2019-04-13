@@ -1681,3 +1681,20 @@ class FastPath(Path):
             stacklevel=2,
         )
         super(FastPath, self).__init__(*args, **kwargs)
+
+
+class Concrete(Path):
+    def __new__(cls, orig, base=None):
+        return super().__new__(cls, orig)
+
+    def __init__(self, orig, base=None):
+        super().__init__(orig)
+        self.base = Path.getcwd() if base is None else base
+
+    def _next_class(self, val):
+        return self.__class__(val, base=self.base)
+
+    @property
+    def parent(self):
+        res = self.base / self / Path('..')
+        return Concrete(self.base.relpathto(res), self.base)
