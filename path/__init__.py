@@ -119,17 +119,27 @@ class multimethod(object):
         )
 
 
-def skip_links(walker):
-    traverse = None
-    while True:
-        try:
-            item = walker.send(traverse)
-        except StopIteration:
-            return
-        yield item
+class Traversal:
+    """
+    Wrap a walk result to customize the traversal.
 
-        def traverse():
-            return item.isdir() and not item.islink()
+    `follow` is a function that takes an item and returns
+    True if that item should be followed and False otherwise.
+    """
+    def __init__(self, walker, follow):
+        self.follow = follow
+        self.walker = walker
+
+    def __iter__(self):
+        traverse = None
+        while True:
+            try:
+                item = self.walker.send(traverse)
+            except StopIteration:
+                return
+            yield item
+
+            traverse = functools.partial(self.follow, item)
 
 
 class Path(str):
