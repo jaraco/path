@@ -1788,26 +1788,6 @@ def _permission_mask(mode):
     return functools.partial(op_map[op], mask)
 
 
-class CaseInsensitivePattern(matchers.CaseInsensitive):
-    def __init__(self, value):
-        warnings.warn(
-            "Use matchers.CaseInsensitive instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super(CaseInsensitivePattern, self).__init__(value)
-
-
-class FastPath(Path):
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            "Use Path, as FastPath no longer holds any advantage",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super(FastPath, self).__init__(*args, **kwargs)
-
-
 def patch_for_linux_python2():
     """
     As reported in #130, when Linux users create filenames
