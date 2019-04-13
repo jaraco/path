@@ -271,10 +271,7 @@ class TestSymbolicLinksWalk:
         sub.symlink(root / 'link')
         (sub / 'file').touch()
         assert len(list(root.walk())) == 4
-
-        from path import skip_links
-
-        assert len(list(skip_links(root.walk()))) == 2
+        assert len(list(path.skip_links(root.walk()))) == 3
 
 
 class TestSelfReturn:

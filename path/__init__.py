@@ -120,9 +120,16 @@ class multimethod(object):
 
 
 def skip_links(walker):
-    for item in walker:
-        walker.send(lambda: (item.isdir() and not item.islink()))
+    traverse = None
+    while True:
+        try:
+            item = walker.send(traverse)
+        except StopIteration:
+            return
         yield item
+
+        def traverse():
+            return item.isdir() and not item.islink()
 
 
 class Path(str):
@@ -570,9 +577,6 @@ class Path(str):
             traverse = None
             if match(child):
                 traverse = (yield child)
-                if traverse is not None:
-                    # caller sent a custom traversal; respond
-                    yield None
             traverse = traverse or child.isdir
             try:
                 do_traverse = traverse()
