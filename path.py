@@ -326,11 +326,6 @@ class Path(text_type):
         return base
 
     @property
-    def namebase(self):
-        warnings.warn("Use .stem instead of .namebase", DeprecationWarning)
-        return self.stem
-
-    @property
     def ext(self):
         """ The file extension, for example ``'.py'``. """
         f, ext = self.module.splitext(self)
