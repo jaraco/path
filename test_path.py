@@ -237,23 +237,29 @@ class TestBasics:
 
 
 class TestPerformance:
-    def test_import_time(self, monkeypatch):
-        """
-        Import of path.py should take less than 100ms.
-
-        Run tests in a subprocess to isolate from test suite overhead.
-        """
-        cmd = [
+    @staticmethod
+    def get_command_time(cmd):
+        args = [
             sys.executable,
             '-m', 'timeit',
             '-n', '1',
             '-r', '1',
-            'import path',
-        ]
-        res = subprocess.check_output(cmd, universal_newlines=True)
-        dur = re.search(r'(\d+) msec per loop', res).group(1)
-        limit = datetime.timedelta(milliseconds=100)
-        duration = datetime.timedelta(milliseconds=int(dur))
+            '-u', 'usec',
+        ] + [cmd]
+        res = subprocess.check_output(args, universal_newlines=True)
+        dur = re.search(r'(\d+) usec per loop', res).group(1)
+        return datetime.timedelta(microseconds=int(dur))
+
+    def test_import_time(self, monkeypatch):
+        """
+        Import of path.py should take less than some limit.
+
+        Run tests in a subprocess to isolate from test suite overhead.
+        """
+        limit = datetime.timedelta(milliseconds=20)
+        baseline = self.get_command_time('pass')
+        measure = self.get_command_time('import path')
+        duration = measure - baseline
         assert duration < limit
 
 
