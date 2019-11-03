@@ -6,6 +6,10 @@
 .. image:: https://img.shields.io/travis/jaraco/path.py/master.svg
    :target: https://travis-ci.org/jaraco/path.py
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: Code style: Black
+
 .. image:: https://img.shields.io/appveyor/ci/jaraco/path-py/master.svg
    :target: https://ci.appveyor.com/project/jaraco/path-py/branch/master
 
