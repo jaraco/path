@@ -16,6 +16,10 @@
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
    :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://tidelift.com/badges/package/pypi/path.py
+   :target: https://tidelift.com/subscription/pkg/pypi-path.py?utm_source=pypi-path.py&utm_medium=readme
+
+
 ``path.py`` implements path objects as first-class entities, allowing
 common operations on files to be invoked on those path objects directly. For
 example:
@@ -135,3 +139,10 @@ Releasing
 
 Tagged releases are automatically published to PyPI by Travis-CI, assuming
 the tests pass.
+
+Security Contact
+================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.

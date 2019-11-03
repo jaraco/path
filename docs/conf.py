@@ -9,8 +9,6 @@ extensions = [
 ]
 
 pygments_style = "sphinx"
-html_theme = "alabaster"
-master_doc = "index"
 
 intersphinx_mapping = {'python': ('http://docs.python.org/', None)}
 
@@ -33,3 +31,8 @@ link_files = {
         ],
     )
 }
+
+# Custom sidebar templates, maps document names to template names.
+html_theme = 'alabaster'
+templates_path = ['_templates']
+html_sidebars = {'index': ['tidelift-sidebar.html']}
