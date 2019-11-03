@@ -64,10 +64,7 @@ def mac_version(target, comparator=operator.ge):
     """
     current_ver = packaging.version.parse(platform.mac_ver()[0])
     target_ver = packaging.version.parse(target)
-    return (
-        platform.system() == 'Darwin'
-        and comparator(current_ver, target_ver)
-    )
+    return platform.system() == 'Darwin' and comparator(current_ver, target_ver)
 
 
 class TestBasics:
@@ -128,13 +125,7 @@ class TestBasics:
         assert x == str('xyzzy')
 
         # sorting
-        items = [Path('fhj'),
-                 Path('fgh'),
-                 'E',
-                 Path('d'),
-                 'A',
-                 Path('B'),
-                 'c']
+        items = [Path('fhj'), Path('fgh'), 'E', Path('d'), 'A', Path('B'), 'c']
         items.sort()
         assert items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj']
 
@@ -145,8 +136,10 @@ class TestBasics:
 
     def test_properties(self):
         # Create sample path object.
-        f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
-              posix='/usr/local/python/lib/xyzzy.py')
+        f = p(
+            nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
+            posix='/usr/local/python/lib/xyzzy.py',
+        )
         f = Path(f)
 
         # .parent
@@ -239,13 +232,9 @@ class TestBasics:
 class TestPerformance:
     @staticmethod
     def get_command_time(cmd):
-        args = [
-            sys.executable,
-            '-m', 'timeit',
-            '-n', '1',
-            '-r', '1',
-            '-u', 'usec',
-        ] + [cmd]
+        args = [sys.executable, '-m', 'timeit', '-n', '1', '-r', '1', '-u', 'usec'] + [
+            cmd
+        ]
         res = subprocess.check_output(args, universal_newlines=True)
         dur = re.search(r'(\d+) usec per loop', res).group(1)
         return datetime.timedelta(microseconds=int(dur))
@@ -269,6 +258,7 @@ class TestSelfReturn:
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
+
     def test_makedirs_p(self, tmpdir):
         """
         Path('foo').makedirs_p() == Path('foo')
@@ -304,6 +294,7 @@ class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test TempDir class)
     """
+
     def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
         d = Path(tmpdir)
@@ -363,7 +354,8 @@ class TestScratchDir:
             else:
                 assert (
                     # ctime is unchanged
-                    ct == ct2 or
+                    ct == ct2
+                    or
                     # ctime is approximately the mtime
                     ct2 == pytest.approx(f.mtime, 0.001)
                 )
@@ -415,13 +407,9 @@ class TestScratchDir:
                 except Exception:
                     pass
 
+    @pytest.mark.xfail(mac_version('10.13'), reason="macOS disallows invalid encodings")
     @pytest.mark.xfail(
-        mac_version('10.13'),
-        reason="macOS disallows invalid encodings",
-    )
-    @pytest.mark.xfail(
-        platform.system() == 'Windows',
-        reason="Can't write latin characters. See #133",
+        platform.system() == 'Windows', reason="Can't write latin characters. See #133"
     )
     def test_listdir_other_encoding(self, tmpdir):
         """
@@ -538,9 +526,8 @@ class TestScratchDir:
         assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
-            [testC / testCopy.name,
-             testC / testFile.name,
-             testCopyOfLink])
+            [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
+        )
         assert not testCopyOfLink.islink()
 
         # Clean up for another try.
@@ -552,9 +539,8 @@ class TestScratchDir:
         assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
-            [testC / testCopy.name,
-             testC / testFile.name,
-             testCopyOfLink])
+            [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
+        )
         if hasattr(os, 'symlink'):
             assert testCopyOfLink.islink()
             assert testCopyOfLink.readlink() == testFile
@@ -581,11 +567,10 @@ class TestScratchDir:
         self.assertList(d.listdir('*.tmp'), [d / 'x.tmp', d / 'xdir.tmp'])
         self.assertList(d.files('*.tmp'), [d / 'x.tmp'])
         self.assertList(d.dirs('*.tmp'), [d / 'xdir.tmp'])
-        self.assertList(d.walk(), [e for e in dirs
-                                   if e != d] + [e / n for e in dirs
-                                                 for n in names])
-        self.assertList(d.walk('*.tmp'),
-                        [e / 'x.tmp' for e in dirs] + [d / 'xdir.tmp'])
+        self.assertList(
+            d.walk(), [e for e in dirs if e != d] + [e / n for e in dirs for n in names]
+        )
+        self.assertList(d.walk('*.tmp'), [e / 'x.tmp' for e in dirs] + [d / 'xdir.tmp'])
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
@@ -621,21 +606,24 @@ class TestScratchDir:
                 ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
                 ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
                 ('\r'),
-                ('hanging')]
+                ('hanging'),
+            ]
             expectedLines = [
                 ('Hello world\n'),
                 ('\u0d0a\u0a0d\u0d15\u0a15\n'),
                 ('\u0d0a\u0a0d\u0d15\u0a15\n'),
                 ('\u0d0a\u0a0d\u0d15\u0a15\n'),
                 ('\n'),
-                ('hanging')]
+                ('hanging'),
+            ]
             expectedLines2 = [
                 ('Hello world'),
                 ('\u0d0a\u0a0d\u0d15\u0a15'),
                 ('\u0d0a\u0a0d\u0d15\u0a15'),
                 ('\u0d0a\u0a0d\u0d15\u0a15'),
                 (''),
-                ('hanging')]
+                ('hanging'),
+            ]
 
             # write bytes manually to file
             f = codecs.open(p, 'w', enc)
@@ -663,8 +651,7 @@ class TestScratchDir:
             p.write_text(cleanNoHanging, enc)
             p.write_text(cleanNoHanging, enc, append=True)
             # Check the result.
-            expectedBytes = 2 * cleanNoHanging.replace('\n',
-                                                       os.linesep).encode(enc)
+            expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(enc)
             expectedLinesNoHanging = expectedLines[:]
             expectedLinesNoHanging[-1] += '\n'
             assert p.bytes() == expectedBytes
@@ -723,14 +710,11 @@ class TestScratchDir:
         size = 5
         p.write_text(txt)
         for i, chunk in enumerate(p.chunks(size)):
-            assert chunk == txt[i * size:i * size + size]
+            assert chunk == txt[i * size : i * size + size]
 
         assert i == len(txt) / size - 1
 
-    @pytest.mark.skipif(
-        not hasattr(os.path, 'samefile'),
-        reason="samefile not present",
-    )
+    @pytest.mark.skipif(not hasattr(os.path, 'samefile'), reason="samefile not present")
     def test_samefile(self, tmpdir):
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
@@ -738,7 +722,7 @@ class TestScratchDir:
         f1.write_text('foo')
         f3 = (TempDir() / '3.txt').touch()
         f1.write_text('bar')
-        f4 = (TempDir() / '4.txt')
+        f4 = TempDir() / '4.txt'
         f1.copyfile(f4)
 
         assert os.path.samefile(f1, f2) == f1.samefile(f2)
@@ -756,8 +740,10 @@ class TestScratchDir:
         try:
             sub.rmtree_p()
         except OSError:
-            self.fail("Calling `rmtree_p` on non-existent directory "
-                      "should not raise an exception.")
+            self.fail(
+                "Calling `rmtree_p` on non-existent directory "
+                "should not raise an exception."
+            )
 
     def test_rmdir_p_exists(self, tmpdir):
         """
@@ -808,20 +794,18 @@ class TestMergeTree:
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-        ))
+        expected = set(
+            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-        ))
+        expected = set(
+            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
@@ -838,11 +822,13 @@ class TestMergeTree:
         self.subdir_a.merge_tree(self.subdir_b, True)
 
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-            self.subdir_b / test_new.name,
-        ))
+        expected = set(
+            (
+                self.subdir_b / self.test_file.name,
+                self.subdir_b / self.test_link.name,
+                self.subdir_b / test_new.name,
+            )
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
@@ -866,8 +852,7 @@ class TestMergeTree:
         target = self.subdir_b / 'testfile.txt'
         target.write_text('this is newer')
         self.subdir_a.merge_tree(
-            self.subdir_b,
-            copy_function=path.only_newer(shutil.copy2),
+            self.subdir_b, copy_function=path.only_newer(shutil.copy2)
         )
         assert target.text() == 'this is newer'
 
@@ -899,21 +884,21 @@ class TestChdir:
 
 
 class TestSubclass:
-
     def test_subclass_produces_same_class(self):
         """
         When operations are invoked on a subclass, they should produce another
         instance of that subclass.
         """
+
         class PathSubclass(Path):
             pass
+
         p = PathSubclass('/foo')
         subdir = p / 'bar'
         assert isinstance(subdir, PathSubclass)
 
 
 class TestTempDir:
-
     def test_constructor(self):
         """
         One should be able to readily construct a temporary directory
@@ -996,6 +981,7 @@ class TestPatternMatching:
     def test_fnmatch_custom_normcase(self):
         def normcase(path):
             return path.upper()
+
         p = Path('FooBar')
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
@@ -1058,17 +1044,21 @@ class TestPatternMatching:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (2, 6),
-    reason="in_place requires io module in Python 2.6",
+    sys.version_info < (2, 6), reason="in_place requires io module in Python 2.6"
 )
 class TestInPlace:
-    reference_content = textwrap.dedent("""
+    reference_content = textwrap.dedent(
+        """
         The quick brown fox jumped over the lazy dog.
-        """.lstrip())
-    reversed_content = textwrap.dedent("""
+        """.lstrip()
+    )
+    reversed_content = textwrap.dedent(
+        """
         .god yzal eht revo depmuj xof nworb kciuq ehT
-        """.lstrip())
-    alternate_content = textwrap.dedent("""
+        """.lstrip()
+    )
+    alternate_content = textwrap.dedent(
+        """
           Lorem ipsum dolor sit amet, consectetur adipisicing elit,
         sed do eiusmod tempor incididunt ut labore et dolore magna
         aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -1077,7 +1067,8 @@ class TestInPlace:
         esse cillum dolore eu fugiat nulla pariatur. Excepteur
         sint occaecat cupidatat non proident, sunt in culpa qui
         officia deserunt mollit anim id est laborum.
-        """.lstrip())
+        """.lstrip()
+    )
 
     @classmethod
     def create_reference(cls, tmpdir):
@@ -1244,11 +1235,7 @@ def test_no_dependencies():
     Path.py guarantees that the path module can be
     transplanted into an environment without any dependencies.
     """
-    cmd = [
-        sys.executable,
-        '-S',
-        '-c', 'import path',
-    ]
+    cmd = [sys.executable, '-S', '-c', 'import path']
     subprocess.check_call(cmd)
 
 
