@@ -1,3 +1,8 @@
+v12.0.2
+-------
+
+- Refreshed package metadata.
+
 12.0.1
 ------
 
