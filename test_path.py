@@ -7,8 +7,9 @@ This suite runs on Linux, OS X, and Windows right now.  To extend the
 platform support, just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
 Then report the result.  If you can't get the test to run at all on
-your platform, there's probably a bug in path.py -- please report the issue
-in the issue tracker at https://github.com/jaraco/path.py.
+your platform, there's probably a bug in path pie --
+please report the issue
+in the issue tracker at https://github.com/jaraco/path.
 
 TestScratchDir.test_touch() takes a while to run.  It sleeps a few
 seconds to allow some time to pass between calls to check the modify
@@ -241,7 +242,7 @@ class TestPerformance:
 
     def test_import_time(self, monkeypatch):
         """
-        Import of path.py should take less than some limit.
+        Import should take less than some limit.
 
         Run tests in a subprocess to isolate from test suite overhead.
         """
@@ -427,7 +428,7 @@ class TestScratchDir:
         # first demonstrate that os.listdir works
         assert os.listdir(tmpdir_bytes)
 
-        # now try with path.py
+        # now try with path
         results = Path(tmpdir).listdir()
         assert len(results) == 1
         res, = results
@@ -1244,7 +1245,7 @@ class TestMultiPath:
 
 def test_no_dependencies():
     """
-    Path.py guarantees that the path module can be
+    Path pie guarantees that the path module can be
     transplanted into an environment without any dependencies.
     """
     cmd = [sys.executable, '-S', '-c', 'import path']

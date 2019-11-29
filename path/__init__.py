@@ -1,7 +1,8 @@
 """
-path.py - An object representing a path to a file or directory.
+Path Pie
 
-https://github.com/jaraco/path.py
+Implements ``path.Path`` - An object representing a
+path to a file or directory.
 
 Example::
 
@@ -76,7 +77,7 @@ except ImportError:
         pass
 
 try:
-    __version__ = metadata.version('path.py')
+    __version__ = metadata.version('path')
 except Exception:
     __version__ = 'unknown'
 
