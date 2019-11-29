@@ -79,6 +79,13 @@ except Exception:
     __version__ = 'unknown'
 
 
+warnings.warn(
+    "path.py is now path (https://pypi.org/project/path). "
+    "Please switch to that package.",
+    DeprecationWarning,
+)
+
+
 class TreeWalkWarning(Warning):
     pass
 
