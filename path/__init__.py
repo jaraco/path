@@ -70,7 +70,10 @@ U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata
+    try:
+        import importlib_metadata as metadata
+    except ImportError:
+        pass
 
 try:
     __version__ = metadata.version('path.py')
