@@ -33,7 +33,7 @@ files to be invoked on those path objects directly. For example:
 
     # Globbing
     for f in d.files('*.py'):
-        f.chmod(0o755)
+        f.chmod('u+rwx')
 
     # Changing the working directory:
     with Path("somewhere"):
