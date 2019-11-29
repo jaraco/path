@@ -1,4 +1,4 @@
-v12.0.3
+v12.1.0
 -------
 
 - #171: Fixed exception in ``rmdir_p`` when target is not empty.
