@@ -3,14 +3,14 @@
 """
 Tests for the path module.
 
-This suite runs on Linux, OS X, and Windows right now.  To extend the
+This suite runs on Linux, macOS, and Windows. To extend the
 platform support, just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
-Then report the result.  If you can't get the test to run at all on
-your platform, there's probably a bug in path.py -- please report the issue
-in the issue tracker at https://github.com/jaraco/path.py.
+Then report the result. If you can't get the test to run at all on
+your platform, there's probably a bug -- please report the issue
+in the issue tracker.
 
-TestScratchDir.test_touch() takes a while to run.  It sleeps a few
+TestScratchDir.test_touch() takes a while to run. It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 """

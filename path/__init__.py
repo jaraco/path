@@ -1,8 +1,6 @@
 """
 path.py - An object representing a path to a file or directory.
 
-https://github.com/jaraco/path.py
-
 Example::
 
     from path import Path
