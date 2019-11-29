@@ -4,6 +4,12 @@ v13.0.0
 - #169: Renamed package from ``path.py`` to ``path``. The docs
   make reference to a pet name "path pie" for easier discovery.
 
+v12.2.0
+-------
+
+- #169: Moved project at GitHub from ``jaraco/path.py`` to
+  ``jaraco/path``.
+
 v12.1.0
 -------
 
