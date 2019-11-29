@@ -68,9 +68,12 @@ U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 
 
 try:
-    import importlib_metadata
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata
 
-    __version__ = importlib_metadata.version('path.py')
+try:
+    __version__ = metadata.version('path.py')
 except Exception:
     __version__ = 'unknown'
 

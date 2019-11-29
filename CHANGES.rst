@@ -2,6 +2,7 @@ v12.0.3
 -------
 
 - #171: Fixed exception in ``rmdir_p`` when target is not empty.
+- #174: Rely on ``importlib.metadata`` on Python 3.8.
 
 v12.0.2
 -------
