@@ -1,7 +1,7 @@
-.. image:: https://img.shields.io/pypi/v/path.py.svg
-   :target: https://pypi.org/project/path.py
+.. image:: https://img.shields.io/pypi/v/path.svg
+   :target: https://pypi.org/project/path
 
-.. image:: https://img.shields.io/pypi/pyversions/path.py.svg
+.. image:: https://img.shields.io/pypi/pyversions/path.svg
 
 .. image:: https://img.shields.io/travis/jaraco/path/master.svg
    :target: https://travis-ci.org/jaraco/path
@@ -10,19 +10,19 @@
    :target: https://github.com/psf/black
    :alt: Code style: Black
 
-.. image:: https://img.shields.io/appveyor/ci/jaraco/path-py/master.svg
-   :target: https://ci.appveyor.com/project/jaraco/path-py/branch/master
+.. image:: https://img.shields.io/appveyor/ci/jaraco/path/master.svg
+   :target: https://ci.appveyor.com/project/jaraco/path/branch/master
 
 .. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
    :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://tidelift.com/badges/package/pypi/path.py
-   :target: https://tidelift.com/subscription/pkg/pypi-path.py?utm_source=pypi-path.py&utm_medium=readme
+.. image:: https://tidelift.com/badges/package/pypi/path
+   :target: https://tidelift.com/subscription/pkg/pypi-path?utm_source=pypi-path&utm_medium=readme
 
 
-``path.py`` implements path objects as first-class entities, allowing
-common operations on files to be invoked on those path objects directly. For
-example:
+``path`` (aka path pie, formerly ``path.py``) implements path
+objects as first-class entities, allowing common operations on
+files to be invoked on those path objects directly. For example:
 
 .. code-block:: python
 
@@ -43,7 +43,7 @@ example:
     # Concatenate paths with /
     foo_txt = Path("bar") / "foo.txt"
 
-``path.py`` is `hosted at Github <https://github.com/jaraco/path>`_.
+Path pie is `hosted at Github <https://github.com/jaraco/path>`_.
 
 Find `the documentation here <https://pathpy.readthedocs.io>`_.
 
@@ -52,17 +52,17 @@ Guides and Testimonials
 
 Yasoob wrote the Python 101 `Writing a Cleanup Script
 <http://freepythontips.wordpress.com/2014/01/23/python-101-writing-a-cleanup-script/>`_
-based on ``path.py``.
+based on ``path``.
 
 Installing
 ==========
 
-Path.py may be installed using ``setuptools``, ``distribute``, or ``pip``::
+Path pie may be installed using ``setuptools``, ``distribute``, or ``pip``::
 
-    pip install path.py
+    pip install path
 
 The latest release is always updated to the `Python Package Index
-<http://pypi.python.org/pypi/path.py>`_.
+<http://pypi.python.org/pypi/path>`_.
 
 You may also always download the source distribution (zip/tarball), extract
 it, and run ``python setup.py`` to install it.
@@ -72,14 +72,14 @@ Advantages
 
 Python 3.4 introduced
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_,
-which shares many characteristics with ``path.py``. In particular,
+which shares many characteristics with ``path``. In particular,
 it provides an object encapsulation for representing filesystem paths.
-One may have imagined ``pathlib`` would supersede ``path.py``.
+One may have imagined ``pathlib`` would supersede ``path``.
 
-But the implementation and the usage quickly diverge, and ``path.py``
+But the implementation and the usage quickly diverge, and ``path``
 has several advantages over ``pathlib``:
 
-- ``path.py`` implements ``Path`` objects as a subclass of
+- ``path`` implements ``Path`` objects as a subclass of
   ``str``, and as a result these ``Path``
   objects may be passed directly to other APIs that expect simple
   text representations of paths, whereas with ``pathlib``, one
@@ -87,19 +87,19 @@ has several advantages over ``pathlib``:
   APIs unaware of ``pathlib``. This shortcoming was `addressed
   by PEP 519 <https://www.python.org/dev/peps/pep-0519/>`_,
   in Python 3.6.
-- ``path.py`` goes beyond exposing basic functionality of a path
+- ``path`` goes beyond exposing basic functionality of a path
   and exposes commonly-used behaviors on a path, providing
   methods like ``rmtree`` (from shlib) and ``remove_p`` (remove
   a file if it exists).
-- As a PyPI-hosted package, ``path.py`` is free to iterate
+- As a PyPI-hosted package, ``path`` is free to iterate
   faster than a stdlib package. Contributions are welcome
   and encouraged.
-- ``path.py`` provides a uniform abstraction over its Path object,
+- ``path`` provides a uniform abstraction over its Path object,
   freeing the implementer to subclass it readily. One cannot
   subclass a ``pathlib.Path`` to add functionality, but must
   subclass ``Path``, ``PosixPath``, and ``WindowsPath``, even
   if one only wishes to add a ``__dict__`` to the subclass
-  instances.  ``path.py`` instead allows the ``Path.module``
+  instances.  ``path`` instead allows the ``Path.module``
   object to be overridden by subclasses, defaulting to the
   ``os.path``. Even advanced uses of ``path.Path`` that
   subclass the model do not need to be concerned with
@@ -112,7 +112,7 @@ In addition to
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_, the
 `pylib project <https://pypi.org/project/py/>`_ implements a
 `LocalPath <https://github.com/pytest-dev/py/blob/72601dc8bbb5e11298bf9775bb23b0a395deb09b/py/_path/local.py#L106>`_
-class, which shares some behaviors and interfaces with ``path.py``.
+class, which shares some behaviors and interfaces with ``path``.
 
 Development
 ===========

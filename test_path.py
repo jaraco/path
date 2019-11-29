@@ -237,7 +237,7 @@ class TestPerformance:
 
     def test_import_time(self, monkeypatch):
         """
-        Import of path.py should take less than some limit.
+        Import should take less than some limit.
 
         Run tests in a subprocess to isolate from test suite overhead.
         """
@@ -423,7 +423,7 @@ class TestScratchDir:
         # first demonstrate that os.listdir works
         assert os.listdir(tmpdir_bytes)
 
-        # now try with path.py
+        # now try with path
         results = Path(tmpdir).listdir()
         assert len(results) == 1
         res, = results
@@ -1240,7 +1240,7 @@ class TestMultiPath:
 
 def test_no_dependencies():
     """
-    Path.py guarantees that the path module can be
+    Path pie guarantees that the path module can be
     transplanted into an environment without any dependencies.
     """
     cmd = [sys.executable, '-S', '-c', 'import path']

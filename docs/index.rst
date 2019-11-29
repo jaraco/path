@@ -1,7 +1,7 @@
-Welcome to path.py's documentation!
+Welcome to Path Pie's documentation!
 ===================================
 
-Contents: 
+Contents:
 
 .. toctree::
    :maxdepth: 1
