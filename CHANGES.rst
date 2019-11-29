@@ -1,3 +1,9 @@
+v12.2.0
+-------
+
+- #169: Moved project at GitHub from ``jaraco/path.py`` to
+  ``jaraco/path``.
+
 v12.1.0
 -------
 
