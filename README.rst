@@ -43,7 +43,7 @@ example:
     # Concatenate paths with /
     foo_txt = Path("bar") / "foo.txt"
 
-``path.py`` is `hosted at Github <https://github.com/jaraco/path.py>`_.
+``path.py`` is `hosted at Github <https://github.com/jaraco/path>`_.
 
 Find `the documentation here <https://pathpy.readthedocs.io>`_.
 
@@ -122,7 +122,7 @@ download a snapshot of the latest code. Alternatively, if you have git
 installed, you may be able to use ``pip`` to install directly from
 the repository::
 
-    pip install git+https://github.com/jaraco/path.py.git
+    pip install git+https://github.com/jaraco/path.git
 
 Testing
 =======
