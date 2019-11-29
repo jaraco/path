@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Tests for the path module.
 
@@ -14,8 +12,6 @@ TestScratchDir.test_touch() takes a while to run. It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 """
-
-from __future__ import unicode_literals, absolute_import, print_function
 
 import codecs
 import os
