@@ -765,6 +765,18 @@ class TestScratchDir:
         assert not sub.exists()
         sub.rmdir_p()
 
+    def test_rmdir_p_sub_sub_dir(self, tmpdir):
+        """
+        A non-empty folder should not raise an exception.
+        """
+        d = Path(tmpdir)
+        sub = d / 'subfolder'
+        sub.mkdir()
+        subsub = sub / 'subfolder'
+        subsub.mkdir()
+
+        sub.rmdir_p()
+
 
 class TestMergeTree:
     @pytest.fixture(autouse=True)
