@@ -1498,10 +1498,9 @@ class DirectoryNotEmpty(OSError):
     def translate():
         try:
             yield
-        except OSError:
-            _, e, _ = sys.exc_info()
-            if e.errno == errno.ENOTEMPTY:
-                e.__class__ = DirectoryNotEmpty
+        except OSError as exc:
+            if exc.errno == errno.ENOTEMPTY:
+                raise DirectoryNotEmpty(*exc.args) from exc
             raise
 
 
