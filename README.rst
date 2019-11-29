@@ -54,19 +54,6 @@ Yasoob wrote the Python 101 `Writing a Cleanup Script
 <http://freepythontips.wordpress.com/2014/01/23/python-101-writing-a-cleanup-script/>`_
 based on ``path``.
 
-Installing
-==========
-
-Path pie may be installed using ``setuptools``, ``distribute``, or ``pip``::
-
-    pip install path
-
-The latest release is always updated to the `Python Package Index
-<http://pypi.python.org/pypi/path>`_.
-
-You may also always download the source distribution (zip/tarball), extract
-it, and run ``python setup.py`` to install it.
-
 Advantages
 ==========
 
