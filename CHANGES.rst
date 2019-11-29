@@ -1,8 +1,8 @@
-v12.2.1
+v12.3.0
 -------
 
-- #169: Project is renamed to simply ``path``. This release is
-  the last planned release under the name ``path.py``.
+- #169: Project is renamed to simply ``path``. This release of
+  ``path.py`` simply depends on ``path < 13.1``.
 
 v12.2.0
 -------
