@@ -20,9 +20,9 @@
    :target: https://tidelift.com/subscription/pkg/pypi-path?utm_source=pypi-path&utm_medium=readme
 
 
-``path`` (aka path.py or path pie) implements path objects as first-class
-entities, allowing common operations on files to be invoked on those path
-objects directly. For example:
+``path`` (aka path pie, formerly ``path.py``) implements path
+objects as first-class entities, allowing common operations on
+files to be invoked on those path objects directly. For example:
 
 .. code-block:: python
 
