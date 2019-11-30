@@ -13,8 +13,8 @@
 .. image:: https://img.shields.io/appveyor/ci/jaraco/path/master.svg
    :target: https://ci.appveyor.com/project/jaraco/path/branch/master
 
-.. image:: https://readthedocs.org/projects/pathpy/badge/?version=latest
-   :target: https://pathpy.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/path/badge/?version=latest
+   :target: https://path.readthedocs.io/en/latest/?badge=latest
 
 .. image:: https://tidelift.com/badges/package/pypi/path
    :target: https://tidelift.com/subscription/pkg/pypi-path?utm_source=pypi-path&utm_medium=readme
@@ -45,7 +45,7 @@ files to be invoked on those path objects directly. For example:
 
 Path pie is `hosted at Github <https://github.com/jaraco/path>`_.
 
-Find `the documentation here <https://pathpy.readthedocs.io>`_.
+Find `the documentation here <https://path.readthedocs.io>`_.
 
 Guides and Testimonials
 =======================
