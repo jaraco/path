@@ -2,6 +2,7 @@ v12.4.0
 -------
 
 - #169: Project now depends on ``path < 13.2``.
+- Fixed typo in README.
 
 v12.3.0
 -------
