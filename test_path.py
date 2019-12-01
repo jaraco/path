@@ -579,135 +579,129 @@ class TestScratchDir:
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
     @pytest.mark.filterwarnings("ignore:.text is deprecated")
-    def test_unicode(self, tmpdir):
+    @pytest.mark.parametrize("encoding", ('UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'))
+    def test_unicode(self, tmpdir, encoding):
+        """ Test that path works with the specified encoding,
+        which must be capable of representing the entire range of
+        Unicode codepoints.
+        """
         d = Path(tmpdir)
         p = d / 'unicode.txt'
 
-        def test(enc):
-            """ Test that path works with the specified encoding,
-            which must be capable of representing the entire range of
-            Unicode codepoints.
-            """
+        given = (
+            'Hello world\n'
+            '\u0d0a\u0a0d\u0d15\u0a15\r\n'
+            '\u0d0a\u0a0d\u0d15\u0a15\x85'
+            '\u0d0a\u0a0d\u0d15\u0a15\u2028'
+            '\r'
+            'hanging'
+        )
+        clean = (
+            'Hello world\n'
+            '\u0d0a\u0a0d\u0d15\u0a15\n'
+            '\u0d0a\u0a0d\u0d15\u0a15\n'
+            '\u0d0a\u0a0d\u0d15\u0a15\n'
+            '\n'
+            'hanging'
+        )
+        givenLines = [
+            ('Hello world\n'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
+            ('\r'),
+            ('hanging'),
+        ]
+        expectedLines = [
+            ('Hello world\n'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
+            ('\n'),
+            ('hanging'),
+        ]
+        expectedLines2 = [
+            ('Hello world'),
+            ('\u0d0a\u0a0d\u0d15\u0a15'),
+            ('\u0d0a\u0a0d\u0d15\u0a15'),
+            ('\u0d0a\u0a0d\u0d15\u0a15'),
+            (''),
+            ('hanging'),
+        ]
 
-            given = (
-                'Hello world\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\r\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\x85'
-                '\u0d0a\u0a0d\u0d15\u0a15\u2028'
-                '\r'
-                'hanging'
-            )
-            clean = (
-                'Hello world\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\n'
-                'hanging'
-            )
-            givenLines = [
-                ('Hello world\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
-                ('\r'),
-                ('hanging'),
-            ]
-            expectedLines = [
-                ('Hello world\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\n'),
-                ('hanging'),
-            ]
-            expectedLines2 = [
-                ('Hello world'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                (''),
-                ('hanging'),
-            ]
+        # write bytes manually to file
+        f = codecs.open(p, 'w', encoding)
+        f.write(given)
+        f.close()
 
-            # write bytes manually to file
-            f = codecs.open(p, 'w', enc)
-            f.write(given)
-            f.close()
+        # test all 3 path read-fully functions, including
+        # path.lines() in unicode mode.
+        assert p.bytes() == given.encode(encoding)
+        assert p.text(encoding) == clean
+        assert p.lines(encoding) == expectedLines
+        assert p.lines(encoding, retain=False) == expectedLines2
 
-            # test all 3 path read-fully functions, including
-            # path.lines() in unicode mode.
-            assert p.bytes() == given.encode(enc)
-            assert p.text(enc) == clean
-            assert p.lines(enc) == expectedLines
-            assert p.lines(enc, retain=False) == expectedLines2
+        # If this is UTF-16, that's enough.
+        # The rest of these will unfortunately fail because append=True
+        # mode causes an extra BOM to be written in the middle of the file.
+        # UTF-16 is the only encoding that has this problem.
+        if encoding == 'UTF-16':
+            return
 
-            # If this is UTF-16, that's enough.
-            # The rest of these will unfortunately fail because append=True
-            # mode causes an extra BOM to be written in the middle of the file.
-            # UTF-16 is the only encoding that has this problem.
-            if enc == 'UTF-16':
-                return
+        # Write Unicode to file using path.write_text().
+        # This test doesn't work with a hanging line.
+        cleanNoHanging = clean + '\n'
 
-            # Write Unicode to file using path.write_text().
-            # This test doesn't work with a hanging line.
-            cleanNoHanging = clean + '\n'
+        p.write_text(cleanNoHanging, encoding)
+        p.write_text(cleanNoHanging, encoding, append=True)
+        # Check the result.
+        expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(encoding)
+        expectedLinesNoHanging = expectedLines[:]
+        expectedLinesNoHanging[-1] += '\n'
+        assert p.bytes() == expectedBytes
+        assert p.text(encoding) == 2 * cleanNoHanging
+        assert p.lines(encoding) == 2 * expectedLinesNoHanging
+        assert p.lines(encoding, retain=False) == 2 * expectedLines2
 
-            p.write_text(cleanNoHanging, enc)
-            p.write_text(cleanNoHanging, enc, append=True)
-            # Check the result.
-            expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(enc)
-            expectedLinesNoHanging = expectedLines[:]
-            expectedLinesNoHanging[-1] += '\n'
-            assert p.bytes() == expectedBytes
-            assert p.text(enc) == 2 * cleanNoHanging
-            assert p.lines(enc) == 2 * expectedLinesNoHanging
-            assert p.lines(enc, retain=False) == 2 * expectedLines2
+        # Write Unicode to file using path.write_lines().
+        # The output in the file should be exactly the same as last time.
+        p.write_lines(expectedLines, encoding)
+        p.write_lines(expectedLines2, encoding, append=True)
+        # Check the result.
+        assert p.bytes() == expectedBytes
 
-            # Write Unicode to file using path.write_lines().
-            # The output in the file should be exactly the same as last time.
-            p.write_lines(expectedLines, enc)
-            p.write_lines(expectedLines2, enc, append=True)
-            # Check the result.
-            assert p.bytes() == expectedBytes
+        # Now: same test, but using various newline sequences.
+        # If linesep is being properly applied, these will be converted
+        # to the platform standard newline sequence.
+        p.write_lines(givenLines, encoding)
+        p.write_lines(givenLines, encoding, append=True)
+        # Check the result.
+        assert p.bytes() == expectedBytes
 
-            # Now: same test, but using various newline sequences.
-            # If linesep is being properly applied, these will be converted
-            # to the platform standard newline sequence.
-            p.write_lines(givenLines, enc)
-            p.write_lines(givenLines, enc, append=True)
-            # Check the result.
-            assert p.bytes() == expectedBytes
+        # Same test, using newline sequences that are different
+        # from the platform default.
+        def testLinesep(eol):
+            p.write_lines(givenLines, encoding, linesep=eol)
+            p.write_lines(givenLines, encoding, linesep=eol, append=True)
+            expected = 2 * cleanNoHanging.replace('\n', eol).encode(encoding)
+            assert p.bytes() == expected
 
-            # Same test, using newline sequences that are different
-            # from the platform default.
-            def testLinesep(eol):
-                p.write_lines(givenLines, enc, linesep=eol)
-                p.write_lines(givenLines, enc, linesep=eol, append=True)
-                expected = 2 * cleanNoHanging.replace('\n', eol).encode(enc)
-                assert p.bytes() == expected
+        testLinesep('\n')
+        testLinesep('\r')
+        testLinesep('\r\n')
+        testLinesep('\x0d\x85')
 
-            testLinesep('\n')
-            testLinesep('\r')
-            testLinesep('\r\n')
-            testLinesep('\x0d\x85')
-
-            # Again, but with linesep=None.
-            p.write_lines(givenLines, enc, linesep=None)
-            p.write_lines(givenLines, enc, linesep=None, append=True)
-            # Check the result.
-            expectedBytes = 2 * given.encode(enc)
-            assert p.bytes() == expectedBytes
-            assert p.text(enc) == 2 * clean
-            expectedResultLines = expectedLines[:]
-            expectedResultLines[-1] += expectedLines[0]
-            expectedResultLines += expectedLines[1:]
-            assert p.lines(enc) == expectedResultLines
-
-        test('UTF-8')
-        test('UTF-16BE')
-        test('UTF-16LE')
-        test('UTF-16')
+        # Again, but with linesep=None.
+        p.write_lines(givenLines, encoding, linesep=None)
+        p.write_lines(givenLines, encoding, linesep=None, append=True)
+        # Check the result.
+        expectedBytes = 2 * given.encode(encoding)
+        assert p.bytes() == expectedBytes
+        assert p.text(encoding) == 2 * clean
+        expectedResultLines = expectedLines[:]
+        expectedResultLines[-1] += expectedLines[0]
+        expectedResultLines += expectedLines[1:]
+        assert p.lines(encoding) == expectedResultLines
 
     def test_chunks(self, tmpdir):
         p = (TempDir() / 'test.txt').touch()
