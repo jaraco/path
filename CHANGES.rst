@@ -1,3 +1,11 @@
+v13.1.0
+-------
+
+- #170: Added ``read_text`` and ``read_bytes`` methods to
+  align with ``pathlib`` behavior. Deprecated ``text`` method.
+  If you require newline normalization of ``text``, use
+  ``jaraco.text.normalize_newlines(Path.read_text())``.
+
 v13.0.0
 -------
 
