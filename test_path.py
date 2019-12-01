@@ -402,9 +402,9 @@ class TestScratchDir:
                 except Exception:
                     pass
 
-    @pytest.mark.xfail(mac_version('10.13'), reason="macOS disallows invalid encodings")
-    @pytest.mark.xfail(
-        platform.system() == 'Windows', reason="Can't write latin characters. See #133"
+    @pytest.mark.skip(
+        platform.system() != "Linux",
+        reason="Only Linux allows writing invalid encodings",
     )
     def test_listdir_other_encoding(self, tmpdir):
         """
