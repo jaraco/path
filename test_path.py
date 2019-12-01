@@ -33,25 +33,16 @@ import pytest
 import packaging.version
 
 import path
+from path import Path
 from path import TempDir
 from path import matchers
 from path import SpecialResolver
 from path import Multi
 
-Path = None
-
 
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
-
-
-@pytest.fixture(autouse=True, params=[path.Path])
-def path_class(request, monkeypatch):
-    """
-    Invoke tests on any number of Path classes.
-    """
-    monkeypatch.setitem(globals(), 'Path', request.param)
 
 
 def mac_version(target, comparator=operator.ge):
