@@ -225,6 +225,14 @@ class TestBasics:
         assert res2 == 'foo/bar'
 
 
+class TestReadWriteText:
+    def test_read_write(self, tmpdir):
+        file = path.Path(tmpdir) / 'filename'
+        file.write_text('hello world')
+        assert file.read_text() == 'hello world'
+        assert file.read_bytes() == b'hello world'
+
+
 class TestPerformance:
     @staticmethod
     def get_command_time(cmd):
@@ -570,6 +578,7 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
+    @pytest.mark.filterwarnings("ignore:.text is deprecated")
     def test_unicode(self, tmpdir):
         d = Path(tmpdir)
         p = d / 'unicode.txt'
@@ -862,7 +871,7 @@ class TestMergeTree:
         self.subdir_a.merge_tree(
             self.subdir_b, copy_function=path.only_newer(shutil.copy2)
         )
-        assert target.text() == 'this is newer'
+        assert target.read_text() == 'this is newer'
 
 
 class TestChdir:

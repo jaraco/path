@@ -703,16 +703,28 @@ class Path(str):
         with self.open(mode) as f:
             f.write(bytes)
 
-    def text(self, encoding=None, errors='strict'):
+    def read_text(self, encoding=None, errors=None):
         r""" Open this file, read it in, return the content as a string.
 
-        All newline sequences are converted to ``'\n'``.  Keyword arguments
-        will be passed to :meth:`open`.
+        Optional parameters are passed to :meth:`open`.
 
         .. seealso:: :meth:`lines`
         """
-        with self.open(mode='r', encoding=encoding, errors=errors) as f:
-            return U_NEWLINE.sub('\n', f.read())
+        with self.open(encoding=encoding, errors=errors) as f:
+            return f.read()
+
+    def read_bytes(self):
+        r"""Return the contents of this file as bytes."""
+        with self.open(mode='rb') as f:
+            return f.read()
+
+    def text(self, encoding=None, errors='strict'):
+        """Legacy function to read text.
+
+        Converts all newline sequences to ``\n``.
+        """
+        warnings.warn(".text is deprecated; use read_text", DeprecationWarning)
+        return U_NEWLINE.sub('\n', self.read_text(encoding, errors))
 
     def write_text(
         self, text, encoding=None, errors='strict', linesep=os.linesep, append=False
