@@ -949,7 +949,7 @@ class TestTempDir:
     def test_context_manager_using_with(self):
         """
         The context manager will allow using the with keyword and
-        provide a temporry directory that will be deleted after that.
+        provide a temporary directory that will be deleted after that.
         """
 
         with TempDir() as d:
