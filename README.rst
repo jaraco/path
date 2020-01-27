@@ -127,6 +127,11 @@ Releasing
 Tagged releases are automatically published to PyPI by Travis-CI, assuming
 the tests pass.
 
+History
+=======
+
+Based on code by Jason Orendorff
+
 Security Contact
 ================
 
