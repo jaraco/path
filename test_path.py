@@ -425,7 +425,7 @@ class TestScratchDir:
         # now try with path
         results = Path(tmpdir).listdir()
         assert len(results) == 1
-        res, = results
+        (res,) = results
         assert isinstance(res, Path)
         # OS X seems to encode the bytes in the filename as %XX characters.
         if platform.system() == 'Darwin':
