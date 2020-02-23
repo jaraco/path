@@ -1,7 +1,13 @@
 .. image:: https://img.shields.io/pypi/v/path.svg
-   :target: https://pypi.org/project/path
+   :target: `PyPI link`_
 
 .. image:: https://img.shields.io/pypi/pyversions/path.svg
+   :target: `PyPI link`_
+
+.. _PyPI link: https://pypi.org/project/path
+
+.. image:: https://dev.azure.com/jaraco/path/_apis/build/status/jaraco.path?branchName=master
+   :target: https://dev.azure.com/jaraco/path/_build/latest?definitionId=1&branchName=master
 
 .. image:: https://img.shields.io/travis/jaraco/path/master.svg
    :target: https://travis-ci.org/jaraco/path
@@ -27,13 +33,14 @@ files to be invoked on those path objects directly. For example:
 .. code-block:: python
 
     from path import Path
-    d = Path('/home/guido/bin')
-    for f in d.files('*.py'):
+
+    d = Path("/home/guido/bin")
+    for f in d.files("*.py"):
         f.chmod(0o755)
 
     # Globbing
-    for f in d.files('*.py'):
-        f.chmod('u+rwx')
+    for f in d.files("*.py"):
+        f.chmod("u+rwx")
 
     # Changing the working directory:
     with Path("somewhere"):
