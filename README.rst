@@ -131,13 +131,15 @@ for links to the CI runs.
 Releasing
 =========
 
-Tagged releases are automatically published to PyPI by Travis-CI, assuming
-the tests pass.
+Tagged releases are automatically published to PyPI by Azure
+Pipelines, assuming the tests pass.
 
-History
+Origins
 =======
 
-Based on code by Jason Orendorff
+The ``path.py`` project was initially released in 2003 by Jason Orendorff
+and has been continuously developed and supported by several maintainers
+over the years.
 
 Security Contact
 ================
