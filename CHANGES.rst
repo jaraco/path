@@ -1,3 +1,8 @@
+v13.2.0
+-------
+
+- Require Python 3.6 or later.
+
 v13.1.0
 -------
 
