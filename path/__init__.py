@@ -77,7 +77,7 @@ except ImportError:
         pass
 
 try:
-    __version__ = metadata.version('path')
+    __version__ = metadata.version('path')  # type: ignore
 except Exception:
     __version__ = 'unknown'
 
