@@ -475,6 +475,9 @@ class TestScratchDir:
 
         assert ad == bd
 
+    @pytest.mark.xfail(
+        'sys.version_info > (3, 8) and platform.system() == "Windows"', reason="#186"
+    )
     def test_shutil(self, tmpdir):
         # Note: This only tests the methods exist and do roughly what
         # they should, neglecting the details as they are shutil's
