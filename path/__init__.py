@@ -69,10 +69,10 @@ U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 
 
 try:
-    from importlib import metadata
+    from importlib import metadata  # type: ignore
 except ImportError:
     try:
-        import importlib_metadata as metadata
+        import importlib_metadata as metadata  # type: ignore
     except ImportError:
         pass
 
