@@ -607,7 +607,7 @@ class TestScratchDir:
             '\n',
             'hanging',
         ]
-        expectedLines2 = [line.replace('\n', '') for line in expectedLines]
+        stripped = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
         with io.open(p, 'w', encoding=encoding) as strm:
@@ -618,7 +618,7 @@ class TestScratchDir:
         assert p.bytes() == given.encode(encoding)
         assert p.text(encoding) == clean
         assert p.lines(encoding) == expectedLines
-        assert p.lines(encoding, retain=False) == expectedLines2
+        assert p.lines(encoding, retain=False) == stripped
 
         # If this is UTF-16, that's enough.
         # The rest of these will unfortunately fail because append=True
@@ -640,12 +640,12 @@ class TestScratchDir:
         assert p.bytes() == expectedBytes
         assert p.text(encoding) == 2 * cleanNoHanging
         assert p.lines(encoding) == 2 * expectedLinesNoHanging
-        assert p.lines(encoding, retain=False) == 2 * expectedLines2
+        assert p.lines(encoding, retain=False) == 2 * stripped
 
         # Write Unicode to file using path.write_lines().
         # The output in the file should be exactly the same as last time.
         p.write_lines(expectedLines, encoding)
-        p.write_lines(expectedLines2, encoding, append=True)
+        p.write_lines(stripped, encoding, append=True)
         # Check the result.
         assert p.bytes() == expectedBytes
 
