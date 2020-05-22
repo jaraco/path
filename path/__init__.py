@@ -818,7 +818,8 @@ class Path(str):
 
         .. seealso:: :meth:`text`
         """
-        return self.text(encoding, errors).splitlines(retain)
+        text = U_NEWLINE.sub('\n', self.read_text(encoding, errors))
+        return text.splitlines(retain)
 
     def write_lines(
         self, lines, encoding=None, errors='strict', linesep=os.linesep, append=False
