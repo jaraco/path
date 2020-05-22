@@ -572,7 +572,6 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
-    @pytest.mark.filterwarnings("ignore:.text is deprecated")
     @pytest.mark.parametrize("encoding", ('UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'))
     def test_unicode(self, tmpdir, encoding):
         """ Test that path works with the specified encoding,
@@ -609,7 +608,8 @@ class TestScratchDir:
         # test all 3 path read-fully functions, including
         # path.lines() in unicode mode.
         assert p.bytes() == given.encode(encoding)
-        assert p.text(encoding) == clean
+        with pytest.deprecated_call():
+            assert p.text(encoding) == clean
         assert p.lines(encoding) == expectedLines
         assert p.lines(encoding, retain=False) == stripped
 
@@ -631,7 +631,8 @@ class TestScratchDir:
         expectedLinesNoHanging = expectedLines[:]
         expectedLinesNoHanging[-1] += '\n'
         assert p.bytes() == expectedBytes
-        assert p.text(encoding) == 2 * cleanNoHanging
+        with pytest.deprecated_call():
+            assert p.text(encoding) == 2 * cleanNoHanging
         assert p.lines(encoding) == 2 * expectedLinesNoHanging
         assert p.lines(encoding, retain=False) == 2 * stripped
 
@@ -669,7 +670,8 @@ class TestScratchDir:
         # Check the result.
         expectedBytes = 2 * given.encode(encoding)
         assert p.bytes() == expectedBytes
-        assert p.text(encoding) == 2 * clean
+        with pytest.deprecated_call():
+            assert p.text(encoding) == 2 * clean
         expectedResultLines = expectedLines[:]
         expectedResultLines[-1] += expectedLines[0]
         expectedResultLines += expectedLines[1:]
