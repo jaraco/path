@@ -8,7 +8,7 @@ def best_realpath(module):
     determine the best 'realpath' function to use
     for best future compatibility.
     """
-    needs_backport = module.__name__ == 'ntpath' and sys.version_info < (3, 8)
+    needs_backport = module.realpath is module.abspath
     return realpath_backport if needs_backport else module.realpath
 
 
