@@ -591,14 +591,6 @@ class TestScratchDir:
             'hanging',
         ]
         given = ''.join(givenLines)
-        clean = (
-            'Hello world\n'
-            '\u0d0a\u0a0d\u0d15\u0a15\n'
-            '\u0d0a\u0a0d\u0d15\u0a15\n'
-            '\u0d0a\u0a0d\u0d15\u0a15\n'
-            '\n'
-            'hanging'
-        )
         expectedLines = [
             'Hello world\n',
             '\u0d0a\u0a0d\u0d15\u0a15\n',
@@ -607,6 +599,7 @@ class TestScratchDir:
             '\n',
             'hanging',
         ]
+        clean = ''.join(expectedLines)
         stripped = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
