@@ -614,14 +614,7 @@ class TestScratchDir:
             '\n',
             'hanging',
         ]
-        expectedLines2 = [
-            'Hello world',
-            '\u0d0a\u0a0d\u0d15\u0a15',
-            '\u0d0a\u0a0d\u0d15\u0a15',
-            '\u0d0a\u0a0d\u0d15\u0a15',
-            '',
-            'hanging',
-        ]
+        expectedLines2 = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
         f = codecs.open(p, 'w', encoding)
