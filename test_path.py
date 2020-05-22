@@ -602,8 +602,8 @@ class TestScratchDir:
         stripped = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
-        with io.open(p, 'w', encoding=encoding, newline='\n') as strm:
-            strm.write(given)
+        with io.open(p, 'wb') as strm:
+            strm.write(given.encode(encoding))
 
         # test all 3 path read-fully functions, including
         # path.lines() in unicode mode.
