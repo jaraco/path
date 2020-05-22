@@ -55,6 +55,7 @@ except ImportError:
     pass
 
 from . import matchers
+from .py37compat import best_realpath
 
 
 __all__ = ['Path', 'TempDir', 'CaseInsensitivePattern']
@@ -253,7 +254,8 @@ class Path(str):
 
     def realpath(self):
         """ .. seealso:: :func:`os.path.realpath` """
-        return self._next_class(self.module.realpath(self))
+        realpath = best_realpath(self.module)
+        return self._next_class(realpath(self))
 
     def expanduser(self):
         """ .. seealso:: :func:`os.path.expanduser` """
