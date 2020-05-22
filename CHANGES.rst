@@ -1,6 +1,10 @@
-v13.2.1
+v13.3.0
 -------
 
+- #186: Fix test failures on Python 3.8 on Windows by relying on
+  ``realpath()`` instead of ``readlink()``.
+- #189: ``realpath()`` now honors symlinks on Python 3.7 and
+  earlier, approximating the behavior found on Python 3.8.
 - #187: ``lines()`` no longer relies on the deprecated ``.text()``.
 
 v13.2.0
