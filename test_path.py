@@ -599,28 +599,28 @@ class TestScratchDir:
             'hanging'
         )
         givenLines = [
-            ('Hello world\n'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
-            ('\r'),
-            ('hanging'),
+            'Hello world\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\r\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\x85',
+            '\u0d0a\u0a0d\u0d15\u0a15\u2028',
+            '\r',
+            'hanging',
         ]
         expectedLines = [
-            ('Hello world\n'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-            ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-            ('\n'),
-            ('hanging'),
+            'Hello world\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\n',
+            'hanging',
         ]
         expectedLines2 = [
-            ('Hello world'),
-            ('\u0d0a\u0a0d\u0d15\u0a15'),
-            ('\u0d0a\u0a0d\u0d15\u0a15'),
-            ('\u0d0a\u0a0d\u0d15\u0a15'),
-            (''),
-            ('hanging'),
+            'Hello world',
+            '\u0d0a\u0a0d\u0d15\u0a15',
+            '\u0d0a\u0a0d\u0d15\u0a15',
+            '\u0d0a\u0a0d\u0d15\u0a15',
+            '',
+            'hanging',
         ]
 
         # write bytes manually to file
