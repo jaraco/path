@@ -13,7 +13,7 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-import codecs
+import io
 import os
 import sys
 import shutil
@@ -617,9 +617,8 @@ class TestScratchDir:
         expectedLines2 = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
-        f = codecs.open(p, 'w', encoding)
-        f.write(given)
-        f.close()
+        with io.open(p, 'w', encoding=encoding) as strm:
+            strm.write(given)
 
         # test all 3 path read-fully functions, including
         # path.lines() in unicode mode.
