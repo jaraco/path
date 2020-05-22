@@ -617,7 +617,7 @@ class TestScratchDir:
         expectedLines2 = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
-        with io.open(p, 'w', encoding=encoding) as strm:
+        with io.open(p, 'w', encoding=encoding, newline='\n') as strm:
             strm.write(given)
 
         # test all 3 path read-fully functions, including
