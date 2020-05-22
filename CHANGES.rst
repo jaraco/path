@@ -1,3 +1,8 @@
+v13.2.1
+-------
+
+- #187: ``lines()`` no longer relies on the deprecated ``.text()``.
+
 v13.2.0
 -------
 
