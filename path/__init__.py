@@ -1745,6 +1745,15 @@ def _permission_mask(mode):
 
 
 class Concrete(Path):
+    """
+    A Concrete version of a path with a base path.
+
+    >>> Concrete('.').parent
+    Concrete('..')
+    >>> Concrete('.').parent.abspath() == Path('..').abspath()
+    True
+    """
+
     def __new__(cls, orig, base=None):
         return super().__new__(cls, orig)
 
