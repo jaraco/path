@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import ntpath
 import fnmatch
 
@@ -10,8 +8,10 @@ def load(param):
     pattern.
     """
     return (
-        Pattern(param) if isinstance(param, str)
-        else param if param is not None
+        Pattern(param)
+        if isinstance(param, str)
+        else param
+        if param is not None
         else Null()
     )
 
@@ -55,4 +55,5 @@ class CaseInsensitive(Pattern):
         from path import Path, matchers
         Path('.').files(matchers.CaseInsensitive('*.py'))
     """
+
     normcase = staticmethod(ntpath.normcase)

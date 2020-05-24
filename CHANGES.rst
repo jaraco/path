@@ -1,3 +1,60 @@
+v14.0.0
+-------
+
+- Removed ``namebase`` property. Use ``stem`` instead.
+- Removed ``update`` parameter on method to
+  ``Path.merge_tree``. Instead, to only copy newer files,
+  provide a wrapped ``copy`` function, as described in the
+  doc string.
+- Removed ``FastPath``. Just use ``Path``.
+- Removed ``path.CaseInsensitivePattern``. Instead
+  use ``path.matchers.CaseInsensitive``.
+
+v13.3.0
+-------
+
+- #186: Fix test failures on Python 3.8 on Windows by relying on
+  ``realpath()`` instead of ``readlink()``.
+- #189: ``realpath()`` now honors symlinks on Python 3.7 and
+  earlier, approximating the behavior found on Python 3.8.
+- #187: ``lines()`` no longer relies on the deprecated ``.text()``.
+
+v13.2.0
+-------
+
+- Require Python 3.6 or later.
+
+v13.1.0
+-------
+
+- #170: Added ``read_text`` and ``read_bytes`` methods to
+  align with ``pathlib`` behavior. Deprecated ``text`` method.
+  If you require newline normalization of ``text``, use
+  ``jaraco.text.normalize_newlines(Path.read_text())``.
+
+v13.0.0
+-------
+
+- #169: Renamed package from ``path.py`` to ``path``. The docs
+  make reference to a pet name "path pie" for easier discovery.
+
+v12.2.0
+-------
+
+- #169: Moved project at GitHub from ``jaraco/path.py`` to
+  ``jaraco/path``.
+
+v12.1.0
+-------
+
+- #171: Fixed exception in ``rmdir_p`` when target is not empty.
+- #174: Rely on ``importlib.metadata`` on Python 3.8.
+
+v12.0.2
+-------
+
+- Refreshed package metadata.
+
 12.0.1
 ------
 
