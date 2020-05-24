@@ -1,3 +1,4 @@
+import functools
 import os
 
 
@@ -115,3 +116,10 @@ def _resolve_path(path, rest, seen):
                     # Resolution failed; punt.
                     return (os.path.join(path, rest) if rest else path), False
     return path, True
+
+
+def lru_cache(user_function):
+    """
+    Support for lru_cache(user_function)
+    """
+    return functools.lru_cache()(user_function)

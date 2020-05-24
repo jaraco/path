@@ -55,7 +55,7 @@ except ImportError:
     pass
 
 from . import matchers
-from .py37compat import best_realpath
+from .py37compat import best_realpath, lru_cache
 
 
 __all__ = ['Path', 'TempDir']
@@ -178,7 +178,7 @@ class Path(str):
             raise TypeError("Invalid initial value for path: None")
 
     @classmethod
-    @functools.lru_cache
+    @lru_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)

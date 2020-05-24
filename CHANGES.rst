@@ -1,3 +1,9 @@
+v14.0.1
+-------
+
+- Fixed regression on Python 3.7 and earlier where ``lru_cache``
+  did not support a user function.
+
 v14.0.0
 -------
 
