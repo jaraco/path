@@ -1312,7 +1312,6 @@ class Path(str):
         dst,
         symlinks=False,
         *,
-        update=False,
         copy_function=shutil.copy2,
         ignore=lambda dir, contents: []
     ):
@@ -1332,14 +1331,6 @@ class Path(str):
         dst = self._next_class(dst)
         dst.makedirs_p()
 
-        if update:
-            warnings.warn(
-                "Update is deprecated; " "use copy_function=only_newer(shutil.copy2)",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            copy_function = only_newer(copy_function)
-
         sources = self.listdir()
         _ignored = ignore(self, [item.name for item in sources])
 
@@ -1353,11 +1344,7 @@ class Path(str):
                 target.symlink(dest)
             elif source.isdir():
                 source.merge_tree(
-                    dest,
-                    symlinks=symlinks,
-                    update=update,
-                    copy_function=copy_function,
-                    ignore=ignore,
+                    dest, symlinks=symlinks, copy_function=copy_function, ignore=ignore,
                 )
             else:
                 copy_function(source, dest)
