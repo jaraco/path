@@ -5,6 +5,94 @@ v14.0.0
   ``Path.merge_tree``. Instead, to only copy newer files,
   provide a wrapped ``copy`` function, as described in the
   doc string.
+- Removed ``FastPath``. Just use ``Path``.
+- Removed ``path.CaseInsensitivePattern``. Instead
+  use ``path.matchers.CaseInsensitive``.
+
+v13.3.0
+-------
+
+- #186: Fix test failures on Python 3.8 on Windows by relying on
+  ``realpath()`` instead of ``readlink()``.
+- #189: ``realpath()`` now honors symlinks on Python 3.7 and
+  earlier, approximating the behavior found on Python 3.8.
+- #187: ``lines()`` no longer relies on the deprecated ``.text()``.
+
+v13.2.0
+-------
+
+- Require Python 3.6 or later.
+
+v13.1.0
+-------
+
+- #170: Added ``read_text`` and ``read_bytes`` methods to
+  align with ``pathlib`` behavior. Deprecated ``text`` method.
+  If you require newline normalization of ``text``, use
+  ``jaraco.text.normalize_newlines(Path.read_text())``.
+
+v13.0.0
+-------
+
+- #169: Renamed package from ``path.py`` to ``path``. The docs
+  make reference to a pet name "path pie" for easier discovery.
+
+v12.2.0
+-------
+
+- #169: Moved project at GitHub from ``jaraco/path.py`` to
+  ``jaraco/path``.
+
+v12.1.0
+-------
+
+- #171: Fixed exception in ``rmdir_p`` when target is not empty.
+- #174: Rely on ``importlib.metadata`` on Python 3.8.
+
+v12.0.2
+-------
+
+- Refreshed package metadata.
+
+12.0.1
+------
+
+- #166: Removed 'universal' wheel support.
+
+12.0
+---
+
+- #148: Dropped support for Python 2.7 and 3.4.
+- Moved 'path' into a package.
+
+11.5.2
+------
+
+- #163: Corrected 'pymodules' typo in package declaration.
+
+11.5.1
+------
+
+- Minor packaging refresh.
+
+11.5.0
+------
+
+- #156: Re-wrote the handling of pattern matches for
+  ``listdir``, ``walk``, and related methods, allowing
+  the pattern to be a more complex object. This approach
+  drastically simplifies the code and obviates the
+  ``CaseInsensitivePattern`` and ``FastPath`` classes.
+  Now the main ``Path`` class should be as performant
+  as ``FastPath`` and case-insensitive matches can be
+  readily constructed using the new
+  ``path.matchers.CaseInsensitive`` class.
+
+11.4.1
+------
+
+- #153: Skip intermittently failing performance test on
+  Python 2.
 
 11.4.0
 ------
@@ -223,7 +311,7 @@ name, ``path.Path`` as introduced in 6.2.
 7.6
 ---
 
-- Pull Request #100: Add ``merge_tree`` method for merging
+- #100: Add ``merge_tree`` method for merging
   two existing directory trees.
 - Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
   for version management.
