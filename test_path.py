@@ -1,23 +1,19 @@
-# -*- coding: utf-8 -*-
-
 """
 Tests for the path module.
 
-This suite runs on Linux, OS X, and Windows right now.  To extend the
+This suite runs on Linux, macOS, and Windows. To extend the
 platform support, just add appropriate pathnames for your
 platform (os.name) in each place where the p() function is called.
-Then report the result.  If you can't get the test to run at all on
-your platform, there's probably a bug in path.py -- please report the issue
-in the issue tracker at https://github.com/jaraco/path.py.
+Then report the result. If you can't get the test to run at all on
+your platform, there's probably a bug -- please report the issue
+in the issue tracker.
 
-TestScratchDir.test_touch() takes a while to run.  It sleeps a few
+TestScratchDir.test_touch() takes a while to run. It sleeps a few
 seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-from __future__ import unicode_literals, absolute_import, print_function
-
-import codecs
+import io
 import os
 import sys
 import shutil
@@ -37,25 +33,16 @@ import pytest
 import packaging.version
 
 import path
+from path import Path
 from path import TempDir
 from path import matchers
 from path import SpecialResolver
 from path import Multi
 
-Path = None
-
 
 def p(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
-
-
-@pytest.fixture(autouse=True, params=[path.Path])
-def path_class(request, monkeypatch):
-    """
-    Invoke tests on any number of Path classes.
-    """
-    monkeypatch.setitem(globals(), 'Path', request.param)
 
 
 def mac_version(target, comparator=operator.ge):
@@ -64,10 +51,7 @@ def mac_version(target, comparator=operator.ge):
     """
     current_ver = packaging.version.parse(platform.mac_ver()[0])
     target_ver = packaging.version.parse(target)
-    return (
-        platform.system() == 'Darwin'
-        and comparator(current_ver, target_ver)
-    )
+    return platform.system() == 'Darwin' and comparator(current_ver, target_ver)
 
 
 class TestBasics:
@@ -128,13 +112,7 @@ class TestBasics:
         assert x == str('xyzzy')
 
         # sorting
-        items = [Path('fhj'),
-                 Path('fgh'),
-                 'E',
-                 Path('d'),
-                 'A',
-                 Path('B'),
-                 'c']
+        items = [Path('fhj'), Path('fgh'), 'E', Path('d'), 'A', Path('B'), 'c']
         items.sort()
         assert items == ['A', 'B', 'E', 'c', 'd', 'fgh', 'fhj']
 
@@ -145,8 +123,10 @@ class TestBasics:
 
     def test_properties(self):
         # Create sample path object.
-        f = p(nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
-              posix='/usr/local/python/lib/xyzzy.py')
+        f = p(
+            nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
+            posix='/usr/local/python/lib/xyzzy.py',
+        )
         f = Path(f)
 
         # .parent
@@ -236,25 +216,48 @@ class TestBasics:
         assert res2 == 'foo/bar'
 
 
+class TestReadWriteText:
+    def test_read_write(self, tmpdir):
+        file = path.Path(tmpdir) / 'filename'
+        file.write_text('hello world')
+        assert file.read_text() == 'hello world'
+        assert file.read_bytes() == b'hello world'
+
+
 class TestPerformance:
+    @staticmethod
+    def get_command_time(cmd):
+        args = [sys.executable, '-m', 'timeit', '-n', '1', '-r', '1', '-u', 'usec'] + [
+            cmd
+        ]
+        res = subprocess.check_output(args, universal_newlines=True)
+        dur = re.search(r'(\d+) usec per loop', res).group(1)
+        return datetime.timedelta(microseconds=int(dur))
+
     def test_import_time(self, monkeypatch):
         """
-        Import of path.py should take less than 100ms.
+        Import should take less than some limit.
 
         Run tests in a subprocess to isolate from test suite overhead.
         """
-        cmd = [
-            sys.executable,
-            '-m', 'timeit',
-            '-n', '1',
-            '-r', '1',
-            'import path',
-        ]
-        res = subprocess.check_output(cmd, universal_newlines=True)
-        dur = re.search(r'(\d+) msec per loop', res).group(1)
-        limit = datetime.timedelta(milliseconds=100)
-        duration = datetime.timedelta(milliseconds=int(dur))
+        limit = datetime.timedelta(milliseconds=20)
+        baseline = self.get_command_time('pass')
+        measure = self.get_command_time('import path')
+        duration = measure - baseline
         assert duration < limit
+
+
+class TestSymbolicLinksWalk:
+    def test_skip_symlinks(self, tmpdir):
+        root = Path(tmpdir)
+        sub = root / 'subdir'
+        sub.mkdir()
+        sub.symlink(root / 'link')
+        (sub / 'file').touch()
+        assert len(list(root.walk())) == 4
+
+        skip_links = path.Traversal(lambda item: item.isdir() and not item.islink(),)
+        assert len(list(skip_links(root.walk()))) == 3
 
 
 class TestSelfReturn:
@@ -263,6 +266,7 @@ class TestSelfReturn:
     makedirs_p, rename, mkdir, touch, chroot). These methods should return
     self anyhow to allow methods to be chained.
     """
+
     def test_makedirs_p(self, tmpdir):
         """
         Path('foo').makedirs_p() == Path('foo')
@@ -298,6 +302,7 @@ class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test TempDir class)
     """
+
     def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
         d = Path(tmpdir)
@@ -357,7 +362,8 @@ class TestScratchDir:
             else:
                 assert (
                     # ctime is unchanged
-                    ct == ct2 or
+                    ct == ct2
+                    or
                     # ctime is approximately the mtime
                     ct2 == pytest.approx(f.mtime, 0.001)
                 )
@@ -409,13 +415,9 @@ class TestScratchDir:
                 except Exception:
                     pass
 
-    @pytest.mark.xfail(
-        mac_version('10.13'),
-        reason="macOS disallows invalid encodings",
-    )
-    @pytest.mark.xfail(
-        platform.system() == 'Windows',
-        reason="Can't write latin characters. See #133",
+    @pytest.mark.skip(
+        platform.system() != "Linux",
+        reason="Only Linux allows writing invalid encodings",
     )
     def test_listdir_other_encoding(self, tmpdir):
         """
@@ -433,10 +435,10 @@ class TestScratchDir:
         # first demonstrate that os.listdir works
         assert os.listdir(tmpdir_bytes)
 
-        # now try with path.py
+        # now try with path
         results = Path(tmpdir).listdir()
         assert len(results) == 1
-        res, = results
+        (res,) = results
         assert isinstance(res, Path)
         # OS X seems to encode the bytes in the filename as %XX characters.
         if platform.system() == 'Darwin':
@@ -532,9 +534,8 @@ class TestScratchDir:
         assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
-            [testC / testCopy.name,
-             testC / testFile.name,
-             testCopyOfLink])
+            [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
+        )
         assert not testCopyOfLink.islink()
 
         # Clean up for another try.
@@ -546,12 +547,11 @@ class TestScratchDir:
         assert testC.isdir()
         self.assertSetsEqual(
             testC.listdir(),
-            [testC / testCopy.name,
-             testC / testFile.name,
-             testCopyOfLink])
+            [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
+        )
         if hasattr(os, 'symlink'):
             assert testCopyOfLink.islink()
-            assert testCopyOfLink.readlink() == testFile
+            assert testCopyOfLink.realpath() == testFile
 
         # Clean up.
         testDir.rmtree()
@@ -575,141 +575,117 @@ class TestScratchDir:
         self.assertList(d.listdir('*.tmp'), [d / 'x.tmp', d / 'xdir.tmp'])
         self.assertList(d.files('*.tmp'), [d / 'x.tmp'])
         self.assertList(d.dirs('*.tmp'), [d / 'xdir.tmp'])
-        self.assertList(d.walk(), [e for e in dirs
-                                   if e != d] + [e / n for e in dirs
-                                                 for n in names])
-        self.assertList(d.walk('*.tmp'),
-                        [e / 'x.tmp' for e in dirs] + [d / 'xdir.tmp'])
+        self.assertList(
+            d.walk(), [e for e in dirs if e != d] + [e / n for e in dirs for n in names]
+        )
+        self.assertList(d.walk('*.tmp'), [e / 'x.tmp' for e in dirs] + [d / 'xdir.tmp'])
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
-    def test_unicode(self, tmpdir):
+    @pytest.mark.parametrize("encoding", ('UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'))
+    def test_unicode(self, tmpdir, encoding):
+        """ Test that path works with the specified encoding,
+        which must be capable of representing the entire range of
+        Unicode codepoints.
+        """
         d = Path(tmpdir)
         p = d / 'unicode.txt'
 
-        def test(enc):
-            """ Test that path works with the specified encoding,
-            which must be capable of representing the entire range of
-            Unicode codepoints.
-            """
+        givenLines = [
+            'Hello world\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\r\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\x85',
+            '\u0d0a\u0a0d\u0d15\u0a15\u2028',
+            '\r',
+            'hanging',
+        ]
+        given = ''.join(givenLines)
+        expectedLines = [
+            'Hello world\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\u0d0a\u0a0d\u0d15\u0a15\n',
+            '\n',
+            'hanging',
+        ]
+        clean = ''.join(expectedLines)
+        stripped = [line.replace('\n', '') for line in expectedLines]
 
-            given = (
-                'Hello world\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\r\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\x85'
-                '\u0d0a\u0a0d\u0d15\u0a15\u2028'
-                '\r'
-                'hanging'
-            )
-            clean = (
-                'Hello world\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\u0d0a\u0a0d\u0d15\u0a15\n'
-                '\n'
-                'hanging'
-            )
-            givenLines = [
-                ('Hello world\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\r\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\x85'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\u2028'),
-                ('\r'),
-                ('hanging')]
-            expectedLines = [
-                ('Hello world\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\u0d0a\u0a0d\u0d15\u0a15\n'),
-                ('\n'),
-                ('hanging')]
-            expectedLines2 = [
-                ('Hello world'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                ('\u0d0a\u0a0d\u0d15\u0a15'),
-                (''),
-                ('hanging')]
+        # write bytes manually to file
+        with io.open(p, 'wb') as strm:
+            strm.write(given.encode(encoding))
 
-            # write bytes manually to file
-            f = codecs.open(p, 'w', enc)
-            f.write(given)
-            f.close()
+        # test all 3 path read-fully functions, including
+        # path.lines() in unicode mode.
+        assert p.bytes() == given.encode(encoding)
+        with pytest.deprecated_call():
+            assert p.text(encoding) == clean
+        assert p.lines(encoding) == expectedLines
+        assert p.lines(encoding, retain=False) == stripped
 
-            # test all 3 path read-fully functions, including
-            # path.lines() in unicode mode.
-            assert p.bytes() == given.encode(enc)
-            assert p.text(enc) == clean
-            assert p.lines(enc) == expectedLines
-            assert p.lines(enc, retain=False) == expectedLines2
+        # If this is UTF-16, that's enough.
+        # The rest of these will unfortunately fail because append=True
+        # mode causes an extra BOM to be written in the middle of the file.
+        # UTF-16 is the only encoding that has this problem.
+        if encoding == 'UTF-16':
+            return
 
-            # If this is UTF-16, that's enough.
-            # The rest of these will unfortunately fail because append=True
-            # mode causes an extra BOM to be written in the middle of the file.
-            # UTF-16 is the only encoding that has this problem.
-            if enc == 'UTF-16':
-                return
+        # Write Unicode to file using path.write_text().
+        # This test doesn't work with a hanging line.
+        cleanNoHanging = clean + '\n'
 
-            # Write Unicode to file using path.write_text().
-            # This test doesn't work with a hanging line.
-            cleanNoHanging = clean + '\n'
+        p.write_text(cleanNoHanging, encoding)
+        p.write_text(cleanNoHanging, encoding, append=True)
+        # Check the result.
+        expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(encoding)
+        expectedLinesNoHanging = expectedLines[:]
+        expectedLinesNoHanging[-1] += '\n'
+        assert p.bytes() == expectedBytes
+        with pytest.deprecated_call():
+            assert p.text(encoding) == 2 * cleanNoHanging
+        assert p.lines(encoding) == 2 * expectedLinesNoHanging
+        assert p.lines(encoding, retain=False) == 2 * stripped
 
-            p.write_text(cleanNoHanging, enc)
-            p.write_text(cleanNoHanging, enc, append=True)
-            # Check the result.
-            expectedBytes = 2 * cleanNoHanging.replace('\n',
-                                                       os.linesep).encode(enc)
-            expectedLinesNoHanging = expectedLines[:]
-            expectedLinesNoHanging[-1] += '\n'
-            assert p.bytes() == expectedBytes
-            assert p.text(enc) == 2 * cleanNoHanging
-            assert p.lines(enc) == 2 * expectedLinesNoHanging
-            assert p.lines(enc, retain=False) == 2 * expectedLines2
+        # Write Unicode to file using path.write_lines().
+        # The output in the file should be exactly the same as last time.
+        p.write_lines(expectedLines, encoding)
+        p.write_lines(stripped, encoding, append=True)
+        # Check the result.
+        assert p.bytes() == expectedBytes
 
-            # Write Unicode to file using path.write_lines().
-            # The output in the file should be exactly the same as last time.
-            p.write_lines(expectedLines, enc)
-            p.write_lines(expectedLines2, enc, append=True)
-            # Check the result.
-            assert p.bytes() == expectedBytes
+        # Now: same test, but using various newline sequences.
+        # If linesep is being properly applied, these will be converted
+        # to the platform standard newline sequence.
+        p.write_lines(givenLines, encoding)
+        p.write_lines(givenLines, encoding, append=True)
+        # Check the result.
+        assert p.bytes() == expectedBytes
 
-            # Now: same test, but using various newline sequences.
-            # If linesep is being properly applied, these will be converted
-            # to the platform standard newline sequence.
-            p.write_lines(givenLines, enc)
-            p.write_lines(givenLines, enc, append=True)
-            # Check the result.
-            assert p.bytes() == expectedBytes
+        # Same test, using newline sequences that are different
+        # from the platform default.
+        def testLinesep(eol):
+            p.write_lines(givenLines, encoding, linesep=eol)
+            p.write_lines(givenLines, encoding, linesep=eol, append=True)
+            expected = 2 * cleanNoHanging.replace('\n', eol).encode(encoding)
+            assert p.bytes() == expected
 
-            # Same test, using newline sequences that are different
-            # from the platform default.
-            def testLinesep(eol):
-                p.write_lines(givenLines, enc, linesep=eol)
-                p.write_lines(givenLines, enc, linesep=eol, append=True)
-                expected = 2 * cleanNoHanging.replace('\n', eol).encode(enc)
-                assert p.bytes() == expected
+        testLinesep('\n')
+        testLinesep('\r')
+        testLinesep('\r\n')
+        testLinesep('\x0d\x85')
 
-            testLinesep('\n')
-            testLinesep('\r')
-            testLinesep('\r\n')
-            testLinesep('\x0d\x85')
-
-            # Again, but with linesep=None.
-            p.write_lines(givenLines, enc, linesep=None)
-            p.write_lines(givenLines, enc, linesep=None, append=True)
-            # Check the result.
-            expectedBytes = 2 * given.encode(enc)
-            assert p.bytes() == expectedBytes
-            assert p.text(enc) == 2 * clean
-            expectedResultLines = expectedLines[:]
-            expectedResultLines[-1] += expectedLines[0]
-            expectedResultLines += expectedLines[1:]
-            assert p.lines(enc) == expectedResultLines
-
-        test('UTF-8')
-        test('UTF-16BE')
-        test('UTF-16LE')
-        test('UTF-16')
+        # Again, but with linesep=None.
+        p.write_lines(givenLines, encoding, linesep=None)
+        p.write_lines(givenLines, encoding, linesep=None, append=True)
+        # Check the result.
+        expectedBytes = 2 * given.encode(encoding)
+        assert p.bytes() == expectedBytes
+        with pytest.deprecated_call():
+            assert p.text(encoding) == 2 * clean
+        expectedResultLines = expectedLines[:]
+        expectedResultLines[-1] += expectedLines[0]
+        expectedResultLines += expectedLines[1:]
+        assert p.lines(encoding) == expectedResultLines
 
     def test_chunks(self, tmpdir):
         p = (TempDir() / 'test.txt').touch()
@@ -717,14 +693,11 @@ class TestScratchDir:
         size = 5
         p.write_text(txt)
         for i, chunk in enumerate(p.chunks(size)):
-            assert chunk == txt[i * size:i * size + size]
+            assert chunk == txt[i * size : i * size + size]
 
         assert i == len(txt) / size - 1
 
-    @pytest.mark.skipif(
-        not hasattr(os.path, 'samefile'),
-        reason="samefile not present",
-    )
+    @pytest.mark.skipif(not hasattr(os.path, 'samefile'), reason="samefile not present")
     def test_samefile(self, tmpdir):
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
@@ -732,7 +705,7 @@ class TestScratchDir:
         f1.write_text('foo')
         f3 = (TempDir() / '3.txt').touch()
         f1.write_text('bar')
-        f4 = (TempDir() / '4.txt')
+        f4 = TempDir() / '4.txt'
         f1.copyfile(f4)
 
         assert os.path.samefile(f1, f2) == f1.samefile(f2)
@@ -750,8 +723,10 @@ class TestScratchDir:
         try:
             sub.rmtree_p()
         except OSError:
-            self.fail("Calling `rmtree_p` on non-existent directory "
-                      "should not raise an exception.")
+            self.fail(
+                "Calling `rmtree_p` on non-existent directory "
+                "should not raise an exception."
+            )
 
     def test_rmdir_p_exists(self, tmpdir):
         """
@@ -771,6 +746,18 @@ class TestScratchDir:
         d = Path(tmpdir)
         sub = d / 'subfolder'
         assert not sub.exists()
+        sub.rmdir_p()
+
+    def test_rmdir_p_sub_sub_dir(self, tmpdir):
+        """
+        A non-empty folder should not raise an exception.
+        """
+        d = Path(tmpdir)
+        sub = d / 'subfolder'
+        sub.mkdir()
+        subsub = sub / 'subfolder'
+        subsub.mkdir()
+
         sub.rmdir_p()
 
 
@@ -802,20 +789,18 @@ class TestMergeTree:
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-        ))
+        expected = set(
+            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-        ))
+        expected = set(
+            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
@@ -832,11 +817,13 @@ class TestMergeTree:
         self.subdir_a.merge_tree(self.subdir_b, True)
 
         assert self.subdir_b.isdir()
-        expected = set((
-            self.subdir_b / self.test_file.name,
-            self.subdir_b / self.test_link.name,
-            self.subdir_b / test_new.name,
-        ))
+        expected = set(
+            (
+                self.subdir_b / self.test_file.name,
+                self.subdir_b / self.test_link.name,
+                self.subdir_b / test_new.name,
+            )
+        )
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
@@ -860,10 +847,9 @@ class TestMergeTree:
         target = self.subdir_b / 'testfile.txt'
         target.write_text('this is newer')
         self.subdir_a.merge_tree(
-            self.subdir_b,
-            copy_function=path.only_newer(shutil.copy2),
+            self.subdir_b, copy_function=path.only_newer(shutil.copy2)
         )
-        assert target.text() == 'this is newer'
+        assert target.read_text() == 'this is newer'
 
 
 class TestChdir:
@@ -893,21 +879,21 @@ class TestChdir:
 
 
 class TestSubclass:
-
     def test_subclass_produces_same_class(self):
         """
         When operations are invoked on a subclass, they should produce another
         instance of that subclass.
         """
+
         class PathSubclass(Path):
             pass
+
         p = PathSubclass('/foo')
         subdir = p / 'bar'
         assert isinstance(subdir, PathSubclass)
 
 
 class TestTempDir:
-
     def test_constructor(self):
         """
         One should be able to readily construct a temporary directory
@@ -956,7 +942,7 @@ class TestTempDir:
     def test_context_manager_using_with(self):
         """
         The context manager will allow using the with keyword and
-        provide a temporry directory that will be deleted after that.
+        provide a temporary directory that will be deleted after that.
         """
 
         with TempDir() as d:
@@ -990,6 +976,7 @@ class TestPatternMatching:
     def test_fnmatch_custom_normcase(self):
         def normcase(path):
             return path.upper()
+
         p = Path('FooBar')
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
@@ -1052,17 +1039,21 @@ class TestPatternMatching:
 
 
 @pytest.mark.skipif(
-    sys.version_info < (2, 6),
-    reason="in_place requires io module in Python 2.6",
+    sys.version_info < (2, 6), reason="in_place requires io module in Python 2.6"
 )
 class TestInPlace:
-    reference_content = textwrap.dedent("""
+    reference_content = textwrap.dedent(
+        """
         The quick brown fox jumped over the lazy dog.
-        """.lstrip())
-    reversed_content = textwrap.dedent("""
+        """.lstrip()
+    )
+    reversed_content = textwrap.dedent(
+        """
         .god yzal eht revo depmuj xof nworb kciuq ehT
-        """.lstrip())
-    alternate_content = textwrap.dedent("""
+        """.lstrip()
+    )
+    alternate_content = textwrap.dedent(
+        """
           Lorem ipsum dolor sit amet, consectetur adipisicing elit,
         sed do eiusmod tempor incididunt ut labore et dolore magna
         aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -1071,7 +1062,8 @@ class TestInPlace:
         esse cillum dolore eu fugiat nulla pariatur. Excepteur
         sint occaecat cupidatat non proident, sunt in culpa qui
         officia deserunt mollit anim id est laborum.
-        """.lstrip())
+        """.lstrip()
+    )
 
     @classmethod
     def create_reference(cls, tmpdir):
@@ -1097,7 +1089,7 @@ class TestInPlace:
             with doc.in_place() as (reader, writer):
                 writer.write(self.alternate_content)
                 raise RuntimeError("some error")
-        assert "some error" in str(exc)
+        assert "some error" in str(exc.value)
         with doc.open() as stream:
             data = stream.read()
         assert 'Lorem' not in data
@@ -1235,14 +1227,10 @@ class TestMultiPath:
 
 def test_no_dependencies():
     """
-    Path.py guarantees that the path module can be
+    Path pie guarantees that the path module can be
     transplanted into an environment without any dependencies.
     """
-    cmd = [
-        sys.executable,
-        '-S',
-        '-c', 'import path',
-    ]
+    cmd = [sys.executable, '-S', '-c', 'import path']
     subprocess.check_call(cmd)
 
 
