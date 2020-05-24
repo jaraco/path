@@ -131,6 +131,42 @@ class multimethod(object):
         )
 
 
+class Traversal:
+    """
+    Wrap a walk result to customize the traversal.
+
+    `follow` is a function that takes an item and returns
+    True if that item should be followed and False otherwise.
+
+    For example, to avoid traversing into directories that
+    begin with `.`:
+
+    >>> traverse = Traversal(lambda dir: not dir.startswith('.'))
+    >>> items = list(traverse(Path('.').walk()))
+
+    Directories beginning with `.` will appear in the results, but
+    their children will not.
+
+    >>> dot_dir = next(item for item in items if item.isdir() and item.startswith('.'))
+    >>> any(item.parent == dot_dir for item in items)
+    False
+    """
+
+    def __init__(self, follow):
+        self.follow = follow
+
+    def __call__(self, walker):
+        traverse = None
+        while True:
+            try:
+                item = walker.send(traverse)
+            except StopIteration:
+                return
+            yield item
+
+            traverse = functools.partial(self.follow, item)
+
+
 class Path(str):
     """
     Represents a filesystem path.
@@ -574,10 +610,12 @@ class Path(str):
             return
 
         for child in childList:
+            traverse = None
             if match(child):
-                yield child
+                traverse = yield child
+            traverse = traverse or child.isdir
             try:
-                isdir = child.isdir()
+                do_traverse = traverse()
             except Exception:
                 exc = sys.exc_info()[1]
                 tmpl = "Unable to access '%(child)s': %(exc)s"
@@ -585,7 +623,7 @@ class Path(str):
                 errors(msg)
                 isdir = False
 
-            if isdir:
+            if do_traverse:
                 for item in child.walk(errors=errors, match=match):
                     yield item
 
