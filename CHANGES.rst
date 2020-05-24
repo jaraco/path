@@ -2,12 +2,168 @@ v14.0.0
 -------
 
 - Removed ``namebase`` property. Use ``stem`` instead.
+- Removed ``update`` parameter on method to
+  ``Path.merge_tree``. Instead, to only copy newer files,
+  provide a wrapped ``copy`` function, as described in the
+  doc string.
+- Removed ``FastPath``. Just use ``Path``.
+- Removed ``path.CaseInsensitivePattern``. Instead
+  use ``path.matchers.CaseInsensitive``.
+
+v13.3.0
+-------
+
+- #186: Fix test failures on Python 3.8 on Windows by relying on
+  ``realpath()`` instead of ``readlink()``.
+- #189: ``realpath()`` now honors symlinks on Python 3.7 and
+  earlier, approximating the behavior found on Python 3.8.
+- #187: ``lines()`` no longer relies on the deprecated ``.text()``.
+
+v13.2.0
+-------
+
+- Require Python 3.6 or later.
+
+v13.1.0
+-------
+
+- #170: Added ``read_text`` and ``read_bytes`` methods to
+  align with ``pathlib`` behavior. Deprecated ``text`` method.
+  If you require newline normalization of ``text``, use
+  ``jaraco.text.normalize_newlines(Path.read_text())``.
+
+v13.0.0
+-------
+
+- #169: Renamed package from ``path.py`` to ``path``. The docs
+  make reference to a pet name "path pie" for easier discovery.
+
+v12.2.0
+-------
+
+- #169: Moved project at GitHub from ``jaraco/path.py`` to
+  ``jaraco/path``.
+
+v12.1.0
+-------
+
+- #171: Fixed exception in ``rmdir_p`` when target is not empty.
+- #174: Rely on ``importlib.metadata`` on Python 3.8.
+
+v12.0.2
+-------
+
+- Refreshed package metadata.
+
+12.0.1
+------
+
+- #166: Removed 'universal' wheel support.
+
+12.0
+---
+
+- #148: Dropped support for Python 2.7 and 3.4.
+- Moved 'path' into a package.
+
+11.5.2
+------
+
+- #163: Corrected 'pymodules' typo in package declaration.
+
+11.5.1
+------
+
+- Minor packaging refresh.
+
+11.5.0
+------
+
+- #156: Re-wrote the handling of pattern matches for
+  ``listdir``, ``walk``, and related methods, allowing
+  the pattern to be a more complex object. This approach
+  drastically simplifies the code and obviates the
+  ``CaseInsensitivePattern`` and ``FastPath`` classes.
+  Now the main ``Path`` class should be as performant
+  as ``FastPath`` and case-insensitive matches can be
+  readily constructed using the new
+  ``path.matchers.CaseInsensitive`` class.
+
+11.4.1
+------
+
+- #153: Skip intermittently failing performance test on
+  Python 2.
+
+11.4.0
+------
+
+- #130: Path.py now supports non-decodable filenames on
+  Linux and Python 2, leveraging the
+  `backports.os <https://pypi.org/project/backports.os>`_
+  package (as an optional dependency). Currently, only
+  ``listdir`` is patched, but other ``os`` primitives may
+  be patched similarly in the ``patch_for_linux_python2``
+  function.
+
+- #141: For merge_tree, instead of relying on the deprecated
+  distutils module, implement merge_tree explicitly. The
+  ``update`` parameter is deprecated, instead superseded
+  by a ``copy_function`` parameter and an ``only_newer``
+  wrapper for any copy function.
+
+11.3.0
+------
+
+- #151: No longer use two techniques for splitting lines.
+  Instead, unconditionally rely on io.open for universal
+  newlines support and always use splitlines.
+
+11.2.0
+------
+
+- #146: Rely on `importlib_metadata
+  <https://pypi.org/project/importlib_metadata>`_ instead of
+  setuptools/pkg_resources to load the version of the module.
+  Added tests ensuring a <100ms import time for the ``path``
+  module. This change adds an explicit dependency on the
+  importlib_metadata package, but the project still supports
+  copying of the ``path.py`` module without any dependencies.
+
+11.1.0
+------
+
+- #143, #144: Add iglob method.
+- #142, #145: Rename ``tempdir`` to ``TempDir`` and declare
+  it as part of ``__all__``. Retain ``tempdir`` for compatibility
+  for now.
+- #145: ``TempDir.__enter__`` no longer returns the ``TempDir``
+  instance, but instead returns a ``Path`` instance, suitable for
+  entering to change the current working directory.
+
+11.0.1
+------
+
+- #136: Fixed test failures on BSD.
+
+- Refreshed package metadata.
+
+11.0
+----
+
+- Drop support for Python 3.3.
 
 10.6
 ----
 
 - Renamed ``namebase`` to ``stem`` to match API of pathlib.
   Kept ``namebase`` as a deprecated alias for compatibility.
+
+- Added new ``with_suffix`` method, useful for renaming the
+  extension on a Path::
+
+    orig = Path('mydir/mypath.bat')
+    renamed = orig.rename(orig.with_suffix('.cmd'))
 
 10.5
 ----
@@ -86,7 +242,8 @@ v14.0.0
 ---
 
 - Refreshed project metadata based on `jaraco's project
-  skeleton <https://github.com/jaraco/skeleton/tree/spaces>_.
+  skeleton <https://github.com/jaraco/skeleton/tree/spaces>`_.
+
 - Releases are now automatically published via Travis-CI.
 - #111: More aggressively trap errors when importing
   ``pkg_resources``.
@@ -155,7 +312,7 @@ name, ``path.Path`` as introduced in 6.2.
 7.6
 ---
 
-- Pull Request #100: Add ``merge_tree`` method for merging
+- #100: Add ``merge_tree`` method for merging
   two existing directory trees.
 - Uses `setuptools_scm <https://github.org/pypa/setuptools_scm>`_
   for version management.
