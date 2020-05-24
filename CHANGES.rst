@@ -9,6 +9,7 @@ v14.0.0
 - Removed ``FastPath``. Just use ``Path``.
 - Removed ``path.CaseInsensitivePattern``. Instead
   use ``path.matchers.CaseInsensitive``.
+- Removed ``path.tempdir``. Use ``path.TempDir``.
 - #154: Added ``Traversal`` class and support for customizing
   the behavior of a ``Path.walk``.
 

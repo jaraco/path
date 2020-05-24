@@ -1664,10 +1664,6 @@ class TempDir(Path):
             self.rmtree()
 
 
-# For backwards compatibility.
-tempdir = TempDir
-
-
 def _multi_permission_mask(mode):
     """
     Support multiple, comma-separated Unix chmod symbolic modes.
