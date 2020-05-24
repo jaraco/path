@@ -1,3 +1,8 @@
+v14.0.0
+-------
+
+- Removed ``namebase`` property. Use ``stem`` instead.
+
 10.6
 ----
 
