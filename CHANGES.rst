@@ -1,3 +1,10 @@
+v14.0.0
+-------
+
+- Removed ``FastPath``. Just use ``Path``.
+- Removed ``path.CaseInsensitivePattern``. Instead
+  use ``path.matchers.CaseInsensitive``.
+
 v13.3.0
 -------
 
