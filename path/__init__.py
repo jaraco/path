@@ -137,6 +137,19 @@ class Traversal:
 
     `follow` is a function that takes an item and returns
     True if that item should be followed and False otherwise.
+
+    For example, to avoid traversing into directories that
+    begin with `.`:
+
+    >>> traverse = Traversal(lambda dir: not dir.startswith('.'))
+    >>> items = list(traverse(Path('.').walk()))
+
+    Directories beginning with `.` will appear in the results, but
+    their children will not.
+
+    >>> dot_dir = next(item for item in items if item.isdir() and item.startswith('.'))
+    >>> any(item.parent == dot_dir for item in items)
+    False
     """
 
     def __init__(self, follow):
