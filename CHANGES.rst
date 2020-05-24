@@ -1,6 +1,7 @@
 v14.0.0
 -------
 
+- Removed ``namebase`` property. Use ``stem`` instead.
 - Removed ``update`` parameter on method to
   ``Path.merge_tree``. Instead, to only copy newer files,
   provide a wrapped ``copy`` function, as described in the
