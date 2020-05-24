@@ -138,6 +138,7 @@ class Traversal:
     `follow` is a function that takes an item and returns
     True if that item should be followed and False otherwise.
     """
+
     def __init__(self, follow):
         self.follow = follow
 
@@ -598,7 +599,7 @@ class Path(str):
         for child in childList:
             traverse = None
             if match(child):
-                traverse = (yield child)
+                traverse = yield child
             traverse = traverse or child.isdir
             try:
                 do_traverse = traverse()
