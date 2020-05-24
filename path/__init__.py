@@ -1610,12 +1610,16 @@ class TempDir(Path):
     constructed with the same parameters that you can use
     as a context manager.
 
-    Example::
+    For example:
 
-        with TempDir() as d:
-            # do stuff with the Path object "d"
+    >>> with TempDir() as d:
+    ...     d.isdir() and isinstance(d, Path)
+    True
 
-        # here the directory is deleted automatically
+    The directory is deleted automatically.
+
+    >>> d.isdir()
+    False
 
     .. seealso:: :func:`tempfile.mkdtemp`
     """
