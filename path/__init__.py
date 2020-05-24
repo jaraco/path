@@ -58,7 +58,7 @@ from . import matchers
 from .py37compat import best_realpath
 
 
-__all__ = ['Path', 'TempDir', 'CaseInsensitivePattern']
+__all__ = ['Path', 'TempDir']
 
 
 LINESEPS = ['\r\n', '\r', '\n']
