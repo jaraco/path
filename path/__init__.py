@@ -93,22 +93,6 @@ def compose(*funcs):
     return functools.reduce(compose_two, funcs)
 
 
-def simple_cache(func):
-    """
-    Save results for the :meth:'path.using_module' classmethod.
-    When Python 3.2 is available, use functools.lru_cache instead.
-    """
-    saved_results = {}
-
-    def wrapper(cls, module):
-        if module in saved_results:
-            return saved_results[module]
-        saved_results[module] = func(cls, module)
-        return saved_results[module]
-
-    return wrapper
-
-
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return self.fget.__get__(None, owner)()
@@ -194,7 +178,7 @@ class Path(str):
             raise TypeError("Invalid initial value for path: None")
 
     @classmethod
-    @simple_cache
+    @functools.lru_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)
