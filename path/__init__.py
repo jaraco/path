@@ -98,7 +98,7 @@ class ClassProperty(property):
         return self.fget.__get__(None, owner)()
 
 
-class multimethod(object):
+class multimethod:
     """
     Acts like a classmethod when invoked from the class and like an
     instancemethod when invoked from the instance.
@@ -1546,7 +1546,7 @@ def only_newer(copy_func):
     return wrapper
 
 
-class SpecialResolver(object):
+class SpecialResolver:
     class ResolverScope:
         def __init__(self, paths, scope):
             self.paths = paths
@@ -1557,10 +1557,6 @@ class SpecialResolver(object):
 
     def __init__(self, path_class, *args, **kwargs):
         appdirs = importlib.import_module('appdirs')
-
-        # let appname default to None until
-        # https://github.com/ActiveState/appdirs/issues/55 is solved.
-        not args and kwargs.setdefault('appname', None)
 
         vars(self).update(
             path_class=path_class, wrapper=appdirs.AppDirs(*args, **kwargs)
