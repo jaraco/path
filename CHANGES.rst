@@ -1,3 +1,8 @@
+v12.5.0
+-------
+
+- #195: Project now depends on ``path``.
+
 v12.4.0
 -------
 
