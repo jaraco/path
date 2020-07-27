@@ -1,3 +1,9 @@
+v15.0.0
+-------
+
+- Removed ``__version__`` property. To determine the version,
+  use ``importlib.metadata.version('path')``.
+
 v14.0.1
 -------
 

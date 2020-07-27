@@ -69,20 +69,6 @@ NL_END = re.compile(r'(?:{0})$'.format(NEWLINE.pattern))
 U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
 
 
-try:
-    from importlib import metadata  # type: ignore
-except ImportError:
-    try:
-        import importlib_metadata as metadata  # type: ignore
-    except ImportError:
-        pass
-
-try:
-    __version__ = metadata.version('path')  # type: ignore
-except Exception:
-    __version__ = 'unknown'
-
-
 class TreeWalkWarning(Warning):
     pass
 

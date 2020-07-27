@@ -1232,11 +1232,3 @@ def test_no_dependencies():
     """
     cmd = [sys.executable, '-S', '-c', 'import path']
     subprocess.check_call(cmd)
-
-
-def test_version():
-    """
-    Under normal circumstances, path should present a
-    __version__.
-    """
-    assert re.match(r'\d+\.\d+.*', path.__version__)
