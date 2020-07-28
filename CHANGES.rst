@@ -53,6 +53,23 @@ v13.0.0
 - #169: Renamed package from ``path.py`` to ``path``. The docs
   make reference to a pet name "path pie" for easier discovery.
 
+v12.5.0
+-------
+
+- #195: Project now depends on ``path``.
+
+v12.4.0
+-------
+
+- #169: Project now depends on ``path < 13.2``.
+- Fixed typo in README.
+
+v12.3.0
+-------
+
+- #169: Project is renamed to simply ``path``. This release of
+  ``path.py`` simply depends on ``path < 13.1``.
+
 v12.2.0
 -------
 
