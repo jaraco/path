@@ -415,7 +415,7 @@ class TestScratchDir:
                 except Exception:
                     pass
 
-    @pytest.mark.skip(
+    @pytest.mark.skipif(
         platform.system() != "Linux",
         reason="Only Linux allows writing invalid encodings",
     )
