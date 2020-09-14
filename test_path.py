@@ -89,9 +89,7 @@ class TestBasics:
             assert d.relpathto(boz) == boz
 
     def test_construction_from_none(self):
-        """
-
-        """
+        """"""
         try:
             Path(None)
         except TypeError:
@@ -256,7 +254,9 @@ class TestSymbolicLinksWalk:
         (sub / 'file').touch()
         assert len(list(root.walk())) == 4
 
-        skip_links = path.Traversal(lambda item: item.isdir() and not item.islink(),)
+        skip_links = path.Traversal(
+            lambda item: item.isdir() and not item.islink(),
+        )
         assert len(list(skip_links(root.walk()))) == 3
 
 
@@ -584,7 +584,7 @@ class TestScratchDir:
 
     @pytest.mark.parametrize("encoding", ('UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'))
     def test_unicode(self, tmpdir, encoding):
-        """ Test that path works with the specified encoding,
+        """Test that path works with the specified encoding,
         which must be capable of representing the entire range of
         Unicode codepoints.
         """
