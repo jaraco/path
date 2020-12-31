@@ -1,7 +1,5 @@
-Welcome to Path Pie's documentation!
-====================================
-
-Contents:
+Welcome to |project| documentation!
+===================================
 
 .. toctree::
    :maxdepth: 1
