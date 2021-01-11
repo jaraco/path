@@ -554,20 +554,7 @@ class Path(str):
         `errors` may also be an arbitrary callable taking a msg parameter.
         """
 
-        class Handlers:
-            def strict(msg):
-                raise
-
-            def warn(msg):
-                warnings.warn(msg, TreeWalkWarning)
-
-            def ignore(msg):
-                pass
-
-        if not callable(errors) and errors not in vars(Handlers):
-            raise ValueError("invalid errors parameter")
-        errors = vars(Handlers).get(errors, errors)
-
+        errors = Handlers._resolve(errors)
         match = matchers.load(match)
 
         try:
@@ -1709,3 +1696,20 @@ def _permission_mask(mode):
         '=': lambda mask, target: target & retain ^ mask,
     }
     return functools.partial(op_map[op], mask)
+
+
+class Handlers:
+    def strict(msg):
+        raise
+
+    def warn(msg):
+        warnings.warn(msg, TreeWalkWarning)
+
+    def ignore(msg):
+        pass
+
+    @classmethod
+    def _resolve(cls, param):
+        if not callable(param) and param not in vars(Handlers):
+            raise ValueError("invalid errors parameter")
+        return vars(cls).get(param, param)
