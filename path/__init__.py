@@ -39,20 +39,14 @@ import io
 import importlib
 import itertools
 
-try:
+with contextlib.suppress(ImportError):
     import win32security
-except ImportError:
-    pass
 
-try:
+with contextlib.suppress(ImportError):
     import pwd
-except ImportError:
-    pass
 
-try:
+with contextlib.suppress(ImportError):
     import grp
-except ImportError:
-    pass
 
 from . import matchers
 from .py37compat import best_realpath, lru_cache
