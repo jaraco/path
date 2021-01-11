@@ -553,11 +553,8 @@ class Path(str):
 
         try:
             childList = self.listdir()
-        except Exception:
-            exc = sys.exc_info()[1]
-            tmpl = "Unable to list directory '%(self)s': %(exc)s"
-            msg = tmpl % locals()
-            errors(msg)
+        except Exception as exc:
+            errors(f"Unable to list directory '{self}': {exc}")
             return
 
         for child in childList:
@@ -567,12 +564,8 @@ class Path(str):
             traverse = traverse or child.isdir
             try:
                 do_traverse = traverse()
-            except Exception:
-                exc = sys.exc_info()[1]
-                tmpl = "Unable to access '%(child)s': %(exc)s"
-                msg = tmpl % locals()
-                errors(msg)
-                isdir = False
+            except Exception as exc:
+                errors(f"Unable to access '{child}': {exc}")
 
             if do_traverse:
                 for item in child.walk(errors=errors, match=match):
@@ -1295,7 +1288,7 @@ class Path(str):
         symlinks=False,
         *,
         copy_function=shutil.copy2,
-        ignore=lambda dir, contents: []
+        ignore=lambda dir, contents: [],
     ):
         """
         Copy entire contents of self to dst, overwriting existing
