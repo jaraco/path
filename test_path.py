@@ -1040,9 +1040,6 @@ class TestPatternMatching:
         assert p / 'sub1' / 'foo' / 'bar.Txt' in files
 
 
-@pytest.mark.skipif(
-    sys.version_info < (2, 6), reason="in_place requires io module in Python 2.6"
-)
 class TestInPlace:
     reference_content = textwrap.dedent(
         """
