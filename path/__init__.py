@@ -1403,11 +1403,8 @@ class Path(str):
         # move existing file to backup, create new file with same permissions
         # borrowed extensively from the fileinput module
         backup_fn = self + (backup_extension or os.extsep + 'bak')
-        try:
-            os.unlink(backup_fn)
-        except os.error:
-            pass
-        os.rename(self, backup_fn)
+        backup_fn.remove_p()
+        self.rename(backup_fn)
         readable = io.open(
             backup_fn,
             mode,
@@ -1419,8 +1416,7 @@ class Path(str):
         try:
             perm = os.fstat(readable.fileno()).st_mode
         except OSError:
-            writable = open(
-                self,
+            writable = self.open(
                 'w' + mode.replace('r', ''),
                 buffering=buffering,
                 encoding=encoding,
@@ -1440,31 +1436,22 @@ class Path(str):
                 errors=errors,
                 newline=newline,
             )
-            try:
-                if hasattr(os, 'chmod'):
-                    os.chmod(self, perm)
-            except OSError:
-                pass
+            with contextlib.suppress(OSError, AttributeError):
+                self.chmod(perm)
         try:
             yield readable, writable
         except Exception:
             # move backup back
             readable.close()
             writable.close()
-            try:
-                os.unlink(self)
-            except os.error:
-                pass
-            os.rename(backup_fn, self)
+            self.remove_p()
+            backup_fn.rename(self)
             raise
         else:
             readable.close()
             writable.close()
         finally:
-            try:
-                os.unlink(backup_fn)
-            except os.error:
-                pass
+            backup_fn.remove_p()
 
     @ClassProperty
     @classmethod
