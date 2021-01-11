@@ -40,7 +40,7 @@ from path import SpecialResolver
 from path import Multi
 
 
-def p(**choices):
+def os_choose(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
 
@@ -56,7 +56,7 @@ def mac_version(target, comparator=operator.ge):
 
 class TestBasics:
     def test_relpath(self):
-        root = Path(p(nt='C:\\', posix='/'))
+        root = Path(os_choose(nt='C:\\', posix='/'))
         foo = root / 'foo'
         quux = foo / 'quux'
         bar = foo / 'bar'
@@ -117,32 +117,33 @@ class TestBasics:
         # Test p1/p1.
         p1 = Path("foo")
         p2 = Path("bar")
-        assert p1 / p2 == p(nt='foo\\bar', posix='foo/bar')
+        assert p1 / p2 == os_choose(nt='foo\\bar', posix='foo/bar')
 
     def test_properties(self):
         # Create sample path object.
-        f = p(
-            nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
-            posix='/usr/local/python/lib/xyzzy.py',
+        f = Path(
+            os_choose(
+                nt='C:\\Program Files\\Python\\Lib\\xyzzy.py',
+                posix='/usr/local/python/lib/xyzzy.py',
+            )
         )
-        f = Path(f)
 
         # .parent
         nt_lib = 'C:\\Program Files\\Python\\Lib'
         posix_lib = '/usr/local/python/lib'
-        expected = p(nt=nt_lib, posix=posix_lib)
+        expected = os_choose(nt=nt_lib, posix=posix_lib)
         assert f.parent == expected
 
         # .name
         assert f.name == 'xyzzy.py'
-        assert f.parent.name == p(nt='Lib', posix='lib')
+        assert f.parent.name == os_choose(nt='Lib', posix='lib')
 
         # .ext
         assert f.ext == '.py'
         assert f.parent.ext == ''
 
         # .drive
-        assert f.drive == p(nt='C:', posix='')
+        assert f.drive == os_choose(nt='C:', posix='')
 
     def test_methods(self):
         # .abspath()
@@ -185,7 +186,7 @@ class TestBasics:
     def test_joinpath_on_instance(self):
         res = Path('foo')
         foo_bar = res.joinpath('bar')
-        assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
+        assert foo_bar == os_choose(nt='foo\\bar', posix='foo/bar')
 
     def test_joinpath_to_nothing(self):
         res = Path('foo')
@@ -194,7 +195,7 @@ class TestBasics:
     def test_joinpath_on_class(self):
         "Construct a path from a series of strings"
         foo_bar = Path.joinpath('foo', 'bar')
-        assert foo_bar == p(nt='foo\\bar', posix='foo/bar')
+        assert foo_bar == os_choose(nt='foo\\bar', posix='foo/bar')
 
     def test_joinpath_fails_on_empty(self):
         "It doesn't make sense to join nothing at all"
