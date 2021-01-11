@@ -582,7 +582,9 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
-    @pytest.mark.parametrize("encoding", ('UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'))
+    encodings = 'UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'
+
+    @pytest.mark.parametrize("encoding", encodings)
     def test_unicode(self, tmpdir, encoding):
         """Test that path works with the specified encoding,
         which must be capable of representing the entire range of
