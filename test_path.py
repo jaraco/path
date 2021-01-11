@@ -184,12 +184,8 @@ class TestBasics:
 
     def test_joinpath_fails_on_empty(self):
         "It doesn't make sense to join nothing at all"
-        try:
+        with pytest.raises(TypeError):
             Path.joinpath()
-        except TypeError:
-            pass
-        else:
-            raise Exception("did not raise")
 
     def test_joinpath_returns_same_type(self):
         path_posix = Path.using_module(posixpath)
