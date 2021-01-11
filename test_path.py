@@ -703,13 +703,12 @@ class TestScratchDir:
         (sub / 'afile').write_text('something')
         sub.rmtree_p()
         assert not sub.exists()
-        try:
-            sub.rmtree_p()
-        except OSError:
-            self.fail(
-                "Calling `rmtree_p` on non-existent directory "
-                "should not raise an exception."
-            )
+
+    def test_rmtree_p_nonexistent(self, tmpdir):
+        d = Path(tmpdir)
+        sub = d / 'subfolder'
+        assert not sub.exists()
+        sub.rmtree_p()
 
     def test_rmdir_p_exists(self, tmpdir):
         """
