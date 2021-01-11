@@ -79,12 +79,8 @@ class TestBasics:
 
     def test_construction_from_none(self):
         """"""
-        try:
+        with pytest.raises(TypeError):
             Path(None)
-        except TypeError:
-            pass
-        else:
-            raise Exception("DID NOT RAISE")
 
     def test_construction_from_int(self):
         """
