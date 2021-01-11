@@ -24,13 +24,11 @@ import posixpath
 import textwrap
 import platform
 import importlib
-import operator
 import datetime
 import subprocess
 import re
 
 import pytest
-import packaging.version
 
 import path
 from path import Path
@@ -43,15 +41,6 @@ from path import Multi
 def os_choose(**choices):
     """ Choose a value from several possible values, based on os.name """
     return choices[os.name]
-
-
-def mac_version(target, comparator=operator.ge):
-    """
-    Return True if on a Mac whose version passes the comparator.
-    """
-    current_ver = packaging.version.parse(platform.mac_ver()[0])
-    target_ver = packaging.version.parse(target)
-    return platform.system() == 'Darwin' and comparator(current_ver, target_ver)
 
 
 class TestBasics:
