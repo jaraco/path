@@ -39,7 +39,7 @@ def realpath_backport(path):
     return path
 
 
-def _resolve_path(path, rest, seen):
+def _resolve_path(path, rest, seen):  # noqa: C901
     # Windows normalizes the path before resolving symlinks; be sure to
     # follow the same behavior.
     rest = os.path.normpath(rest)
