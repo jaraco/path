@@ -27,6 +27,7 @@ import importlib
 import datetime
 import subprocess
 import re
+import contextlib
 
 import pytest
 
@@ -392,10 +393,8 @@ class TestScratchDir:
             assert files == files2
         finally:
             for f in files:
-                try:
+                with contextlib.suppress(Exception):
                     f.remove()
-                except Exception:
-                    pass
 
     @pytest.mark.skipif(
         platform.system() != "Linux",
