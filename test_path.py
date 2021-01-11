@@ -139,11 +139,11 @@ class TestBasics:
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
+    @pytest.mark.skipif('not hasattr(os.path, "splitunc")')
     def test_UNC(self):
-        if hasattr(os.path, 'splitunc'):
-            p = Path(r'\\python1\share1\dir1\file1.txt')
-            assert p.uncshare == r'\\python1\share1'
-            assert p.splitunc() == os.path.splitunc(str(p))
+        p = Path(r'\\python1\share1\dir1\file1.txt')
+        assert p.uncshare == r'\\python1\share1'
+        assert p.splitunc() == os.path.splitunc(str(p))
 
     def test_explicit_module(self):
         """
