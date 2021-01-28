@@ -1,3 +1,9 @@
+v15.1.0
+-------
+
+- Added ``ExtantPath`` and ``ExtantFile`` objects that raise
+  errors when they reference a non-existent path or file.
+
 v15.0.1
 -------
 

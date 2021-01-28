@@ -156,6 +156,8 @@ class Path(str):
     def __init__(self, other=''):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
+        with contextlib.suppress(AttributeError):
+            self._validate()
 
     @classmethod
     @lru_cache
@@ -1492,6 +1494,35 @@ def only_newer(copy_func):
         return copy_func(src, dst, *args, **kwargs)
 
     return wrapper
+
+
+class ExtantPath(Path):
+    """
+    >>> ExtantPath('.')
+    ExtantPath('.')
+    >>> ExtantPath('does-not-exist')
+    Traceback (most recent call last):
+    OSError: does-not-exist does not exist.
+    """
+
+    def _validate(self):
+        if not self.exists():
+            raise OSError(f"{self} does not exist.")
+
+
+class ExtantFile(Path):
+    """
+    >>> ExtantFile('.')
+    Traceback (most recent call last):
+    FileNotFoundError: . does not exist as a file.
+    >>> ExtantFile('does-not-exist')
+    Traceback (most recent call last):
+    FileNotFoundError: does-not-exist does not exist as a file.
+    """
+
+    def _validate(self):
+        if not self.isfile():
+            raise FileNotFoundError(f"{self} does not exist as a file.")
 
 
 class SpecialResolver:
