@@ -1,3 +1,8 @@
+v15.1.2
+-------
+
+- #199: Fixed broken link in README.
+
 v15.1.1
 -------
 
