@@ -1,3 +1,8 @@
+v15.1.1
+-------
+
+- Refreshed package metadata.
+
 v15.1.0
 -------
 
