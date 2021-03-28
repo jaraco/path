@@ -439,17 +439,23 @@ class Path(str):
         >>> Path('/foo/bar/baz').splitall()
         [Path('/'), 'foo', 'bar', 'baz']
         """
-        parts = []
+        return list(self._parts())
+
+    def parts(self):
+        return tuple(self._parts())
+
+    def _parts(self):
+        return reversed(tuple(self._parts_iter()))
+
+    def _parts_iter(self):
         loc = self
         while loc != os.curdir and loc != os.pardir:
             prev = loc
             loc, child = prev.splitpath()
             if loc == prev:
                 break
-            parts.append(child)
-        parts.append(loc)
-        parts.reverse()
-        return parts
+            yield child
+        yield loc
 
     def relpath(self, start='.'):
         """Return this path as a relative path,
