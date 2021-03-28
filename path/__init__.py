@@ -434,7 +434,10 @@ class Path(str):
         directory of this path (for example, ``'/'`` or ``'C:\\'``).  The
         other items in the list will be strings.
 
-        ``path.Path.joinpath(*result)`` will yield the original path.
+        ``Path.joinpath(*result)`` will yield the original path.
+
+        >>> Path('/foo/bar/baz').splitall()
+        [Path('/'), 'foo', 'bar', 'baz']
         """
         parts = []
         loc = self
