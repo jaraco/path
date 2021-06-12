@@ -17,6 +17,9 @@
 .. image:: https://readthedocs.org/projects/path/badge/?version=latest
    :target: https://path.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://img.shields.io/badge/skeleton-2021-informational
+   :target: https://blog.jaraco.com/skeleton
+
 .. image:: https://tidelift.com/badges/package/pypi/path
    :target: https://tidelift.com/subscription/pkg/pypi-path?utm_source=pypi-path&utm_medium=readme
 
