@@ -1632,8 +1632,7 @@ class TempDir(Path):
         return self._next_class(self)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if not exc_value:
-            self.rmtree()
+        self.rmtree()
 
 
 def _multi_permission_mask(mode):
