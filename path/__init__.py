@@ -243,36 +243,36 @@ class Path(str):
     # --- Operations on Path strings.
 
     def abspath(self):
-        """ .. seealso:: :func:`os.path.abspath` """
+        """.. seealso:: :func:`os.path.abspath`"""
         return self._next_class(self.module.abspath(self))
 
     def normcase(self):
-        """ .. seealso:: :func:`os.path.normcase` """
+        """.. seealso:: :func:`os.path.normcase`"""
         return self._next_class(self.module.normcase(self))
 
     def normpath(self):
-        """ .. seealso:: :func:`os.path.normpath` """
+        """.. seealso:: :func:`os.path.normpath`"""
         return self._next_class(self.module.normpath(self))
 
     def realpath(self):
-        """ .. seealso:: :func:`os.path.realpath` """
+        """.. seealso:: :func:`os.path.realpath`"""
         realpath = best_realpath(self.module)
         return self._next_class(realpath(self))
 
     def expanduser(self):
-        """ .. seealso:: :func:`os.path.expanduser` """
+        """.. seealso:: :func:`os.path.expanduser`"""
         return self._next_class(self.module.expanduser(self))
 
     def expandvars(self):
-        """ .. seealso:: :func:`os.path.expandvars` """
+        """.. seealso:: :func:`os.path.expandvars`"""
         return self._next_class(self.module.expandvars(self))
 
     def dirname(self):
-        """ .. seealso:: :attr:`parent`, :func:`os.path.dirname` """
+        """.. seealso:: :attr:`parent`, :func:`os.path.dirname`"""
         return self._next_class(self.module.dirname(self))
 
     def basename(self):
-        """ .. seealso:: :attr:`name`, :func:`os.path.basename` """
+        """.. seealso:: :attr:`name`, :func:`os.path.basename`"""
         return self._next_class(self.module.basename(self))
 
     def expand(self):
@@ -296,7 +296,7 @@ class Path(str):
 
     @property
     def ext(self):
-        """ The file extension, for example ``'.py'``. """
+        """The file extension, for example ``'.py'``."""
         f, ext = self.module.splitext(self)
         return ext
 
@@ -399,7 +399,7 @@ class Path(str):
         return self.splitext()[0]
 
     def splitunc(self):
-        """ .. seealso:: :func:`os.path.splitunc` """
+        """.. seealso:: :func:`os.path.splitunc`"""
         unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
@@ -656,7 +656,7 @@ class Path(str):
         return io.open(self, *args, **kwargs)
 
     def bytes(self):
-        """ Open this file, read all bytes, return them as a string. """
+        """Open this file, read all bytes, return them as a string."""
         with self.open('rb') as f:
             return f.read()
 
@@ -904,38 +904,38 @@ class Path(str):
     # bound. Playing it safe and wrapping them all in method calls.
 
     def isabs(self):
-        """ .. seealso:: :func:`os.path.isabs` """
+        """.. seealso:: :func:`os.path.isabs`"""
         return self.module.isabs(self)
 
     def exists(self):
-        """ .. seealso:: :func:`os.path.exists` """
+        """.. seealso:: :func:`os.path.exists`"""
         return self.module.exists(self)
 
     def isdir(self):
-        """ .. seealso:: :func:`os.path.isdir` """
+        """.. seealso:: :func:`os.path.isdir`"""
         return self.module.isdir(self)
 
     def isfile(self):
-        """ .. seealso:: :func:`os.path.isfile` """
+        """.. seealso:: :func:`os.path.isfile`"""
         return self.module.isfile(self)
 
     def islink(self):
-        """ .. seealso:: :func:`os.path.islink` """
+        """.. seealso:: :func:`os.path.islink`"""
         return self.module.islink(self)
 
     def ismount(self):
-        """ .. seealso:: :func:`os.path.ismount` """
+        """.. seealso:: :func:`os.path.ismount`"""
         return self.module.ismount(self)
 
     def samefile(self, other):
-        """ .. seealso:: :func:`os.path.samefile` """
+        """.. seealso:: :func:`os.path.samefile`"""
         if not hasattr(self.module, 'samefile'):
             other = Path(other).realpath().normpath().normcase()
             return self.realpath().normpath().normcase() == other
         return self.module.samefile(self, other)
 
     def getatime(self):
-        """ .. seealso:: :attr:`atime`, :func:`os.path.getatime` """
+        """.. seealso:: :attr:`atime`, :func:`os.path.getatime`"""
         return self.module.getatime(self)
 
     atime = property(
@@ -949,7 +949,7 @@ class Path(str):
     )
 
     def getmtime(self):
-        """ .. seealso:: :attr:`mtime`, :func:`os.path.getmtime` """
+        """.. seealso:: :attr:`mtime`, :func:`os.path.getmtime`"""
         return self.module.getmtime(self)
 
     mtime = property(
@@ -963,7 +963,7 @@ class Path(str):
     )
 
     def getctime(self):
-        """ .. seealso:: :attr:`ctime`, :func:`os.path.getctime` """
+        """.. seealso:: :attr:`ctime`, :func:`os.path.getctime`"""
         return self.module.getctime(self)
 
     ctime = property(
@@ -977,7 +977,7 @@ class Path(str):
     )
 
     def getsize(self):
-        """ .. seealso:: :attr:`size`, :func:`os.path.getsize` """
+        """.. seealso:: :attr:`size`, :func:`os.path.getsize`"""
         return self.module.getsize(self)
 
     size = property(
@@ -1073,7 +1073,7 @@ class Path(str):
     if hasattr(os, 'pathconf'):
 
         def pathconf(self, name):
-            """ .. seealso:: :func:`os.pathconf` """
+            """.. seealso:: :func:`os.pathconf`"""
             return os.pathconf(self, name)
 
     #
@@ -1118,12 +1118,12 @@ class Path(str):
         return self
 
     def rename(self, new):
-        """ .. seealso:: :func:`os.rename` """
+        """.. seealso:: :func:`os.rename`"""
         os.rename(self, new)
         return self._next_class(new)
 
     def renames(self, new):
-        """ .. seealso:: :func:`os.renames` """
+        """.. seealso:: :func:`os.renames`"""
         os.renames(self, new)
         return self._next_class(new)
 
@@ -1131,7 +1131,7 @@ class Path(str):
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=0o777):
-        """ .. seealso:: :func:`os.mkdir` """
+        """.. seealso:: :func:`os.mkdir`"""
         os.mkdir(self, mode)
         return self
 
@@ -1143,7 +1143,7 @@ class Path(str):
         return self
 
     def makedirs(self, mode=0o777):
-        """ .. seealso:: :func:`os.makedirs` """
+        """.. seealso:: :func:`os.makedirs`"""
         os.makedirs(self, mode)
         return self
 
@@ -1155,7 +1155,7 @@ class Path(str):
         return self
 
     def rmdir(self):
-        """ .. seealso:: :func:`os.rmdir` """
+        """.. seealso:: :func:`os.rmdir`"""
         os.rmdir(self)
         return self
 
@@ -1169,7 +1169,7 @@ class Path(str):
         return self
 
     def removedirs(self):
-        """ .. seealso:: :func:`os.removedirs` """
+        """.. seealso:: :func:`os.removedirs`"""
         os.removedirs(self)
         return self
 
@@ -1193,7 +1193,7 @@ class Path(str):
         return self
 
     def remove(self):
-        """ .. seealso:: :func:`os.remove` """
+        """.. seealso:: :func:`os.remove`"""
         os.remove(self)
         return self
 
@@ -1205,7 +1205,7 @@ class Path(str):
         return self
 
     def unlink(self):
-        """ .. seealso:: :func:`os.unlink` """
+        """.. seealso:: :func:`os.unlink`"""
         os.unlink(self)
         return self
 
@@ -1288,7 +1288,7 @@ class Path(str):
         return self
 
     def chdir(self):
-        """ .. seealso:: :func:`os.chdir` """
+        """.. seealso:: :func:`os.chdir`"""
         os.chdir(self)
 
     cd = chdir
@@ -1346,13 +1346,13 @@ class Path(str):
     if hasattr(os, 'chroot'):
 
         def chroot(self):
-            """ .. seealso:: :func:`os.chroot` """
+            """.. seealso:: :func:`os.chroot`"""
             os.chroot(self)
 
     if hasattr(os, 'startfile'):
 
         def startfile(self):
-            """ .. seealso:: :func:`os.startfile` """
+            """.. seealso:: :func:`os.startfile`"""
             os.startfile(self)
             return self
 

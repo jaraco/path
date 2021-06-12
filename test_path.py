@@ -40,7 +40,7 @@ from path import Multi
 
 
 def os_choose(**choices):
-    """ Choose a value from several possible values, based on os.name """
+    """Choose a value from several possible values, based on os.name"""
     return choices[os.name]
 
 
@@ -79,7 +79,7 @@ class TestBasics:
             assert d.relpathto(boz) == boz
 
     def test_construction_from_none(self):
-        """"""
+        """ """
         with pytest.raises(TypeError):
             Path(None)
 
@@ -90,7 +90,7 @@ class TestBasics:
         assert Path(1) == '1'
 
     def test_string_compatibility(self):
-        """ Test compatibility with ordinary strings. """
+        """Test compatibility with ordinary strings."""
         x = Path('xyzzy')
         assert x == 'xyzzy'
         assert x == str('xyzzy')
@@ -836,7 +836,7 @@ class TestMergeTree:
 
 class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
-        """ tests the chdir or cd method """
+        """tests the chdir or cd method"""
         d = Path(str(tmpdir))
         cwd = d.getcwd()
 
