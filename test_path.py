@@ -931,6 +931,13 @@ class TestTempDir:
             assert d.isdir()
         assert not d.isdir()
 
+    def test_cleaned_up_on_interrupt(self):
+        with contextlib.suppress(KeyboardInterrupt):
+            with TempDir() as d:
+                raise KeyboardInterrupt()
+
+        assert not d.exists()
+
 
 class TestUnicode:
     @pytest.fixture(autouse=True)
