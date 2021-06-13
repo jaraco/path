@@ -235,7 +235,7 @@ class Path(str):
     def getcwd(cls):
         """Return the current working directory as a path object.
 
-        .. seealso:: :func:`os.getcwdu`
+        .. seealso:: :func:`os.getcwd`
         """
         return cls(os.getcwd())
 
@@ -399,7 +399,6 @@ class Path(str):
         return self.splitext()[0]
 
     def splitunc(self):
-        """.. seealso:: :func:`os.path.splitunc`"""
         unc, rest = self.module.splitunc(self)
         return self._next_class(unc), rest
 
@@ -598,8 +597,8 @@ class Path(str):
             attribute, it is applied to the name and path prior to comparison.
 
         `normcase` - (optional) A function used to normalize the pattern and
-            filename before matching. Defaults to :meth:`self.module`, which
-            defaults to :meth:`os.path.normcase`.
+            filename before matching. Defaults to normcase from
+            ``self.module``, :func:`os.path.normcase`.
 
         .. seealso:: :func:`fnmatch.fnmatch`
         """
@@ -648,10 +647,10 @@ class Path(str):
     # --- Reading or writing an entire file at once.
 
     def open(self, *args, **kwargs):
-        """Open this file and return a corresponding :class:`file` object.
+        """Open this file and return a corresponding file object.
 
         Keyword arguments work as in :func:`io.open`.  If the file cannot be
-        opened, an :class:`~exceptions.OSError` is raised.
+        opened, an :class:`OSError` is raised.
         """
         return io.open(self, *args, **kwargs)
 
@@ -835,7 +834,7 @@ class Path(str):
                 default is os.linesep, which is platform-dependent
                 (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
                 Specify ``None`` to write the lines as-is, like
-                :meth:`file.writelines`.
+                ``.writelines`` on a file object.
 
         Use the keyword argument ``append=True`` to append lines to the
         file.  The default is to overwrite the file.
