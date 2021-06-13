@@ -707,7 +707,7 @@ class Path(str):
             return f.read()
 
     def text(self, encoding=None, errors='strict'):
-        """Legacy function to read text.
+        r"""Legacy function to read text.
 
         Converts all newline sequences to ``\n``.
         """
