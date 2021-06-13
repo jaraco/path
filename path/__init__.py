@@ -356,7 +356,7 @@ class Path(str):
     )
 
     def splitpath(self):
-        """p.splitpath() -> Return ``(p.parent, p.name)``.
+        """Return two-tuple of ``.parent``, ``.name``.
 
         .. seealso:: :attr:`parent`, :attr:`name`, :func:`os.path.split`
         """
@@ -364,7 +364,7 @@ class Path(str):
         return self._next_class(parent), child
 
     def splitdrive(self):
-        """p.splitdrive() -> Return ``(p.drive, <the rest of p>)``.
+        """Return two-tuple of ``.drive`` and rest without drive.
 
         Split the drive specifier from this path.  If there is
         no drive specifier, :samp:`{p.drive}` is empty, so the return value
@@ -376,7 +376,7 @@ class Path(str):
         return self._next_class(drive), rel
 
     def splitext(self):
-        """p.splitext() -> Return ``(p.stripext(), p.ext)``.
+        """Return two-tuple of ``.stripext()`` and ``.ext``.
 
         Split the filename extension from this path and return
         the two parts.  Either part may be empty.
@@ -391,7 +391,7 @@ class Path(str):
         return self._next_class(filename), ext
 
     def stripext(self):
-        """p.stripext() -> Remove one file extension from the path.
+        """Remove one file extension from the path.
 
         For example, ``Path('/home/guido/python.tar.gz').stripext()``
         returns ``Path('/home/guido/python.tar')``.
@@ -505,7 +505,7 @@ class Path(str):
     # --- Listing, searching, walking, and matching
 
     def listdir(self, match=None):
-        """D.listdir() -> List of items in this directory.
+        """List of items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
         of just files or just subdirectories.
@@ -521,7 +521,7 @@ class Path(str):
         return list(filter(match, (self / child for child in os.listdir(self))))
 
     def dirs(self, *args, **kwargs):
-        """D.dirs() -> List of this directory's subdirectories.
+        """List of this directory's subdirectories.
 
         The elements of the list are Path objects.
         This does not walk recursively into subdirectories
@@ -532,7 +532,7 @@ class Path(str):
         return [p for p in self.listdir(*args, **kwargs) if p.isdir()]
 
     def files(self, *args, **kwargs):
-        """D.files() -> List of the files in this directory.
+        """List of the files in self.
 
         The elements of the list are Path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
@@ -543,7 +543,7 @@ class Path(str):
         return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
 
     def walk(self, match=None, errors='strict'):
-        """D.walk() -> iterator over files and subdirs, recursively.
+        """Iterator over files and subdirs, recursively.
 
         The iterator yields Path objects naming each child item of
         this directory and its descendants.  This requires that
@@ -583,11 +583,11 @@ class Path(str):
                     yield item
 
     def walkdirs(self, *args, **kwargs):
-        """D.walkdirs() -> iterator over subdirs, recursively."""
+        """Iterator over subdirs, recursively."""
         return (item for item in self.walk(*args, **kwargs) if item.isdir())
 
     def walkfiles(self, *args, **kwargs):
-        """D.walkfiles() -> iterator over files in D, recursively."""
+        """Iterator over files, recursively."""
         return (item for item in self.walk(*args, **kwargs) if item.isfile())
 
     def fnmatch(self, pattern, normcase=None):
