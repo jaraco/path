@@ -910,17 +910,6 @@ class TestTempDir:
         d.__exit__(None, None, None)
         assert not d.exists()
 
-    def test_context_manager_exception(self):
-        """
-        The context manager will not clean up if an exception occurs.
-        """
-        d = TempDir()
-        d.__enter__()
-        (d / 'somefile.txt').touch()
-        assert not isinstance(d / 'somefile.txt', TempDir)
-        d.__exit__(TypeError, TypeError('foo'), None)
-        assert d.exists()
-
     def test_context_manager_using_with(self):
         """
         The context manager will allow using the with keyword and
