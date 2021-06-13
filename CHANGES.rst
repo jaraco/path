@@ -1,3 +1,9 @@
+v16.0.0
+-------
+
+- #200: ``TempDir`` context now cleans up unconditionally,
+  even if an exception occurs.
+
 v15.1.2
 -------
 
