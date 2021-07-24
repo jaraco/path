@@ -1638,14 +1638,10 @@ def _multi_permission_mask(mode):
     """
     Support multiple, comma-separated Unix chmod symbolic modes.
 
-    >>> _multi_permission_mask('a=r,u+w')(0) == 0o644
-    True
+    >>> oct(_multi_permission_mask('a=r,u+w')(0))
+    '0o644'
     """
-
-    def compose(f, g):
-        return lambda *args, **kwargs: g(f(*args, **kwargs))
-
-    return functools.reduce(compose, map(_permission_mask, mode.split(',')))
+    return compose(*map(_permission_mask, reversed(mode.split(','))))
 
 
 def _permission_mask(mode):
