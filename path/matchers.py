@@ -4,7 +4,7 @@ import fnmatch
 
 def load(param):
     """
-    If the supplied parameter is a string, assum it's a simple
+    If the supplied parameter is a string, assume it's a simple
     pattern.
     """
     return (
@@ -16,7 +16,7 @@ def load(param):
     )
 
 
-class Base(object):
+class Base:
     pass
 
 
