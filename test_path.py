@@ -1363,3 +1363,30 @@ def test_no_dependencies():
     """
     cmd = [sys.executable, '-S', '-c', 'import path']
     subprocess.check_call(cmd)
+
+
+class TestHandlers:
+    @staticmethod
+    def run_with_handler(handler):
+        try:
+            raise ValueError()
+        except Exception:
+            handler("Something unexpected happened")
+
+    def test_raise(self):
+        handler = path.Handlers._resolve('strict')
+        with pytest.raises(ValueError):
+            self.run_with_handler(handler)
+
+    def test_warn(self):
+        handler = path.Handlers._resolve('warn')
+        with pytest.warns(path.TreeWalkWarning):
+            self.run_with_handler(handler)
+
+    def test_ignore(self):
+        handler = path.Handlers._resolve('ignore')
+        self.run_with_handler(handler)
+
+    def test_invalid_handler(self):
+        with pytest.raises(ValueError):
+            path.Handlers._resolve('raise')
