@@ -223,6 +223,22 @@ class TestBasics:
         dest = Path.using_module(ntpath)(r'D:\bar')
         assert source.relpathto(dest) == dest
 
+    def test_walk_errors(self):
+        start = Path('/does-not-exist')
+        items = list(start.walk(errors='ignore'))
+        assert not items
+
+    def test_walk_child_error(self, tmpdir):
+        def simulate_access_denied(item):
+            if item.name == 'sub1':
+                raise OSError("Access denied")
+            return True
+
+        p = Path(tmpdir)
+        (p / 'sub1').makedirs_p()
+        items = path.Traversal(simulate_access_denied)(p.walk(errors='ignore'))
+        assert list(items) == [p / 'sub1']
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):

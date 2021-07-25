@@ -559,6 +559,7 @@ class Path(str):
                 do_traverse = traverse()
             except Exception as exc:
                 errors(f"Unable to access '{child}': {exc}")
+                continue
 
             if do_traverse:
                 for item in child.walk(errors=errors, match=match):
