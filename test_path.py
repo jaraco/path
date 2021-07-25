@@ -217,6 +217,12 @@ class TestBasics:
         expected = os.path.normpath(os.path.expanduser(os.path.expandvars(val)))
         assert Path(val).expand() == expected
 
+    def test_splitdrive(self):
+        val = Path.using_module(ntpath)(r'C:\bar')
+        drive, rest = val.splitdrive()
+        assert drive == 'C:'
+        assert rest == Path(r'\bar')
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
