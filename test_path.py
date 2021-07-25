@@ -287,6 +287,9 @@ class TestBasics:
         tmpfile.touch()
         tmpfile.renames(Path(tmpdir) / 'foo' / 'alt')
 
+    def test_mkdir_p(self, tmpdir):
+        Path(tmpdir).mkdir_p()
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
