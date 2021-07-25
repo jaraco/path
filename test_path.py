@@ -257,6 +257,12 @@ class TestBasics:
     def test_pathconf(self):
         assert isinstance(Path('.').pathconf(1), int)
 
+    def test_utime(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        new_time = (time.time() - 600,) * 2
+        assert Path(tmpfile).utime(new_time).stat().st_atime == new_time[0]
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):

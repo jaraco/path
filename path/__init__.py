@@ -1082,12 +1082,12 @@ class Path(str):
     #
     # --- Modifying operations on files and directories
 
-    def utime(self, times):
+    def utime(self, *args, **kwargs):
         """Set the access and modified times of this file.
 
         .. seealso:: :func:`os.utime`
         """
-        os.utime(self, times)
+        os.utime(self, *args, **kwargs)
         return self
 
     def chmod(self, mode):
