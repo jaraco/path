@@ -420,6 +420,10 @@ class Path(str):
         return list(self._parts())
 
     def parts(self):
+        """
+        >>> Path('/foo/bar/baz').parts()
+        (Path('/'), 'foo', 'bar', 'baz')
+        """
         return tuple(self._parts())
 
     def _parts(self):
