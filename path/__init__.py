@@ -682,24 +682,22 @@ class Path(str):
 
         Parameters:
 
-          `text` - str/unicode - The text to be written.
+          `text` - str/bytes - The text to be written.
 
-          `encoding` - str - The Unicode encoding that will be used.
-              This is ignored if `text` isn't a Unicode string.
+          `encoding` - str - The text encoding used.
 
           `errors` - str - How to handle Unicode encoding errors.
               Default is ``'strict'``.  See ``help(unicode.encode)`` for the
-              options.  This is ignored if `text` isn't a Unicode
-              string.
+              options.  Ignored if `text` isn't a Unicode string.
 
           `linesep` - keyword argument - str/unicode - The sequence of
               characters to be used to mark end-of-line.  The default is
-              :data:`os.linesep`.  You can also specify ``None`` to
-              leave all newlines as they are in `text`.
+              :data:`os.linesep`.  Specify ``None`` to
+              use newlines unmodified.
 
           `append` - keyword argument - bool - Specifies what to do if
               the file already exists (``True``: append to the end of it;
-              ``False``: overwrite it.)  The default is ``False``.
+              ``False``: overwrite it).  The default is ``False``.
 
 
         --- Newline handling.
@@ -709,18 +707,13 @@ class Path(str):
         end-of-line sequence (see :data:`os.linesep`; on Windows, for example,
         the end-of-line marker is ``'\r\n'``).
 
-        If you don't like your platform's default, you can override it
-        using the `linesep=` keyword argument.  If you specifically want
-        ``write_text()`` to preserve the newlines as-is, use ``linesep=None``.
+        To override the platform's default, pass the `linesep=`
+        keyword argument. To preserve the newlines as-is, pass
+        ``linesep=None``.
 
-        This applies to Unicode text the same as to 8-bit text, except
-        there are three additional standard Unicode end-of-line sequences:
-        ``u'\x85'``, ``u'\r\x85'``, and ``u'\u2028'``.
-
-        (This is slightly different from when you open a file for
-        writing with ``fopen(filename, "w")`` in C or ``open(filename, 'w')``
-        in Python.)
-
+        This handling applies to Unicode text and bytes, except
+        with Unicode, additional non-ASCII newlines are recognized:
+        ``\x85``, ``\r\x85``, and ``\u2028``.
 
         --- Unicode
 
@@ -732,16 +725,15 @@ class Path(str):
         specified `encoding` (or the default encoding if `encoding`
         isn't specified).  The `errors` argument applies only to this
         conversion.
-
         """
         if isinstance(text, str):
             if linesep is not None:
                 text = U_NEWLINE.sub(linesep, text)
-            text = text.encode(encoding or sys.getdefaultencoding(), errors)
+            bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
             assert encoding is None
-            text = B_NEWLINE.sub(linesep.encode(), text)
-        self.write_bytes(text, append=append)
+            bytes = B_NEWLINE.sub(linesep.encode(), text)
+        self.write_bytes(bytes, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
         r"""Open this file, read all lines, return them in a list.
