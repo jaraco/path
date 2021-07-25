@@ -346,6 +346,13 @@ class TestLinks:
         link = target.link(Path(tmpdir) / 'link')
         assert link.read_text() == 'hello'
 
+    def test_symlink_none(self, tmpdir):
+        root = Path(tmpdir)
+        with root:
+            file = (Path('dir').mkdir() / 'file').touch()
+            file.symlink()
+            assert Path('file').isfile()
+
 
 class TestSymbolicLinksWalk:
     def test_skip_symlinks(self, tmpdir):
