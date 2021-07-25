@@ -353,6 +353,16 @@ class TestLinks:
             file.symlink()
             assert Path('file').isfile()
 
+    def test_readlinkabs_passthrough(self, tmpdir):
+        link = Path(tmpdir) / 'link'
+        Path('foo').abspath().symlink(link)
+        link.readlinkabs() == Path('foo').abspath()
+
+    def test_readlinkabs_rendered(self, tmpdir):
+        link = Path(tmpdir) / 'link'
+        Path('foo').symlink(link)
+        link.readlinkabs() == Path(tmpdir) / 'foo'
+
 
 class TestSymbolicLinksWalk:
     def test_skip_symlinks(self, tmpdir):
