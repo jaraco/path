@@ -244,6 +244,11 @@ class TestBasics:
         target.write_text('quick brown fox and lazy dog')
         assert target.read_md5() == b's\x15\rPOW\x7fYk\xa8\x8e\x00\x0b\xd7G\xf9'
 
+    def test_read_hexhash(self, tmpdir):
+        target = Path(tmpdir) / 'some file'
+        target.write_text('quick brown fox and lazy dog')
+        assert target.read_hexhash('md5') == '73150d504f577f596ba88e000bd747f9'
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
