@@ -394,9 +394,7 @@ class Path(str):
 
         .. seealso:: :func:`os.path.join`
         """
-        if not isinstance(first, cls):
-            first = cls(first)
-        return first._next_class(first.module.join(first, *others))
+        return cls._next_class(cls.module.join(first, *others))
 
     def splitall(self):
         r"""Return a list of the path components in this path.
