@@ -1410,8 +1410,7 @@ class Path(str):
             )
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
-            if hasattr(os, 'O_BINARY'):
-                os_mode |= os.O_BINARY
+            os_mode |= getattr(os, 'O_BINARY', 0)
             fd = os.open(self, os_mode, perm)
             writable = io.open(
                 fd,

@@ -1221,6 +1221,11 @@ class TestInPlace:
         assert 'Lorem' not in data
         assert 'lazy dog' in data
 
+    def test_write_mode_invalid(self, tmpdir):
+        with pytest.raises(ValueError):
+            with (Path(tmpdir) / 'document').in_place(mode='w'):
+                pass
+
 
 class TestSpecialPaths:
     @pytest.fixture(autouse=True, scope='class')
