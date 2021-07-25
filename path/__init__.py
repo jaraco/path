@@ -223,9 +223,6 @@ class Path(str):
     def __exit__(self, *_):
         os.chdir(self._old_dir)
 
-    def __fspath__(self):
-        return self
-
     @classmethod
     def getcwd(cls):
         """Return the current working directory as a path object.

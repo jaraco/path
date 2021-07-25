@@ -200,6 +200,9 @@ class TestBasics:
         res = 'foo' + Path('bar')
         assert res == Path('foobar')
 
+    def test_fspath(self):
+        os.fspath(Path('foobar'))
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
