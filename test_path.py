@@ -272,6 +272,16 @@ class TestBasics:
             return
         assert not (tmpfile.stat().st_mode & stat.S_IROTH)
 
+    @pytest.mark.skipif("not hasattr(Path, 'chown')")
+    def test_chown(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.chown(os.getuid(), os.getgid())
+        import pwd
+
+        name = pwd.getpwuid(os.getuid()).pw_name
+        tmpfile.chown(name)
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):

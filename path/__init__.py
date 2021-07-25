@@ -1107,15 +1107,18 @@ class Path(str):
 
         def chown(self, uid=-1, gid=-1):
             """
-            Change the owner and group by names rather than the uid or gid numbers.
+            Change the owner and group by names or numbers.
 
             .. seealso:: :func:`os.chown`
             """
-            if isinstance(uid, str):
-                uid = pwd.getpwnam(uid).pw_uid
-            if isinstance(gid, str):
-                gid = grp.getgrnam(gid).gr_gid
-            os.chown(self, uid, gid)
+
+            def resolve_uid(uid):
+                return uid if isinstance(uid, int) else pwd.getpwnam(uid).pw_uid
+
+            def resolve_gid(gid):
+                return gid if isinstance(gid, int) else grp.getgrnam(gid).gr_gid
+
+            os.chown(self, resolve_uid(uid), resolve_gid(gid))
             return self
 
     def rename(self, new):
