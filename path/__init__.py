@@ -887,7 +887,12 @@ class Path(str):
     # bound. Playing it safe and wrapping them all in method calls.
 
     def isabs(self):
-        """.. seealso:: :func:`os.path.isabs`"""
+        """
+        >>> Path('.').isabs()
+        False
+
+        .. seealso:: :func:`os.path.isabs`
+        """
         return self.module.isabs(self)
 
     def exists(self):
@@ -907,7 +912,12 @@ class Path(str):
         return self.module.islink(self)
 
     def ismount(self):
-        """.. seealso:: :func:`os.path.ismount`"""
+        """
+        >>> Path('.').ismount()
+        False
+
+        .. seealso:: :func:`os.path.ismount`
+        """
         return self.module.ismount(self)
 
     def samefile(self, other):
