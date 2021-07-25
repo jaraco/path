@@ -985,17 +985,16 @@ class Path(str):
         """,
     )
 
-    if hasattr(os, 'access'):
+    def access(self, *args, **kwargs):
+        """
+        Return does the real user have access to this path.
 
-        def access(self, mode):
-            """Return ``True`` if current user has access to this path.
+        >>> Path('.').access(os.F_OK)
+        True
 
-            mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
-            :data:`os.W_OK`, :data:`os.X_OK`
-
-            .. seealso:: :func:`os.access`
-            """
-            return os.access(self, mode)
+        .. seealso:: :func:`os.access`
+        """
+        return os.access(self, *args, **kwargs)
 
     def stat(self):
         """Perform a ``stat()`` system call on this path.
