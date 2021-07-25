@@ -74,7 +74,7 @@ class TestBasics:
         cwd = Path(os.getcwd())
         assert boz.relpath() == cwd.relpathto(boz)
 
-        if os.name == 'nt':
+        if os.name == 'nt':  # pragma: nocover
             # Check relpath across drives.
             d = Path('D:\\')
             assert d.relpathto(boz) == boz
@@ -233,7 +233,6 @@ class TestBasics:
         def simulate_access_denied(item):
             if item.name == 'sub1':
                 raise OSError("Access denied")
-            return True
 
         p = Path(tmpdir)
         (p / 'sub1').makedirs_p()
@@ -268,9 +267,8 @@ class TestBasics:
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
         tmpfile.chmod('o-r')
-        if platform.system() == 'Windows':
-            return
-        assert not (tmpfile.stat().st_mode & stat.S_IROTH)
+        is_windows = platform.system() == 'Windows'
+        assert is_windows or not (tmpfile.stat().st_mode & stat.S_IROTH)
 
     @pytest.mark.skipif("not hasattr(Path, 'chown')")
     def test_chown(self, tmpdir):
@@ -490,7 +488,7 @@ class TestScratchDir:
         assert t2 <= f.mtime <= t3
         if hasattr(os.path, 'getctime'):
             ct2 = f.ctime
-            if os.name == 'nt':
+            if platform.system() == 'Windows':  # pragma: nocover
                 # On Windows, "ctime" is CREATION time
                 assert ct == ct2
                 assert ct2 < t2
@@ -552,7 +550,7 @@ class TestScratchDir:
         platform.system() != "Linux",
         reason="Only Linux allows writing invalid encodings",
     )
-    def test_listdir_other_encoding(self, tmpdir):
+    def test_listdir_other_encoding(self, tmpdir):  # pragma: nocover
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
@@ -657,10 +655,7 @@ class TestScratchDir:
         assert testFile.bytes() == testCopy2.bytes()
 
         # Make a link for the next test to use.
-        if hasattr(os, 'symlink'):
-            testFile.symlink(testLink)
-        else:
-            testFile.copy(testLink)  # fallback
+        testFile.symlink(testLink)
 
         # Test copying directory tree.
         testA.copytree(testC)
@@ -909,10 +904,7 @@ class TestMergeTree:
         with open(self.test_file, 'w') as f:
             f.write('x' * 10000)
 
-        if hasattr(os, 'symlink'):
-            self.test_file.symlink(self.test_link)
-        else:
-            self.test_file.copy(self.test_link)
+        self.test_file.symlink(self.test_link)
 
     def check_link(self):
         target = Path(self.subdir_b / self.test_link.name)
