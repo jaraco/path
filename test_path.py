@@ -28,6 +28,7 @@ import datetime
 import subprocess
 import re
 import contextlib
+import stat
 
 import pytest
 
@@ -73,7 +74,7 @@ class TestBasics:
         cwd = Path(os.getcwd())
         assert boz.relpath() == cwd.relpathto(boz)
 
-        if os.name == 'nt':
+        if os.name == 'nt':  # pragma: nocover
             # Check relpath across drives.
             d = Path('D:\\')
             assert d.relpathto(boz) == boz
@@ -140,12 +141,6 @@ class TestBasics:
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
-    @pytest.mark.skipif('not hasattr(os.path, "splitunc")')
-    def test_UNC(self):
-        p = Path(r'\\python1\share1\dir1\file1.txt')
-        assert p.uncshare == r'\\python1\share1'
-        assert p.splitunc() == os.path.splitunc(str(p))
-
     def test_explicit_module(self):
         """
         The user may specify an explicit path module to use.
@@ -196,6 +191,114 @@ class TestBasics:
         assert isinstance(res2, path_posix)
         assert res2 == 'foo/bar'
 
+    def test_radd_string(self):
+        res = 'foo' + Path('bar')
+        assert res == Path('foobar')
+
+    def test_fspath(self):
+        os.fspath(Path('foobar'))
+
+    def test_normpath(self):
+        assert Path('foo//bar').normpath() == os.path.normpath('foo//bar')
+
+    def test_expandvars(self, monkeypatch):
+        monkeypatch.setitem(os.environ, 'sub', 'value')
+        val = '$sub/$(sub)'
+        assert Path(val).expandvars() == os.path.expandvars(val)
+        assert 'value' in Path(val).expandvars()
+
+    def test_expand(self):
+        val = 'foobar'
+        expected = os.path.normpath(os.path.expanduser(os.path.expandvars(val)))
+        assert Path(val).expand() == expected
+
+    def test_splitdrive(self):
+        val = Path.using_module(ntpath)(r'C:\bar')
+        drive, rest = val.splitdrive()
+        assert drive == 'C:'
+        assert rest == r'\bar'
+        assert isinstance(rest, Path)
+
+    def test_relpathto(self):
+        source = Path.using_module(ntpath)(r'C:\foo')
+        dest = Path.using_module(ntpath)(r'D:\bar')
+        assert source.relpathto(dest) == dest
+
+    def test_walk_errors(self):
+        start = Path('/does-not-exist')
+        items = list(start.walk(errors='ignore'))
+        assert not items
+
+    def test_walk_child_error(self, tmpdir):
+        def simulate_access_denied(item):
+            if item.name == 'sub1':
+                raise OSError("Access denied")
+
+        p = Path(tmpdir)
+        (p / 'sub1').makedirs_p()
+        items = path.Traversal(simulate_access_denied)(p.walk(errors='ignore'))
+        assert list(items) == [p / 'sub1']
+
+    def test_read_md5(self, tmpdir):
+        target = Path(tmpdir) / 'some file'
+        target.write_text('quick brown fox and lazy dog')
+        assert target.read_md5() == b's\x15\rPOW\x7fYk\xa8\x8e\x00\x0b\xd7G\xf9'
+
+    def test_read_hexhash(self, tmpdir):
+        target = Path(tmpdir) / 'some file'
+        target.write_text('quick brown fox and lazy dog')
+        assert target.read_hexhash('md5') == '73150d504f577f596ba88e000bd747f9'
+
+    @pytest.mark.skipif("not hasattr(os, 'statvfs')")
+    def test_statvfs(self):
+        Path('.').statvfs()
+
+    @pytest.mark.skipif("not hasattr(os, 'pathconf')")
+    def test_pathconf(self):
+        assert isinstance(Path('.').pathconf(1), int)
+
+    def test_utime(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        new_time = (time.time() - 600,) * 2
+        assert Path(tmpfile).utime(new_time).stat().st_atime == new_time[0]
+
+    def test_chmod_str(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.chmod('o-r')
+        is_windows = platform.system() == 'Windows'
+        assert is_windows or not (tmpfile.stat().st_mode & stat.S_IROTH)
+
+    @pytest.mark.skipif("not hasattr(Path, 'chown')")
+    def test_chown(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.chown(os.getuid(), os.getgid())
+        import pwd
+
+        name = pwd.getpwuid(os.getuid()).pw_name
+        tmpfile.chown(name)
+
+    def test_renames(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.renames(Path(tmpdir) / 'foo' / 'alt')
+
+    def test_mkdir_p(self, tmpdir):
+        Path(tmpdir).mkdir_p()
+
+    def test_removedirs_p(self, tmpdir):
+        dir = Path(tmpdir) / 'somedir'
+        dir.mkdir()
+        (dir / 'file').touch()
+        (dir / 'sub').mkdir()
+        dir.removedirs_p()
+        assert dir.isdir()
+        assert (dir / 'file').isfile()
+        # TODO: shouldn't sub get removed?
+        # assert not (dir / 'sub').isdir()
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
@@ -203,6 +306,7 @@ class TestReadWriteText:
         file.write_text('hello world')
         assert file.read_text() == 'hello world'
         assert file.read_bytes() == b'hello world'
+        file.write_text(b'hello world')
 
 
 class TestPerformance:
@@ -226,6 +330,36 @@ class TestPerformance:
         measure = self.get_command_time('import path')
         duration = measure - baseline
         assert duration < limit
+
+
+class TestOwnership:
+    def test_get_owner(self):
+        Path('/').get_owner()
+
+
+class TestLinks:
+    def test_link(self, tmpdir):
+        target = Path(tmpdir) / 'target'
+        target.write_text('hello', encoding='utf-8')
+        link = target.link(Path(tmpdir) / 'link')
+        assert link.read_text() == 'hello'
+
+    def test_symlink_none(self, tmpdir):
+        root = Path(tmpdir)
+        with root:
+            file = (Path('dir').mkdir() / 'file').touch()
+            file.symlink()
+            assert Path('file').isfile()
+
+    def test_readlinkabs_passthrough(self, tmpdir):
+        link = Path(tmpdir) / 'link'
+        Path('foo').abspath().symlink(link)
+        link.readlinkabs() == Path('foo').abspath()
+
+    def test_readlinkabs_rendered(self, tmpdir):
+        link = Path(tmpdir) / 'link'
+        Path('foo').symlink(link)
+        link.readlinkabs() == Path(tmpdir) / 'foo'
 
 
 class TestSymbolicLinksWalk:
@@ -279,6 +413,22 @@ class TestSelfReturn:
         p = Path(tmpdir) / "empty file"
         ret = p.touch()
         assert p == ret
+
+
+@pytest.mark.skipif("not hasattr(Path, 'chroot')")
+def test_chroot(monkeypatch):
+    results = []
+    monkeypatch.setattr(os, 'chroot', results.append)
+    Path().chroot()
+    assert results == ['']
+
+
+@pytest.mark.skipif("not hasattr(Path, 'startfile')")
+def test_startfile(monkeypatch):
+    results = []
+    monkeypatch.setattr(os, 'startfile', results.append)
+    Path().startfile()
+    assert results == ['']
 
 
 class TestScratchDir:
@@ -338,7 +488,7 @@ class TestScratchDir:
         assert t2 <= f.mtime <= t3
         if hasattr(os.path, 'getctime'):
             ct2 = f.ctime
-            if os.name == 'nt':
+            if platform.system() == 'Windows':  # pragma: nocover
                 # On Windows, "ctime" is CREATION time
                 assert ct == ct2
                 assert ct2 < t2
@@ -400,7 +550,7 @@ class TestScratchDir:
         platform.system() != "Linux",
         reason="Only Linux allows writing invalid encodings",
     )
-    def test_listdir_other_encoding(self, tmpdir):
+    def test_listdir_other_encoding(self, tmpdir):  # pragma: nocover
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
@@ -505,10 +655,7 @@ class TestScratchDir:
         assert testFile.bytes() == testCopy2.bytes()
 
         # Make a link for the next test to use.
-        if hasattr(os, 'symlink'):
-            testFile.symlink(testLink)
-        else:
-            testFile.copy(testLink)  # fallback
+        testFile.symlink(testLink)
 
         # Test copying directory tree.
         testA.copytree(testC)
@@ -680,7 +827,6 @@ class TestScratchDir:
 
         assert i == len(txt) / size - 1
 
-    @pytest.mark.skipif(not hasattr(os.path, 'samefile'), reason="samefile not present")
     def test_samefile(self, tmpdir):
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
@@ -758,10 +904,7 @@ class TestMergeTree:
         with open(self.test_file, 'w') as f:
             f.write('x' * 10000)
 
-        if hasattr(os, 'symlink'):
-            self.test_file.symlink(self.test_link)
-        else:
-            self.test_file.copy(self.test_link)
+        self.test_file.symlink(self.test_link)
 
     def check_link(self):
         target = Path(self.subdir_b / self.test_link.name)
@@ -1070,6 +1213,11 @@ class TestInPlace:
         assert 'Lorem' not in data
         assert 'lazy dog' in data
 
+    def test_write_mode_invalid(self, tmpdir):
+        with pytest.raises(ValueError):
+            with (Path(tmpdir) / 'document').in_place(mode='w'):
+                pass
+
 
 class TestSpecialPaths:
     @pytest.fixture(autouse=True, scope='class')
@@ -1207,3 +1355,30 @@ def test_no_dependencies():
     """
     cmd = [sys.executable, '-S', '-c', 'import path']
     subprocess.check_call(cmd)
+
+
+class TestHandlers:
+    @staticmethod
+    def run_with_handler(handler):
+        try:
+            raise ValueError()
+        except Exception:
+            handler("Something unexpected happened")
+
+    def test_raise(self):
+        handler = path.Handlers._resolve('strict')
+        with pytest.raises(ValueError):
+            self.run_with_handler(handler)
+
+    def test_warn(self):
+        handler = path.Handlers._resolve('warn')
+        with pytest.warns(path.TreeWalkWarning):
+            self.run_with_handler(handler)
+
+    def test_ignore(self):
+        handler = path.Handlers._resolve('ignore')
+        self.run_with_handler(handler)
+
+    def test_invalid_handler(self):
+        with pytest.raises(ValueError):
+            path.Handlers._resolve('raise')

@@ -57,10 +57,10 @@ __all__ = ['Path', 'TempDir']
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
-NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
-NL_END = re.compile(r'(?:{0})$'.format(NEWLINE.pattern))
-U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
+B_NEWLINE = re.compile('|'.join(LINESEPS).encode())
+B_NL_END = re.compile(f'(?:{B_NEWLINE.pattern.decode()})$'.encode())
+U_NL_END = re.compile(f'(?:{U_NEWLINE.pattern})$')
 
 
 class TreeWalkWarning(Warning):
@@ -182,14 +182,9 @@ class Path(str):
 
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
-        try:
-            return self._next_class(super(Path, self).__add__(more))
-        except TypeError:  # Python bug
-            return NotImplemented
+        return self._next_class(super(Path, self).__add__(more))
 
     def __radd__(self, other):
-        if not isinstance(other, str):
-            return NotImplemented
         return self._next_class(other.__add__(self))
 
     # The / operator joins Paths.
@@ -227,9 +222,6 @@ class Path(str):
 
     def __exit__(self, *_):
         os.chdir(self._old_dir)
-
-    def __fspath__(self):
-        return self
 
     @classmethod
     def getcwd(cls):
@@ -373,7 +365,7 @@ class Path(str):
         .. seealso:: :func:`os.path.splitdrive`
         """
         drive, rel = self.module.splitdrive(self)
-        return self._next_class(drive), rel
+        return self._next_class(drive), self._next_class(rel)
 
     def splitext(self):
         """Return two-tuple of ``.stripext()`` and ``.ext``.
@@ -397,19 +389,6 @@ class Path(str):
         returns ``Path('/home/guido/python.tar')``.
         """
         return self.splitext()[0]
-
-    def splitunc(self):
-        unc, rest = self.module.splitunc(self)
-        return self._next_class(unc), rest
-
-    @property
-    def uncshare(self):
-        """
-        The UNC mount point for this path.
-        This is empty for paths on local drives.
-        """
-        unc, r = self.module.splitunc(self)
-        return self._next_class(unc)
 
     @multimethod
     def joinpath(cls, first, *others):
@@ -441,6 +420,10 @@ class Path(str):
         return list(self._parts())
 
     def parts(self):
+        """
+        >>> Path('/foo/bar/baz').parts()
+        (Path('/'), 'foo', 'bar', 'baz')
+        """
         return tuple(self._parts())
 
     def _parts(self):
@@ -576,6 +559,7 @@ class Path(str):
                 do_traverse = traverse()
             except Exception as exc:
                 errors(f"Unable to access '{child}': {exc}")
+                continue
 
             if do_traverse:
                 for item in child.walk(errors=errors, match=match):
@@ -785,7 +769,7 @@ class Path(str):
             text = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
             assert encoding is None
-            text = NEWLINE.sub(linesep, text)
+            text = B_NEWLINE.sub(linesep.encode(), text)
         self.write_bytes(text, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
@@ -851,7 +835,7 @@ class Path(str):
             for line in lines:
                 isUnicode = isinstance(line, str)
                 if linesep is not None:
-                    pattern = U_NL_END if isUnicode else NL_END
+                    pattern = U_NL_END if isUnicode else B_NL_END
                     line = pattern.sub('', line) + linesep
                 if isUnicode:
                     line = line.encode(encoding or sys.getdefaultencoding(), errors)
@@ -903,7 +887,12 @@ class Path(str):
     # bound. Playing it safe and wrapping them all in method calls.
 
     def isabs(self):
-        """.. seealso:: :func:`os.path.isabs`"""
+        """
+        >>> Path('.').isabs()
+        False
+
+        .. seealso:: :func:`os.path.isabs`
+        """
         return self.module.isabs(self)
 
     def exists(self):
@@ -923,14 +912,16 @@ class Path(str):
         return self.module.islink(self)
 
     def ismount(self):
-        """.. seealso:: :func:`os.path.ismount`"""
+        """
+        >>> Path('.').ismount()
+        False
+
+        .. seealso:: :func:`os.path.ismount`
+        """
         return self.module.ismount(self)
 
     def samefile(self, other):
         """.. seealso:: :func:`os.path.samefile`"""
-        if not hasattr(self.module, 'samefile'):
-            other = Path(other).realpath().normpath().normcase()
-            return self.realpath().normpath().normcase() == other
         return self.module.samefile(self, other)
 
     def getatime(self):
@@ -941,7 +932,11 @@ class Path(str):
         getatime,
         None,
         None,
-        """ Last access time of the file.
+        """
+        Last access time of the file.
+
+        >>> Path('.').atime > 0
+        True
 
         .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
         """,
@@ -955,7 +950,8 @@ class Path(str):
         getmtime,
         None,
         None,
-        """ Last-modified time of the file.
+        """
+        Last modified time of the file.
 
         .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
         """,
@@ -989,38 +985,45 @@ class Path(str):
         """,
     )
 
-    if hasattr(os, 'access'):
+    def access(self, *args, **kwargs):
+        """
+        Return does the real user have access to this path.
 
-        def access(self, mode):
-            """Return ``True`` if current user has access to this path.
+        >>> Path('.').access(os.F_OK)
+        True
 
-            mode - One of the constants :data:`os.F_OK`, :data:`os.R_OK`,
-            :data:`os.W_OK`, :data:`os.X_OK`
-
-            .. seealso:: :func:`os.access`
-            """
-            return os.access(self, mode)
+        .. seealso:: :func:`os.access`
+        """
+        return os.access(self, *args, **kwargs)
 
     def stat(self):
-        """Perform a ``stat()`` system call on this path.
+        """
+        Perform a ``stat()`` system call on this path.
+
+        >>> Path('.').stat()
+        os.stat_result(...)
 
         .. seealso:: :meth:`lstat`, :func:`os.stat`
         """
         return os.stat(self)
 
     def lstat(self):
-        """Like :meth:`stat`, but do not follow symbolic links.
+        """
+        Like :meth:`stat`, but do not follow symbolic links.
+
+        >>> Path('.').lstat() == Path('.').stat()
+        True
 
         .. seealso:: :meth:`stat`, :func:`os.lstat`
         """
         return os.lstat(self)
 
-    def __get_owner_windows(self):
-        """
+    def __get_owner_windows(self):  # pragma: nocover
+        r"""
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ``r'DOMAIN\\User Name'``; may be a group.
+        Return a name of the form ``DOMAIN\User Name``; may be a group.
 
         .. seealso:: :attr:`owner`
         """
@@ -1031,7 +1034,7 @@ class Path(str):
         account, domain, typecode = win32security.LookupAccountSid(None, sid)
         return domain + '\\' + account
 
-    def __get_owner_unix(self):
+    def __get_owner_unix(self):  # pragma: nocover
         """
         Return the name of the owner of this file or directory. Follow
         symbolic links.
@@ -1041,15 +1044,16 @@ class Path(str):
         st = self.stat()
         return pwd.getpwuid(st.st_uid).pw_name
 
-    def __get_owner_not_implemented(self):
+    def __get_owner_not_implemented(self):  # pragma: nocover
         raise NotImplementedError("Ownership not available on this platform.")
 
-    if 'win32security' in globals():
-        get_owner = __get_owner_windows
-    elif 'pwd' in globals():
-        get_owner = __get_owner_unix
-    else:
-        get_owner = __get_owner_not_implemented
+    get_owner = (
+        __get_owner_windows
+        if 'win32security' in globals()
+        else __get_owner_unix
+        if 'pwd' in globals()
+        else __get_owner_not_implemented
+    )
 
     owner = property(
         get_owner,
@@ -1078,12 +1082,12 @@ class Path(str):
     #
     # --- Modifying operations on files and directories
 
-    def utime(self, times):
+    def utime(self, *args, **kwargs):
         """Set the access and modified times of this file.
 
         .. seealso:: :func:`os.utime`
         """
-        os.utime(self, times)
+        os.utime(self, *args, **kwargs)
         return self
 
     def chmod(self, mode):
@@ -1099,22 +1103,23 @@ class Path(str):
         os.chmod(self, mode)
         return self
 
-    def chown(self, uid=-1, gid=-1):
-        """
-        Change the owner and group by names rather than the uid or gid numbers.
+    if hasattr(os, 'chown'):
 
-        .. seealso:: :func:`os.chown`
-        """
-        if hasattr(os, 'chown'):
-            if 'pwd' in globals() and isinstance(uid, str):
-                uid = pwd.getpwnam(uid).pw_uid
-            if 'grp' in globals() and isinstance(gid, str):
-                gid = grp.getgrnam(gid).gr_gid
-            os.chown(self, uid, gid)
-        else:
-            msg = "Ownership not available on this platform."
-            raise NotImplementedError(msg)
-        return self
+        def chown(self, uid=-1, gid=-1):
+            """
+            Change the owner and group by names or numbers.
+
+            .. seealso:: :func:`os.chown`
+            """
+
+            def resolve_uid(uid):
+                return uid if isinstance(uid, int) else pwd.getpwnam(uid).pw_uid
+
+            def resolve_gid(gid):
+                return gid if isinstance(gid, int) else grp.getgrnam(gid).gr_gid
+
+            os.chown(self, resolve_uid(uid), resolve_gid(gid))
+            return self
 
     def rename(self, new):
         """.. seealso:: :func:`os.rename`"""
@@ -1203,67 +1208,50 @@ class Path(str):
             self.unlink()
         return self
 
-    def unlink(self):
-        """.. seealso:: :func:`os.unlink`"""
-        os.unlink(self)
-        return self
-
-    def unlink_p(self):
-        """Like :meth:`unlink`, but does not raise an exception if the
-        file does not exist."""
-        self.remove_p()
-        return self
+    unlink = remove
+    unlink_p = remove_p
 
     # --- Links
 
-    if hasattr(os, 'link'):
+    def link(self, newpath):
+        """Create a hard link at `newpath`, pointing to this file.
 
-        def link(self, newpath):
-            """Create a hard link at `newpath`, pointing to this file.
+        .. seealso:: :func:`os.link`
+        """
+        os.link(self, newpath)
+        return self._next_class(newpath)
 
-            .. seealso:: :func:`os.link`
-            """
-            os.link(self, newpath)
-            return self._next_class(newpath)
+    def symlink(self, newlink=None):
+        """Create a symbolic link at `newlink`, pointing here.
 
-    if hasattr(os, 'symlink'):
+        If newlink is not supplied, the symbolic link will assume
+        the name self.basename(), creating the link in the cwd.
 
-        def symlink(self, newlink=None):
-            """Create a symbolic link at `newlink`, pointing here.
+        .. seealso:: :func:`os.symlink`
+        """
+        if newlink is None:
+            newlink = self.basename()
+        os.symlink(self, newlink)
+        return self._next_class(newlink)
 
-            If newlink is not supplied, the symbolic link will assume
-            the name self.basename(), creating the link in the cwd.
+    def readlink(self):
+        """Return the path to which this symbolic link points.
 
-            .. seealso:: :func:`os.symlink`
-            """
-            if newlink is None:
-                newlink = self.basename()
-            os.symlink(self, newlink)
-            return self._next_class(newlink)
+        The result may be an absolute or a relative path.
 
-    if hasattr(os, 'readlink'):
+        .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
+        """
+        return self._next_class(os.readlink(self))
 
-        def readlink(self):
-            """Return the path to which this symbolic link points.
+    def readlinkabs(self):
+        """Return the path to which this symbolic link points.
 
-            The result may be an absolute or a relative path.
+        The result is always an absolute path.
 
-            .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
-            """
-            return self._next_class(os.readlink(self))
-
-        def readlinkabs(self):
-            """Return the path to which this symbolic link points.
-
-            The result is always an absolute path.
-
-            .. seealso:: :meth:`readlink`, :func:`os.readlink`
-            """
-            p = self.readlink()
-            if p.isabs():
-                return p
-            else:
-                return (self.parent / p).abspath()
+        .. seealso:: :meth:`readlink`, :func:`os.readlink`
+        """
+        p = self.readlink()
+        return p if p.isabs() else (self.parent / p).abspath()
 
     # High-level functions from shutil
     # These functions will be bound to the instance such that
@@ -1344,15 +1332,15 @@ class Path(str):
 
     if hasattr(os, 'chroot'):
 
-        def chroot(self):
+        def chroot(self):  # pragma: nocover
             """.. seealso:: :func:`os.chroot`"""
             os.chroot(self)
 
     if hasattr(os, 'startfile'):
 
-        def startfile(self):
+        def startfile(self, *args, **kwargs):  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
-            os.startfile(self)
+            os.startfile(self, *args, **kwargs)
             return self
 
     # in-place re-writing, courtesy of Martijn Pieters
@@ -1422,8 +1410,7 @@ class Path(str):
             )
         else:
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
-            if hasattr(os, 'O_BINARY'):
-                os_mode |= os.O_BINARY
+            os_mode |= getattr(os, 'O_BINARY', 0)
             fd = os.open(self, os_mode, perm)
             writable = io.open(
                 fd,
@@ -1638,14 +1625,10 @@ def _multi_permission_mask(mode):
     """
     Support multiple, comma-separated Unix chmod symbolic modes.
 
-    >>> _multi_permission_mask('a=r,u+w')(0) == 0o644
-    True
+    >>> oct(_multi_permission_mask('a=r,u+w')(0))
+    '0o644'
     """
-
-    def compose(f, g):
-        return lambda *args, **kwargs: g(f(*args, **kwargs))
-
-    return functools.reduce(compose, map(_permission_mask, mode.split(',')))
+    return compose(*map(_permission_mask, reversed(mode.split(','))))
 
 
 def _permission_mask(mode):
@@ -1674,6 +1657,10 @@ def _permission_mask(mode):
 
     >>> _permission_mask('g=')(0o157) == 0o107
     True
+
+    >>> _permission_mask('gobbledeegook')
+    Traceback (most recent call last):
+    ValueError: ('Unrecognized symbolic mode', 'gobbledeegook')
     """
     # parse the symbolic mode
     parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+=])(?P<what>[rwx]*)$', mode)

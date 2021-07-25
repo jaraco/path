@@ -1,3 +1,9 @@
+v16.1.0
+-------
+
+- #204: Improved test coverage across the package to 99%, fixing
+  bugs in uncovered code along the way.
+
 v16.0.0
 -------
 
