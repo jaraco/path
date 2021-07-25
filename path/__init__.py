@@ -1111,9 +1111,9 @@ class Path(str):
 
             .. seealso:: :func:`os.chown`
             """
-            if 'pwd' in globals() and isinstance(uid, str):
+            if isinstance(uid, str):
                 uid = pwd.getpwnam(uid).pw_uid
-            if 'grp' in globals() and isinstance(gid, str):
+            if isinstance(gid, str):
                 gid = grp.getgrnam(gid).gr_gid
             os.chown(self, uid, gid)
             return self
