@@ -57,10 +57,10 @@ __all__ = ['Path', 'TempDir']
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
-NEWLINE = re.compile('|'.join(LINESEPS))
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
-NL_END = re.compile(r'(?:{0})$'.format(NEWLINE.pattern))
-U_NL_END = re.compile(r'(?:{0})$'.format(U_NEWLINE.pattern))
+B_NEWLINE = re.compile('|'.join(LINESEPS).encode())
+B_NL_END = re.compile(f'(?:{B_NEWLINE.pattern.decode()})$'.encode())
+U_NL_END = re.compile(f'(?:{U_NEWLINE.pattern})$')
 
 
 class TreeWalkWarning(Warning):
@@ -769,7 +769,7 @@ class Path(str):
             text = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
             assert encoding is None
-            text = NEWLINE.sub(linesep, text)
+            text = B_NEWLINE.sub(linesep.encode(), text)
         self.write_bytes(text, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
@@ -835,7 +835,7 @@ class Path(str):
             for line in lines:
                 isUnicode = isinstance(line, str)
                 if linesep is not None:
-                    pattern = U_NL_END if isUnicode else NL_END
+                    pattern = U_NL_END if isUnicode else B_NL_END
                     line = pattern.sub('', line) + linesep
                 if isUnicode:
                     line = line.encode(encoding or sys.getdefaultencoding(), errors)

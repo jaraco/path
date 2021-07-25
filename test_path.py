@@ -246,6 +246,7 @@ class TestReadWriteText:
         file.write_text('hello world')
         assert file.read_text() == 'hello world'
         assert file.read_bytes() == b'hello world'
+        file.write_text(b'hello world')
 
 
 class TestPerformance:
