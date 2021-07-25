@@ -1657,6 +1657,10 @@ def _permission_mask(mode):
 
     >>> _permission_mask('g=')(0o157) == 0o107
     True
+
+    >>> _permission_mask('gobbledeegook')
+    Traceback (most recent call last):
+    ValueError: ('Unrecognized symbolic mode', 'gobbledeegook')
     """
     # parse the symbolic mode
     parsed = re.match('(?P<who>[ugoa]+)(?P<op>[-+=])(?P<what>[rwx]*)$', mode)
