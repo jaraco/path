@@ -922,9 +922,6 @@ class Path(str):
 
     def samefile(self, other):
         """.. seealso:: :func:`os.path.samefile`"""
-        if not hasattr(self.module, 'samefile'):
-            other = Path(other).realpath().normpath().normcase()
-            return self.realpath().normpath().normcase() == other
         return self.module.samefile(self, other)
 
     def getatime(self):

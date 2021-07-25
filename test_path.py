@@ -734,7 +734,6 @@ class TestScratchDir:
 
         assert i == len(txt) / size - 1
 
-    @pytest.mark.skipif(not hasattr(os.path, 'samefile'), reason="samefile not present")
     def test_samefile(self, tmpdir):
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
