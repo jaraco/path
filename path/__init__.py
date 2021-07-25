@@ -185,8 +185,6 @@ class Path(str):
         return self._next_class(super(Path, self).__add__(more))
 
     def __radd__(self, other):
-        if not isinstance(other, str):
-            return NotImplemented
         return self._next_class(other.__add__(self))
 
     # The / operator joins Paths.

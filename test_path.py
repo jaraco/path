@@ -196,6 +196,10 @@ class TestBasics:
         assert isinstance(res2, path_posix)
         assert res2 == 'foo/bar'
 
+    def test_radd_string(self):
+        res = 'foo' + Path('bar')
+        assert res == Path('foobar')
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
