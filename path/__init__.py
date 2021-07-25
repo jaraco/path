@@ -800,9 +800,8 @@ class Path(str):
         mode = 'a' if append else 'w'
         with self.open(mode, encoding=encoding, errors=errors) as f:
             for line in lines:
-                is_unicode = isinstance(line, str)
                 if linesep is not None:
-                    pattern = U_NL_END if is_unicode else B_NL_END
+                    pattern = U_NL_END if isinstance(line, str) else B_NL_END
                     line = pattern.sub('', line) + linesep
                 f.write(line)
 
