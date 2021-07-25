@@ -638,11 +638,7 @@ class Path(str):
         Default behavior is to overwrite any existing file.
         Call ``p.write_bytes(bytes, append=True)`` to append instead.
         """
-        if append:
-            mode = 'ab'
-        else:
-            mode = 'wb'
-        with self.open(mode) as f:
+        with self.open('ab' if append else 'wb') as f:
             f.write(bytes)
 
     def read_text(self, encoding=None, errors=None):
