@@ -49,6 +49,7 @@ with contextlib.suppress(ImportError):
 
 from . import matchers
 from . import masks
+from . import classes
 from .py37compat import best_realpath, lru_cache
 
 
@@ -65,28 +66,6 @@ U_NL_END = re.compile(f'(?:{U_NEWLINE.pattern})$')
 
 class TreeWalkWarning(Warning):
     pass
-
-
-class ClassProperty(property):
-    def __get__(self, cls, owner):
-        return self.fget.__get__(None, owner)()
-
-
-class multimethod:
-    """
-    Acts like a classmethod when invoked from the class and like an
-    instancemethod when invoked from the instance.
-    """
-
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, instance, owner):
-        return (
-            functools.partial(self.func, owner)
-            if instance is None
-            else functools.partial(self.func, owner, instance)
-        )
 
 
 class Traversal:
@@ -161,7 +140,7 @@ class Path(str):
         ns = {'module': module}
         return type(subclass_name, bases, ns)
 
-    @ClassProperty
+    @classes.ClassProperty
     @classmethod
     def _next_class(cls):
         """
@@ -384,7 +363,7 @@ class Path(str):
         """
         return self.splitext()[0]
 
-    @multimethod
+    @classes.multimethod
     def joinpath(cls, first, *others):
         """
         Join first to zero or more :class:`Path` components,
@@ -1427,7 +1406,7 @@ class Path(str):
         finally:
             backup_fn.remove_p()
 
-    @ClassProperty
+    @classes.ClassProperty
     @classmethod
     def special(cls):
         """
@@ -1559,7 +1538,7 @@ class Multi:
     def __iter__(self):
         return iter(map(self._next_class, self.split(os.pathsep)))
 
-    @ClassProperty
+    @classes.ClassProperty
     @classmethod
     def _next_class(cls):
         """
@@ -1588,7 +1567,7 @@ class TempDir(Path):
     .. seealso:: :func:`tempfile.mkdtemp`
     """
 
-    @ClassProperty
+    @classes.ClassProperty
     @classmethod
     def _next_class(cls):
         return Path
