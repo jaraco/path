@@ -1251,10 +1251,7 @@ class Path(str):
         .. seealso:: :meth:`readlink`, :func:`os.readlink`
         """
         p = self.readlink()
-        if p.isabs():
-            return p
-        else:
-            return (self.parent / p).abspath()
+        return p if p.isabs() else (self.parent / p).abspath()
 
     # High-level functions from shutil
     # These functions will be bound to the instance such that
