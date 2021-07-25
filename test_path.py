@@ -206,6 +206,12 @@ class TestBasics:
     def test_normpath(self):
         assert Path('foo//bar').normpath() == os.path.normpath('foo//bar')
 
+    def test_expandvars(self, monkeypatch):
+        monkeypatch.setitem(os.environ, 'sub', 'value')
+        val = '$sub/$(sub)'
+        assert Path(val).expandvars() == os.path.expandvars(val)
+        assert 'value' in Path(val).expandvars()
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
