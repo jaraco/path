@@ -732,7 +732,9 @@ class Path(str):
             bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
             assert encoding is None
-            bytes = B_NEWLINE.sub(linesep.encode(), text)
+            if linesep is not None:
+                text = B_NEWLINE.sub(linesep.encode(), text)
+            bytes = text
         self.write_bytes(bytes, append=append)
 
     def lines(self, encoding=None, errors='strict', retain=True):
