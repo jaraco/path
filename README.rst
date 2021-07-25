@@ -97,6 +97,12 @@ has several advantages over ``pathlib``:
   subclass the model do not need to be concerned with
   OS-specific nuances.
 
+This path project has the explicit aim to provide compatibility
+with ``pathlib`` objects where possible, such that a ``path.Path``
+object is a drop-in replacement for ``pathlib.Path*`` objects.
+This project welcomes contributions to improve that compatibility
+where it's lacking.
+
 Alternatives
 ============
 
