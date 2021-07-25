@@ -339,6 +339,14 @@ class TestOwnership:
         Path('/').get_owner()
 
 
+class TestLinks:
+    def test_link(self, tmpdir):
+        target = Path(tmpdir) / 'target'
+        target.write_text('hello', encoding='utf-8')
+        link = target.link(Path(tmpdir) / 'link')
+        assert link.read_text() == 'hello'
+
+
 class TestSymbolicLinksWalk:
     def test_skip_symlinks(self, tmpdir):
         root = Path(tmpdir)
