@@ -218,6 +218,11 @@ class TestBasics:
         assert rest == r'\bar'
         assert isinstance(rest, Path)
 
+    def test_relpathto(self):
+        source = Path.using_module(ntpath)(r'C:\foo')
+        dest = Path.using_module(ntpath)(r'D:\bar')
+        assert source.relpathto(dest) == dest
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
