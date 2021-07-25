@@ -290,6 +290,17 @@ class TestBasics:
     def test_mkdir_p(self, tmpdir):
         Path(tmpdir).mkdir_p()
 
+    def test_removedirs_p(self, tmpdir):
+        dir = Path(tmpdir) / 'somedir'
+        dir.mkdir()
+        (dir / 'file').touch()
+        (dir / 'sub').mkdir()
+        dir.removedirs_p()
+        assert dir.isdir()
+        assert (dir / 'file').isfile()
+        # TODO: shouldn't sub get removed?
+        # assert not (dir / 'sub').isdir()
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
