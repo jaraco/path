@@ -417,6 +417,22 @@ class TestSelfReturn:
         assert p == ret
 
 
+@pytest.mark.skipif("not hasattr(Path, 'chroot')")
+def test_chroot(monkeypatch):
+    results = []
+    monkeypatch.setattr(os, 'chroot', results.append)
+    Path().chroot()
+    assert results == ['']
+
+
+@pytest.mark.skipif("not hasattr(Path, 'startfile')")
+def test_startfile(monkeypatch):
+    results = []
+    monkeypatch.setattr(os, 'startfile', results.append)
+    Path().startfile()
+    assert results == ['']
+
+
 class TestScratchDir:
     """
     Tests that run in a temporary directory (does not test TempDir class)

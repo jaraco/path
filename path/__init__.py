@@ -1332,15 +1332,15 @@ class Path(str):
 
     if hasattr(os, 'chroot'):
 
-        def chroot(self):
+        def chroot(self):  # pragma: nocover
             """.. seealso:: :func:`os.chroot`"""
             os.chroot(self)
 
     if hasattr(os, 'startfile'):
 
-        def startfile(self):
+        def startfile(self, *args, **kwargs):  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
-            os.startfile(self)
+            os.startfile(self, *args, **kwargs)
             return self
 
     # in-place re-writing, courtesy of Martijn Pieters
