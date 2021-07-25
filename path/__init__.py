@@ -58,10 +58,10 @@ __all__ = ['Path', 'TempDir']
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
-U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 B_NEWLINE = re.compile('|'.join(LINESEPS).encode())
-B_NL_END = re.compile(f'(?:{B_NEWLINE.pattern.decode()})$'.encode())
-U_NL_END = re.compile(f'(?:{U_NEWLINE.pattern})$')
+U_NEWLINE = re.compile('|'.join(U_LINESEPS))
+B_NL_END = re.compile(B_NEWLINE.pattern + b'$')
+U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 
 
 class TreeWalkWarning(Warning):
