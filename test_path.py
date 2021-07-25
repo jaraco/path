@@ -212,6 +212,11 @@ class TestBasics:
         assert Path(val).expandvars() == os.path.expandvars(val)
         assert 'value' in Path(val).expandvars()
 
+    def test_expand(self):
+        val = 'foobar'
+        expected = os.path.normpath(os.path.expanduser(os.path.expandvars(val)))
+        assert Path(val).expand() == expected
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
