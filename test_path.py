@@ -28,6 +28,7 @@ import datetime
 import subprocess
 import re
 import contextlib
+import stat
 
 import pytest
 
@@ -262,6 +263,14 @@ class TestBasics:
         tmpfile.touch()
         new_time = (time.time() - 600,) * 2
         assert Path(tmpfile).utime(new_time).stat().st_atime == new_time[0]
+
+    def test_chmod_str(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.chmod('o-r')
+        if platform.system() == 'Windows':
+            return
+        assert not (tmpfile.stat().st_mode & stat.S_IROTH)
 
 
 class TestReadWriteText:
