@@ -797,14 +797,13 @@ class Path(str):
             mixed-encoding data, which can really confuse someone trying
             to read the file later.
         """
-        with self.open('ab' if append else 'wb') as f:
+        mode = 'a' if append else 'w'
+        with self.open(mode, encoding=encoding, errors=errors) as f:
             for line in lines:
-                isUnicode = isinstance(line, str)
+                is_unicode = isinstance(line, str)
                 if linesep is not None:
-                    pattern = U_NL_END if isUnicode else B_NL_END
+                    pattern = U_NL_END if is_unicode else B_NL_END
                     line = pattern.sub('', line) + linesep
-                if isUnicode:
-                    line = line.encode(encoding or sys.getdefaultencoding(), errors)
                 f.write(line)
 
     def read_md5(self):
