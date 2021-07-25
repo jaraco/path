@@ -1018,12 +1018,12 @@ class Path(str):
         """
         return os.lstat(self)
 
-    def __get_owner_windows(self):
-        """
+    def __get_owner_windows(self):  # pragma: nocover
+        r"""
         Return the name of the owner of this file or directory. Follow
         symbolic links.
 
-        Return a name of the form ``r'DOMAIN\\User Name'``; may be a group.
+        Return a name of the form ``DOMAIN\User Name``; may be a group.
 
         .. seealso:: :attr:`owner`
         """
@@ -1034,7 +1034,7 @@ class Path(str):
         account, domain, typecode = win32security.LookupAccountSid(None, sid)
         return domain + '\\' + account
 
-    def __get_owner_unix(self):
+    def __get_owner_unix(self):  # pragma: nocover
         """
         Return the name of the owner of this file or directory. Follow
         symbolic links.
@@ -1044,15 +1044,16 @@ class Path(str):
         st = self.stat()
         return pwd.getpwuid(st.st_uid).pw_name
 
-    def __get_owner_not_implemented(self):
+    def __get_owner_not_implemented(self):  # pragma: nocover
         raise NotImplementedError("Ownership not available on this platform.")
 
-    if 'win32security' in globals():
-        get_owner = __get_owner_windows
-    elif 'pwd' in globals():
-        get_owner = __get_owner_unix
-    else:
-        get_owner = __get_owner_not_implemented
+    get_owner = (
+        __get_owner_windows
+        if 'win32security' in globals()
+        else __get_owner_unix
+        if 'pwd' in globals()
+        else __get_owner_not_implemented
+    )
 
     owner = property(
         get_owner,

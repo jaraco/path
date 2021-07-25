@@ -282,6 +282,11 @@ class TestPerformance:
         assert duration < limit
 
 
+class TestOwnership:
+    def test_get_owner(self):
+        Path('/').get_owner()
+
+
 class TestSymbolicLinksWalk:
     def test_skip_symlinks(self, tmpdir):
         root = Path(tmpdir)
