@@ -1380,8 +1380,6 @@ class Path(str):
 
         Thereafter, the file at `filename` will have line numbers in it.
         """
-        import io
-
         if set(mode).intersection('wa+'):
             raise ValueError('Only read-only file modes can be used')
 
