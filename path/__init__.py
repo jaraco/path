@@ -1208,16 +1208,8 @@ class Path(str):
             self.unlink()
         return self
 
-    def unlink(self):
-        """.. seealso:: :func:`os.unlink`"""
-        os.unlink(self)
-        return self
-
-    def unlink_p(self):
-        """Like :meth:`unlink`, but does not raise an exception if the
-        file does not exist."""
-        self.remove_p()
-        return self
+    unlink = remove
+    unlink_p = remove_p
 
     # --- Links
 
