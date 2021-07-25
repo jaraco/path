@@ -997,14 +997,22 @@ class Path(str):
         return os.access(self, *args, **kwargs)
 
     def stat(self):
-        """Perform a ``stat()`` system call on this path.
+        """
+        Perform a ``stat()`` system call on this path.
+
+        >>> Path('.').stat()
+        os.stat_result(...)
 
         .. seealso:: :meth:`lstat`, :func:`os.stat`
         """
         return os.stat(self)
 
     def lstat(self):
-        """Like :meth:`stat`, but do not follow symbolic links.
+        """
+        Like :meth:`stat`, but do not follow symbolic links.
+
+        >>> Path('.').lstat() == Path('.').stat()
+        True
 
         .. seealso:: :meth:`stat`, :func:`os.lstat`
         """
