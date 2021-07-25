@@ -249,6 +249,14 @@ class TestBasics:
         target.write_text('quick brown fox and lazy dog')
         assert target.read_hexhash('md5') == '73150d504f577f596ba88e000bd747f9'
 
+    @pytest.mark.skipif("not hasattr(os, 'statvfs')")
+    def test_statvfs(self):
+        Path('.').statvfs()
+
+    @pytest.mark.skipif("not hasattr(os, 'pathconf')")
+    def test_pathconf(self):
+        assert isinstance(Path('.').pathconf(1), int)
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
