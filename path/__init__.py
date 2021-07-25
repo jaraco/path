@@ -390,19 +390,6 @@ class Path(str):
         """
         return self.splitext()[0]
 
-    def splitunc(self):
-        unc, rest = self.module.splitunc(self)
-        return self._next_class(unc), rest
-
-    @property
-    def uncshare(self):
-        """
-        The UNC mount point for this path.
-        This is empty for paths on local drives.
-        """
-        unc, r = self.module.splitunc(self)
-        return self._next_class(unc)
-
     @multimethod
     def joinpath(cls, first, *others):
         """
