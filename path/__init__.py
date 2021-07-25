@@ -1213,54 +1213,48 @@ class Path(str):
 
     # --- Links
 
-    if hasattr(os, 'link'):
+    def link(self, newpath):
+        """Create a hard link at `newpath`, pointing to this file.
 
-        def link(self, newpath):
-            """Create a hard link at `newpath`, pointing to this file.
+        .. seealso:: :func:`os.link`
+        """
+        os.link(self, newpath)
+        return self._next_class(newpath)
 
-            .. seealso:: :func:`os.link`
-            """
-            os.link(self, newpath)
-            return self._next_class(newpath)
+    def symlink(self, newlink=None):
+        """Create a symbolic link at `newlink`, pointing here.
 
-    if hasattr(os, 'symlink'):
+        If newlink is not supplied, the symbolic link will assume
+        the name self.basename(), creating the link in the cwd.
 
-        def symlink(self, newlink=None):
-            """Create a symbolic link at `newlink`, pointing here.
+        .. seealso:: :func:`os.symlink`
+        """
+        if newlink is None:
+            newlink = self.basename()
+        os.symlink(self, newlink)
+        return self._next_class(newlink)
 
-            If newlink is not supplied, the symbolic link will assume
-            the name self.basename(), creating the link in the cwd.
+    def readlink(self):
+        """Return the path to which this symbolic link points.
 
-            .. seealso:: :func:`os.symlink`
-            """
-            if newlink is None:
-                newlink = self.basename()
-            os.symlink(self, newlink)
-            return self._next_class(newlink)
+        The result may be an absolute or a relative path.
 
-    if hasattr(os, 'readlink'):
+        .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
+        """
+        return self._next_class(os.readlink(self))
 
-        def readlink(self):
-            """Return the path to which this symbolic link points.
+    def readlinkabs(self):
+        """Return the path to which this symbolic link points.
 
-            The result may be an absolute or a relative path.
+        The result is always an absolute path.
 
-            .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
-            """
-            return self._next_class(os.readlink(self))
-
-        def readlinkabs(self):
-            """Return the path to which this symbolic link points.
-
-            The result is always an absolute path.
-
-            .. seealso:: :meth:`readlink`, :func:`os.readlink`
-            """
-            p = self.readlink()
-            if p.isabs():
-                return p
-            else:
-                return (self.parent / p).abspath()
+        .. seealso:: :meth:`readlink`, :func:`os.readlink`
+        """
+        p = self.readlink()
+        if p.isabs():
+            return p
+        else:
+            return (self.parent / p).abspath()
 
     # High-level functions from shutil
     # These functions will be bound to the instance such that
