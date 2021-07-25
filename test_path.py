@@ -203,6 +203,9 @@ class TestBasics:
     def test_fspath(self):
         os.fspath(Path('foobar'))
 
+    def test_normpath(self):
+        assert Path('foo//bar').normpath() == os.path.normpath('foo//bar')
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
