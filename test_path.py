@@ -221,7 +221,8 @@ class TestBasics:
         val = Path.using_module(ntpath)(r'C:\bar')
         drive, rest = val.splitdrive()
         assert drive == 'C:'
-        assert rest == Path(r'\bar')
+        assert rest == r'\bar'
+        assert isinstance(rest, Path)
 
 
 class TestReadWriteText:

@@ -365,7 +365,7 @@ class Path(str):
         .. seealso:: :func:`os.path.splitdrive`
         """
         drive, rel = self.module.splitdrive(self)
-        return self._next_class(drive), rel
+        return self._next_class(drive), self._next_class(rel)
 
     def splitext(self):
         """Return two-tuple of ``.stripext()`` and ``.ext``.
