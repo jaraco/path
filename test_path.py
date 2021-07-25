@@ -282,6 +282,11 @@ class TestBasics:
         name = pwd.getpwuid(os.getuid()).pw_name
         tmpfile.chown(name)
 
+    def test_renames(self, tmpdir):
+        tmpfile = Path(tmpdir) / 'file'
+        tmpfile.touch()
+        tmpfile.renames(Path(tmpdir) / 'foo' / 'alt')
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
