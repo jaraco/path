@@ -932,7 +932,11 @@ class Path(str):
         getatime,
         None,
         None,
-        """ Last access time of the file.
+        """
+        Last access time of the file.
+
+        >>> Path('.').atime > 0
+        True
 
         .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
         """,
@@ -946,7 +950,8 @@ class Path(str):
         getmtime,
         None,
         None,
-        """ Last-modified time of the file.
+        """
+        Last modified time of the file.
 
         .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
         """,
