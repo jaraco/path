@@ -301,6 +301,7 @@ class TestBasics:
 
 
 class TestReadWriteText:
+    @pytest.mark.filterwarnings('ignore:Writing bytes in write_text')
     def test_read_write(self, tmpdir):
         file = path.Path(tmpdir) / 'filename'
         file.write_text('hello world')

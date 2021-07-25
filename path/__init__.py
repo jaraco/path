@@ -727,6 +727,11 @@ class Path(str):
                 text = U_NEWLINE.sub(linesep, text)
             bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         else:
+            warnings.warn(
+                "Writing bytes in write_text is deprecated",
+                DeprecationWarning,
+                stacklevel=1,
+            )
             assert encoding is None
             if linesep is not None:
                 text = B_NEWLINE.sub(linesep.encode(), text)

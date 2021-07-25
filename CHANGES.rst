@@ -1,3 +1,9 @@
+v16.2.0
+-------
+
+- Deprecated passing bytes to ``write_text``. Instead, users
+  should call ``write_bytes``.
+
 v16.1.0
 -------
 
