@@ -738,20 +738,20 @@ class Path(str):
             bytes = text
         self.write_bytes(bytes, append=append)
 
-    def lines(self, encoding=None, errors='strict', retain=True):
+    def lines(self, encoding=None, errors=None, retain=True):
         r"""Open this file, read all lines, return them in a list.
 
         Optional arguments:
             `encoding` - The Unicode encoding (or character set) of
-                the file.  The default is ``None``, meaning the content
-                of the file is read as 8-bit characters and returned
-                as a list of (non-Unicode) str objects.
-            `errors` - How to handle Unicode errors; see help(str.decode)
-                for the options.  Default is ``'strict'``.
-            `retain` - If ``True``, retain newline characters; but all newline
-                character combinations (``'\r'``, ``'\n'``, ``'\r\n'``) are
-                translated to ``'\n'``.  If ``False``, newline characters are
-                stripped off.  Default is ``True``.
+                the file.  The default is ``None``, meaning use
+                ``locale.getpreferredencoding()``.
+            `errors` - How to handle Unicode errors; see
+                `open <https://docs.python.org/3/library/functions.html#open>`_
+                for the options.  Default is ``None`` meaning "strict".
+            `retain` - If ``True`` (default), retain newline characters,
+                but translate all newline
+                characters to ``\n``.  If ``False``, newline characters are
+                omitted.
 
         .. seealso:: :meth:`text`
         """
