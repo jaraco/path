@@ -239,6 +239,11 @@ class TestBasics:
         items = path.Traversal(simulate_access_denied)(p.walk(errors='ignore'))
         assert list(items) == [p / 'sub1']
 
+    def test_read_md5(self, tmpdir):
+        target = Path(tmpdir) / 'some file'
+        target.write_text('quick brown fox and lazy dog')
+        assert target.read_md5() == b's\x15\rPOW\x7fYk\xa8\x8e\x00\x0b\xd7G\xf9'
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
