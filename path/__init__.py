@@ -182,10 +182,7 @@ class Path(str):
 
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
-        try:
-            return self._next_class(super(Path, self).__add__(more))
-        except TypeError:  # Python bug
-            return NotImplemented
+        return self._next_class(super(Path, self).__add__(more))
 
     def __radd__(self, other):
         if not isinstance(other, str):
