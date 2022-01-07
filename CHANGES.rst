@@ -1,3 +1,8 @@
+v16.3.0
+-------
+
+Require Python 3.7 or later.
+
 v16.2.0
 -------
 
