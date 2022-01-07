@@ -9,8 +9,7 @@ jobs:
         python:
         - 3.7
         - 3.9
-        # disabled due to pywin32 availability mhammond/pywin32#1588
-        # - "3.10"
+        - "3.10"
         platform:
         - ubuntu-latest
         - macos-latest
