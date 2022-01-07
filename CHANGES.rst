@@ -1,7 +1,9 @@
 v16.3.0
 -------
 
-Require Python 3.7 or later.
+- Require Python 3.7 or later.
+- #205: test_listdir_other_encoding now automatically skips
+  itself on file systems where it's not appropriate.
 
 v16.2.0
 -------
