@@ -572,10 +572,6 @@ class TestScratchDir:
         assert len(results) == 1
         (res,) = results
         assert isinstance(res, Path)
-        # OS X seems to encode the bytes in the filename as %XX characters.
-        if platform.system() == 'Darwin':
-            assert res.basename() == 'r%E9%F1emi'
-            return
         assert len(res.basename()) == len(filename)
 
     def test_makedirs(self, tmpdir):
