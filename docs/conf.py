@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-extensions = [
-    "sphinx.ext.autodoc",
-    "jaraco.packaging.sphinx",
-    "rst.linker",
-    "sphinx.ext.intersphinx",
-]
+extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
+
+master_doc = "index"
 
 pygments_style = "sphinx"
-
-intersphinx_mapping = {'python': ('http://docs.python.org/', None)}
 
 link_files = {
     '../CHANGES.rst': dict(
@@ -34,5 +29,12 @@ link_files = {
 
 # Be strict about any broken references:
 nitpicky = True
+
+# Include Python intersphinx mapping to prevent failures
+# jaraco/skeleton#51
+extensions += ['sphinx.ext.intersphinx']
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
 
 extensions += ['jaraco.tidelift']
