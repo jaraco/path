@@ -547,32 +547,31 @@ class TestScratchDir:
                 with contextlib.suppress(Exception):
                     f.remove()
 
-    @pytest.mark.skipif(
-        platform.system() != "Linux",
-        reason="Only Linux allows writing invalid encodings",
-    )
-    def test_listdir_other_encoding(self, tmpdir):  # pragma: nocover
+    @pytest.fixture
+    def bytes_filename(self, tmpdir):
+        name = r'r\xe9\xf1emi'.encode('latin-1')
+        base = str(tmpdir).encode('ascii')
+        try:
+            with open(os.path.join(base, name), 'wb'):
+                pass
+        except Exception as exc:
+            raise pytest.skip(f"Invalid encodings disallowed {exc}")
+        return name
+
+    def test_listdir_other_encoding(self, tmpdir, bytes_filename):  # pragma: nocover
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
         See issue #61 for details.
         """
-        assert Path(tmpdir).listdir() == []
-        tmpdir_bytes = str(tmpdir).encode('ascii')
-
-        filename = 'r\xe9\xf1emi'.encode('latin-1')
-        pathname = os.path.join(tmpdir_bytes, filename)
-        with open(pathname, 'wb'):
-            pass
         # first demonstrate that os.listdir works
-        assert os.listdir(tmpdir_bytes)
+        assert os.listdir(str(tmpdir).encode('ascii'))
 
         # now try with path
         results = Path(tmpdir).listdir()
-        assert len(results) == 1
         (res,) = results
         assert isinstance(res, Path)
-        assert len(res.basename()) == len(filename)
+        assert len(res.basename()) == len(bytes_filename)
 
     def test_makedirs(self, tmpdir):
         d = Path(tmpdir)
