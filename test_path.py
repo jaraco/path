@@ -29,6 +29,7 @@ import subprocess
 import re
 import contextlib
 import stat
+from typing import Any, Callable, Dict, Iterable, List
 
 import pytest
 
@@ -40,13 +41,16 @@ from path import SpecialResolver
 from path import Multi
 
 
-def os_choose(**choices):
+TmpDir = pytest.TempdirFactory
+
+
+def os_choose(**choices: str) -> str:
     """Choose a value from several possible values, based on os.name"""
     return choices[os.name]
 
 
 class TestBasics:
-    def test_relpath(self):
+    def test_relpath(self) -> None:
         root = Path(os_choose(nt='C:\\', posix='/'))
         foo = root / 'foo'
         quux = foo / 'quux'
@@ -79,18 +83,18 @@ class TestBasics:
             d = Path('D:\\')
             assert d.relpathto(boz) == boz
 
-    def test_construction_from_none(self):
+    def test_construction_from_none(self) -> None:
         """ """
         with pytest.raises(TypeError):
             Path(None)
 
-    def test_construction_from_int(self):
+    def test_construction_from_int(self) -> None:
         """
         Path class will construct a path as a string of the number
         """
         assert Path(1) == '1'
 
-    def test_string_compatibility(self):
+    def test_string_compatibility(self) -> None:
         """Test compatibility with ordinary strings."""
         x = Path('xyzzy')
         assert x == 'xyzzy'
@@ -106,7 +110,7 @@ class TestBasics:
         p2 = Path("bar")
         assert p1 / p2 == os_choose(nt='foo\\bar', posix='foo/bar')
 
-    def test_properties(self):
+    def test_properties(self) -> None:
         # Create sample path object.
         f = Path(
             os_choose(
@@ -132,7 +136,7 @@ class TestBasics:
         # .drive
         assert f.drive == os_choose(nt='C:', posix='')
 
-    def test_methods(self):
+    def test_methods(self) -> None:
         # .abspath()
         assert Path(os.curdir).abspath() == os.getcwd()
 
@@ -141,7 +145,7 @@ class TestBasics:
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
-    def test_explicit_module(self):
+    def test_explicit_module(self) -> None:
         """
         The user may specify an explicit path module to use.
         """
@@ -156,7 +160,7 @@ class TestBasics:
         assert nt_ok / 'quux' == r'foo\bar\baz\quux'
         assert posix_ok / 'quux' == r'foo/bar/baz/quux'
 
-    def test_explicit_module_classes(self):
+    def test_explicit_module_classes(self) -> None:
         """
         Multiple calls to path.using_module should produce the same class.
         """
@@ -164,26 +168,26 @@ class TestBasics:
         assert nt_path is Path.using_module(ntpath)
         assert nt_path.__name__ == 'Path_ntpath'
 
-    def test_joinpath_on_instance(self):
+    def test_joinpath_on_instance(self) -> None:
         res = Path('foo')
         foo_bar = res.joinpath('bar')
         assert foo_bar == os_choose(nt='foo\\bar', posix='foo/bar')
 
-    def test_joinpath_to_nothing(self):
+    def test_joinpath_to_nothing(self) -> None:
         res = Path('foo')
         assert res.joinpath() == res
 
-    def test_joinpath_on_class(self):
+    def test_joinpath_on_class(self) -> None:
         "Construct a path from a series of strings"
         foo_bar = Path.joinpath('foo', 'bar')
         assert foo_bar == os_choose(nt='foo\\bar', posix='foo/bar')
 
-    def test_joinpath_fails_on_empty(self):
+    def test_joinpath_fails_on_empty(self) -> None:
         "It doesn't make sense to join nothing at all"
         with pytest.raises(TypeError):
             Path.joinpath()
 
-    def test_joinpath_returns_same_type(self):
+    def test_joinpath_returns_same_type(self) -> None:
         path_posix = Path.using_module(posixpath)
         res = path_posix.joinpath('foo')
         assert isinstance(res, path_posix)
@@ -191,87 +195,88 @@ class TestBasics:
         assert isinstance(res2, path_posix)
         assert res2 == 'foo/bar'
 
-    def test_radd_string(self):
+    def test_radd_string(self) -> None:
         res = 'foo' + Path('bar')
         assert res == Path('foobar')
 
-    def test_fspath(self):
+    def test_fspath(self) -> None:
         os.fspath(Path('foobar'))
 
-    def test_normpath(self):
+    def test_normpath(self) -> None:
         assert Path('foo//bar').normpath() == os.path.normpath('foo//bar')
 
-    def test_expandvars(self, monkeypatch):
+    def test_expandvars(self, monkeypatch: Any) -> None:
         monkeypatch.setitem(os.environ, 'sub', 'value')
         val = '$sub/$(sub)'
         assert Path(val).expandvars() == os.path.expandvars(val)
         assert 'value' in Path(val).expandvars()
 
-    def test_expand(self):
+    def test_expand(self) -> None:
         val = 'foobar'
         expected = os.path.normpath(os.path.expanduser(os.path.expandvars(val)))
         assert Path(val).expand() == expected
 
-    def test_splitdrive(self):
+    def test_splitdrive(self) -> None:
         val = Path.using_module(ntpath)(r'C:\bar')
         drive, rest = val.splitdrive()
         assert drive == 'C:'
         assert rest == r'\bar'
         assert isinstance(rest, Path)
 
-    def test_relpathto(self):
+    def test_relpathto(self) -> None:
         source = Path.using_module(ntpath)(r'C:\foo')
         dest = Path.using_module(ntpath)(r'D:\bar')
         assert source.relpathto(dest) == dest
 
-    def test_walk_errors(self):
+    def test_walk_errors(self) -> None:
         start = Path('/does-not-exist')
         items = list(start.walk(errors='ignore'))
         assert not items
 
-    def test_walk_child_error(self, tmpdir):
-        def simulate_access_denied(item):
+    def test_walk_child_error(self, tmpdir: pytest.TempdirFactory) -> None:
+        def simulate_access_denied(item: Path) -> bool:
             if item.name == 'sub1':
                 raise OSError("Access denied")
+            return False
 
         p = Path(tmpdir)
         (p / 'sub1').makedirs_p()
         items = path.Traversal(simulate_access_denied)(p.walk(errors='ignore'))
         assert list(items) == [p / 'sub1']
 
-    def test_read_md5(self, tmpdir):
+    def test_read_md5(self, tmpdir: pytest.TempdirFactory) -> None:
         target = Path(tmpdir) / 'some file'
         target.write_text('quick brown fox and lazy dog')
         assert target.read_md5() == b's\x15\rPOW\x7fYk\xa8\x8e\x00\x0b\xd7G\xf9'
 
-    def test_read_hexhash(self, tmpdir):
+    def test_read_hexhash(self, tmpdir: pytest.TempdirFactory) -> None:
         target = Path(tmpdir) / 'some file'
         target.write_text('quick brown fox and lazy dog')
         assert target.read_hexhash('md5') == '73150d504f577f596ba88e000bd747f9'
 
-    @pytest.mark.skipif("not hasattr(os, 'statvfs')")
-    def test_statvfs(self):
+    @pytest.mark.skipif("not hasattr(os, 'statvfs')")  # type: ignore
+    def test_statvfs(self) -> None:
         Path('.').statvfs()
 
-    @pytest.mark.skipif("not hasattr(os, 'pathconf')")
-    def test_pathconf(self):
+    @pytest.mark.skipif("not hasattr(os, 'pathconf')")  # type: ignore
+    def test_pathconf(self) -> None:
         assert isinstance(Path('.').pathconf(1), int)
 
-    def test_utime(self, tmpdir):
+    def test_utime(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
         new_time = (time.time() - 600,) * 2
         assert Path(tmpfile).utime(new_time).stat().st_atime == new_time[0]
 
-    def test_chmod_str(self, tmpdir):
+    def test_chmod_str(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
         tmpfile.chmod('o-r')
         is_windows = platform.system() == 'Windows'
         assert is_windows or not (tmpfile.stat().st_mode & stat.S_IROTH)
 
-    @pytest.mark.skipif("not hasattr(Path, 'chown')")
-    def test_chown(self, tmpdir):
+    @pytest.mark.skipif("not hasattr(Path, 'chown')")  # type: ignore
+    def test_chown(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
         tmpfile.chown(os.getuid(), os.getgid())
@@ -280,15 +285,15 @@ class TestBasics:
         name = pwd.getpwuid(os.getuid()).pw_name
         tmpfile.chown(name)
 
-    def test_renames(self, tmpdir):
+    def test_renames(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
         tmpfile.renames(Path(tmpdir) / 'foo' / 'alt')
 
-    def test_mkdir_p(self, tmpdir):
+    def test_mkdir_p(self, tmpdir: pytest.TempdirFactory) -> None:
         Path(tmpdir).mkdir_p()
 
-    def test_removedirs_p(self, tmpdir):
+    def test_removedirs_p(self, tmpdir: pytest.TempdirFactory) -> None:
         dir = Path(tmpdir) / 'somedir'
         dir.mkdir()
         (dir / 'file').touch()
@@ -301,8 +306,8 @@ class TestBasics:
 
 
 class TestReadWriteText:
-    @pytest.mark.filterwarnings('ignore:Writing bytes in write_text')
-    def test_read_write(self, tmpdir):
+    @pytest.mark.filterwarnings('ignore:Writing bytes in write_text')  # type: ignore
+    def test_read_write(self, tmpdir: pytest.TempdirFactory) -> None:
         file = path.Path(tmpdir) / 'filename'
         file.write_text('hello world')
         assert file.read_text() == 'hello world'
@@ -312,15 +317,17 @@ class TestReadWriteText:
 
 class TestPerformance:
     @staticmethod
-    def get_command_time(cmd):
+    def get_command_time(cmd: str) -> datetime.timedelta:
         args = [sys.executable, '-m', 'timeit', '-n', '1', '-r', '1', '-u', 'usec'] + [
             cmd
         ]
         res = subprocess.check_output(args, universal_newlines=True)
-        dur = re.search(r'(\d+) usec per loop', res).group(1)
+        m = re.search(r'(\d+) usec per loop', res)
+        assert m is not None
+        dur = m.group(1)
         return datetime.timedelta(microseconds=int(dur))
 
-    def test_import_time(self, monkeypatch):
+    def test_import_time(self, monkeypatch: Any) -> None:
         """
         Import should take less than some limit.
 
@@ -334,37 +341,37 @@ class TestPerformance:
 
 
 class TestOwnership:
-    def test_get_owner(self):
+    def test_get_owner(self) -> None:
         Path('/').get_owner()
 
 
 class TestLinks:
-    def test_link(self, tmpdir):
+    def test_link(self, tmpdir: pytest.TempdirFactory) -> None:
         target = Path(tmpdir) / 'target'
         target.write_text('hello', encoding='utf-8')
         link = target.link(Path(tmpdir) / 'link')
         assert link.read_text() == 'hello'
 
-    def test_symlink_none(self, tmpdir):
+    def test_symlink_none(self, tmpdir: pytest.TempdirFactory) -> None:
         root = Path(tmpdir)
         with root:
             file = (Path('dir').mkdir() / 'file').touch()
             file.symlink()
             assert Path('file').isfile()
 
-    def test_readlinkabs_passthrough(self, tmpdir):
+    def test_readlinkabs_passthrough(self, tmpdir: pytest.TempdirFactory) -> None:
         link = Path(tmpdir) / 'link'
         Path('foo').abspath().symlink(link)
         link.readlinkabs() == Path('foo').abspath()
 
-    def test_readlinkabs_rendered(self, tmpdir):
+    def test_readlinkabs_rendered(self, tmpdir: pytest.TempdirFactory) -> None:
         link = Path(tmpdir) / 'link'
         Path('foo').symlink(link)
         link.readlinkabs() == Path(tmpdir) / 'foo'
 
 
 class TestSymbolicLinksWalk:
-    def test_skip_symlinks(self, tmpdir):
+    def test_skip_symlinks(self, tmpdir: pytest.TempdirFactory) -> None:
         root = Path(tmpdir)
         sub = root / 'subdir'
         sub.mkdir()
@@ -385,7 +392,7 @@ class TestSelfReturn:
     self anyhow to allow methods to be chained.
     """
 
-    def test_makedirs_p(self, tmpdir):
+    def test_makedirs_p(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         Path('foo').makedirs_p() == Path('foo')
         """
@@ -393,40 +400,40 @@ class TestSelfReturn:
         ret = p.makedirs_p()
         assert p == ret
 
-    def test_makedirs_p_extant(self, tmpdir):
+    def test_makedirs_p_extant(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir)
         ret = p.makedirs_p()
         assert p == ret
 
-    def test_rename(self, tmpdir):
+    def test_rename(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir) / "somefile"
         p.touch()
         target = Path(tmpdir) / "otherfile"
         ret = p.rename(target)
         assert target == ret
 
-    def test_mkdir(self, tmpdir):
+    def test_mkdir(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir) / "newdir"
         ret = p.mkdir()
         assert p == ret
 
-    def test_touch(self, tmpdir):
+    def test_touch(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir) / "empty file"
         ret = p.touch()
         assert p == ret
 
 
-@pytest.mark.skipif("not hasattr(Path, 'chroot')")
-def test_chroot(monkeypatch):
-    results = []
+@pytest.mark.skipif("not hasattr(Path, 'chroot')")  # type: ignore
+def test_chroot(monkeypatch: Any) -> None:
+    results: List[str] = []
     monkeypatch.setattr(os, 'chroot', results.append)
     Path().chroot()
     assert results == ['']
 
 
-@pytest.mark.skipif("not hasattr(Path, 'startfile')")
-def test_startfile(monkeypatch):
-    results = []
+@pytest.mark.skipif("not hasattr(Path, 'startfile')")  # type: ignore
+def test_startfile(monkeypatch: Any) -> None:
+    results: List[str] = []
     monkeypatch.setattr(os, 'startfile', results.append)
     Path().startfile()
     assert results == ['']
@@ -437,7 +444,7 @@ class TestScratchDir:
     Tests that run in a temporary directory (does not test TempDir class)
     """
 
-    def test_context_manager(self, tmpdir):
+    def test_context_manager(self, tmpdir: pytest.TempdirFactory) -> None:
         """Can be used as context manager for chdir."""
         d = Path(tmpdir)
         subdir = d / 'subdir'
@@ -447,7 +454,7 @@ class TestScratchDir:
             assert os.getcwd() == os.path.realpath(subdir)
         assert os.getcwd() == old_dir
 
-    def test_touch(self, tmpdir):
+    def test_touch(self, tmpdir: pytest.TempdirFactory) -> None:
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
         # of a file's mtime and ctime is about 2 seconds.
@@ -502,7 +509,7 @@ class TestScratchDir:
                     ct2 == pytest.approx(f.mtime, 0.001)
                 )
 
-    def test_listing(self, tmpdir):
+    def test_listing(self, tmpdir: pytest.TempdirFactory) -> None:
         d = Path(tmpdir)
         assert d.listdir() == []
 
@@ -547,8 +554,8 @@ class TestScratchDir:
                 with contextlib.suppress(Exception):
                     f.remove()
 
-    @pytest.fixture
-    def bytes_filename(self, tmpdir):
+    @pytest.fixture  # type: ignore
+    def bytes_filename(self, tmpdir: pytest.TempdirFactory) -> bytes:
         name = r'r\xe9\xf1emi'.encode('latin-1')
         base = str(tmpdir).encode('ascii')
         try:
@@ -558,7 +565,9 @@ class TestScratchDir:
             raise pytest.skip(f"Invalid encodings disallowed {exc}")
         return name
 
-    def test_listdir_other_encoding(self, tmpdir, bytes_filename):  # pragma: nocover
+    def test_listdir_other_encoding(
+        self, tmpdir: pytest.TempdirFactory, bytes_filename: bytes
+    ) -> None:  # pragma: nocover
         """
         Some filesystems allow non-character sequences in path names.
         ``.listdir`` should still function in this case.
@@ -573,7 +582,7 @@ class TestScratchDir:
         assert isinstance(res, Path)
         assert len(res.basename()) == len(bytes_filename)
 
-    def test_makedirs(self, tmpdir):
+    def test_makedirs(self, tmpdir: pytest.TempdirFactory) -> None:
         d = Path(tmpdir)
 
         # Placeholder file so that when removedirs() is called,
@@ -602,20 +611,20 @@ class TestScratchDir:
         finally:
             os.remove(tempf)
 
-    def assertSetsEqual(self, a, b):
-        ad = {}
+    def assertSetsEqual(self, a: Iterable[Any], b: Iterable[Any]) -> None:
+        ad: Dict[Any, None] = {}
 
         for i in a:
             ad[i] = None
 
-        bd = {}
+        bd: Dict[Any, None] = {}
 
         for i in b:
             bd[i] = None
 
         assert ad == bd
 
-    def test_shutil(self, tmpdir):
+    def test_shutil(self, tmpdir: pytest.TempdirFactory) -> None:
         # Note: This only tests the methods exist and do roughly what
         # they should, neglecting the details as they are shutil's
         # responsibility.
@@ -682,10 +691,10 @@ class TestScratchDir:
         assert not testDir.exists()
         self.assertList(d.listdir(), [])
 
-    def assertList(self, listing, expected):
+    def assertList(self, listing: Iterable[Any], expected: Iterable[Any]) -> None:
         assert sorted(listing) == sorted(expected)
 
-    def test_patterns(self, tmpdir):
+    def test_patterns(self, tmpdir: pytest.TempdirFactory) -> None:
         d = Path(tmpdir)
         names = ['x.tmp', 'x.xtmp', 'x2g', 'x22', 'x.txt']
         dirs = [d, d / 'xdir', d / 'xdir.tmp', d / 'xdir.tmp' / 'xsubdir']
@@ -708,8 +717,8 @@ class TestScratchDir:
 
     encodings = 'UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'
 
-    @pytest.mark.parametrize("encoding", encodings)
-    def test_unicode(self, tmpdir, encoding):
+    @pytest.mark.parametrize("encoding", encodings)  # type: ignore
+    def test_unicode(self, tmpdir: pytest.TempdirFactory, encoding: str) -> None:
         """Test that path works with the specified encoding,
         which must be capable of representing the entire range of
         Unicode codepoints.
@@ -789,7 +798,7 @@ class TestScratchDir:
 
         # Same test, using newline sequences that are different
         # from the platform default.
-        def testLinesep(eol):
+        def testLinesep(eol: str) -> None:
             p.write_lines(givenLines, encoding, linesep=eol)
             p.write_lines(givenLines, encoding, linesep=eol, append=True)
             expected = 2 * cleanNoHanging.replace('\n', eol).encode(encoding)
@@ -813,7 +822,7 @@ class TestScratchDir:
         expectedResultLines += expectedLines[1:]
         assert p.lines(encoding) == expectedResultLines
 
-    def test_chunks(self, tmpdir):
+    def test_chunks(self, tmpdir: pytest.TempdirFactory) -> None:
         p = (TempDir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
@@ -823,7 +832,7 @@ class TestScratchDir:
 
         assert i == len(txt) / size - 1
 
-    def test_samefile(self, tmpdir):
+    def test_samefile(self, tmpdir: pytest.TempdirFactory) -> None:
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')
         f2 = (TempDir() / '2.txt').touch()
@@ -838,7 +847,7 @@ class TestScratchDir:
         assert os.path.samefile(f1, f4) == f1.samefile(f4)
         assert os.path.samefile(f1, f1) == f1.samefile(f1)
 
-    def test_rmtree_p(self, tmpdir):
+    def test_rmtree_p(self, tmpdir: pytest.TempdirFactory) -> None:
         d = Path(tmpdir)
         sub = d / 'subfolder'
         sub.mkdir()
@@ -846,13 +855,13 @@ class TestScratchDir:
         sub.rmtree_p()
         assert not sub.exists()
 
-    def test_rmtree_p_nonexistent(self, tmpdir):
+    def test_rmtree_p_nonexistent(self, tmpdir: pytest.TempdirFactory) -> None:
         d = Path(tmpdir)
         sub = d / 'subfolder'
         assert not sub.exists()
         sub.rmtree_p()
 
-    def test_rmdir_p_exists(self, tmpdir):
+    def test_rmdir_p_exists(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         Invocation of rmdir_p on an existant directory should
         remove the directory.
@@ -863,7 +872,7 @@ class TestScratchDir:
         sub.rmdir_p()
         assert not sub.exists()
 
-    def test_rmdir_p_nonexistent(self, tmpdir):
+    def test_rmdir_p_nonexistent(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         A non-existent file should not raise an exception.
         """
@@ -872,7 +881,7 @@ class TestScratchDir:
         assert not sub.exists()
         sub.rmdir_p()
 
-    def test_rmdir_p_sub_sub_dir(self, tmpdir):
+    def test_rmdir_p_sub_sub_dir(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         A non-empty folder should not raise an exception.
         """
@@ -887,7 +896,7 @@ class TestScratchDir:
 
 class TestMergeTree:
     @pytest.fixture(autouse=True)
-    def testing_structure(self, tmpdir):
+    def testing_structure(self, tmpdir):  # type: ignore
         self.test_dir = Path(tmpdir)
         self.subdir_a = self.test_dir / 'A'
         self.test_file = self.subdir_a / 'testfile.txt'
@@ -902,12 +911,12 @@ class TestMergeTree:
 
         self.test_file.symlink(self.test_link)
 
-    def check_link(self):
+    def check_link(self) -> None:
         target = Path(self.subdir_b / self.test_link.name)
         check = target.islink if hasattr(os, 'symlink') else target.isfile
         assert check()
 
-    def test_with_nonexisting_dst_kwargs(self):
+    def test_with_nonexisting_dst_kwargs(self) -> None:
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
         expected = set(
@@ -916,7 +925,7 @@ class TestMergeTree:
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
-    def test_with_nonexisting_dst_args(self):
+    def test_with_nonexisting_dst_args(self) -> None:
         self.subdir_a.merge_tree(self.subdir_b, True)
         assert self.subdir_b.isdir()
         expected = set(
@@ -925,7 +934,7 @@ class TestMergeTree:
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
-    def test_with_existing_dst(self):
+    def test_with_existing_dst(self) -> None:
         self.subdir_b.rmtree()
         self.subdir_a.copytree(self.subdir_b, True)
 
@@ -949,7 +958,7 @@ class TestMergeTree:
         self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
-    def test_copytree_parameters(self):
+    def test_copytree_parameters(self) -> None:
         """
         merge_tree should accept parameters to copytree, such as 'ignore'
         """
@@ -959,7 +968,7 @@ class TestMergeTree:
         assert self.subdir_b.isdir()
         assert self.subdir_b.listdir() == [self.subdir_b / self.test_file.name]
 
-    def test_only_newer(self):
+    def test_only_newer(self) -> None:
         """
         merge_tree should accept a copy_function in which only
         newer files are copied and older files do not overwrite
@@ -974,7 +983,7 @@ class TestMergeTree:
 
 
 class TestChdir:
-    def test_chdir_or_cd(self, tmpdir):
+    def test_chdir_or_cd(self, tmpdir: pytest.TempdirFactory) -> None:
         """tests the chdir or cd method"""
         d = Path(str(tmpdir))
         cwd = d.getcwd()
@@ -1000,7 +1009,7 @@ class TestChdir:
 
 
 class TestSubclass:
-    def test_subclass_produces_same_class(self):
+    def test_subclass_produces_same_class(self) -> None:
         """
         When operations are invoked on a subclass, they should produce another
         instance of that subclass.
@@ -1015,7 +1024,7 @@ class TestSubclass:
 
 
 class TestTempDir:
-    def test_constructor(self):
+    def test_constructor(self) -> None:
         """
         One should be able to readily construct a temporary directory
         """
@@ -1026,7 +1035,7 @@ class TestTempDir:
         d.rmdir()
         assert not d.exists()
 
-    def test_next_class(self):
+    def test_next_class(self) -> None:
         """
         It should be possible to invoke operations on a TempDir and get
         Path classes.
@@ -1036,7 +1045,7 @@ class TestTempDir:
         assert isinstance(sub, path.Path)
         d.rmdir()
 
-    def test_context_manager(self):
+    def test_context_manager(self) -> None:
         """
         One should be able to use a TempDir object as a context, which will
         clean up the contents after.
@@ -1049,7 +1058,7 @@ class TestTempDir:
         d.__exit__(None, None, None)
         assert not d.exists()
 
-    def test_context_manager_using_with(self):
+    def test_context_manager_using_with(self) -> None:
         """
         The context manager will allow using the with keyword and
         provide a temporary directory that will be deleted after that.
@@ -1059,7 +1068,7 @@ class TestTempDir:
             assert d.isdir()
         assert not d.isdir()
 
-    def test_cleaned_up_on_interrupt(self):
+    def test_cleaned_up_on_interrupt(self) -> None:
         with contextlib.suppress(KeyboardInterrupt):
             with TempDir() as d:
                 raise KeyboardInterrupt()
@@ -1069,51 +1078,51 @@ class TestTempDir:
 
 class TestUnicode:
     @pytest.fixture(autouse=True)
-    def unicode_name_in_tmpdir(self, tmpdir):
+    def unicode_name_in_tmpdir(self, tmpdir):  # type: ignore
         # build a snowman (dir) in the temporary directory
         Path(tmpdir).joinpath('☃').mkdir()
 
-    def test_walkdirs_with_unicode_name(self, tmpdir):
+    def test_walkdirs_with_unicode_name(self, tmpdir: pytest.TempdirFactory) -> None:
         for res in Path(tmpdir).walkdirs():
             pass
 
 
 class TestPatternMatching:
-    def test_fnmatch_simple(self):
+    def test_fnmatch_simple(self) -> None:
         p = Path('FooBar')
         assert p.fnmatch('Foo*')
         assert p.fnmatch('Foo[ABC]ar')
 
-    def test_fnmatch_custom_mod(self):
+    def test_fnmatch_custom_mod(self) -> None:
         p = Path('FooBar')
         p.module = ntpath
         assert p.fnmatch('foobar')
         assert p.fnmatch('FOO[ABC]AR')
 
-    def test_fnmatch_custom_normcase(self):
-        def normcase(path):
+    def test_fnmatch_custom_normcase(self) -> None:
+        def normcase(path: str) -> str:
             return path.upper()
 
         p = Path('FooBar')
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
 
-    def test_listdir_simple(self):
+    def test_listdir_simple(self) -> None:
         p = Path('.')
         assert len(p.listdir()) == len(os.listdir('.'))
 
-    def test_listdir_empty_pattern(self):
+    def test_listdir_empty_pattern(self) -> None:
         p = Path('.')
         assert p.listdir('') == []
 
-    def test_listdir_patterns(self, tmpdir):
+    def test_listdir_patterns(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir)
         (p / 'sub').mkdir()
         (p / 'File').touch()
         assert p.listdir('s*') == [p / 'sub']
         assert len(p.listdir('*')) == 2
 
-    def test_listdir_custom_module(self, tmpdir):
+    def test_listdir_custom_module(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         Listdir patterns should honor the case sensitivity of the path module
         used by that Path class.
@@ -1129,7 +1138,7 @@ class TestPatternMatching:
         assert p.listdir('S*') == [p / 'sub']
         assert p.listdir('f*') == [p / 'File']
 
-    def test_listdir_case_insensitive(self, tmpdir):
+    def test_listdir_case_insensitive(self, tmpdir: pytest.TempdirFactory) -> None:
         """
         Listdir patterns should honor the case sensitivity of the path module
         used by that Path class.
@@ -1142,7 +1151,7 @@ class TestPatternMatching:
         assert p.files(matchers.CaseInsensitive('S*')) == []
         assert p.dirs(matchers.CaseInsensitive('f*')) == []
 
-    def test_walk_case_insensitive(self, tmpdir):
+    def test_walk_case_insensitive(self, tmpdir: pytest.TempdirFactory) -> None:
         p = Path(tmpdir)
         (p / 'sub1' / 'foo').makedirs_p()
         (p / 'sub2' / 'foo').makedirs_p()
@@ -1180,13 +1189,13 @@ class TestInPlace:
     )
 
     @classmethod
-    def create_reference(cls, tmpdir):
+    def create_reference(cls, tmpdir: pytest.TempdirFactory) -> Path:
         p = Path(tmpdir) / 'document'
         with p.open('w') as stream:
             stream.write(cls.reference_content)
         return p
 
-    def test_line_by_line_rewrite(self, tmpdir):
+    def test_line_by_line_rewrite(self, tmpdir: pytest.TempdirFactory) -> None:
         doc = self.create_reference(tmpdir)
         # reverse all the text in the document, line by line
         with doc.in_place() as (reader, writer):
@@ -1197,7 +1206,7 @@ class TestInPlace:
             data = stream.read()
         assert data == self.reversed_content
 
-    def test_exception_in_context(self, tmpdir):
+    def test_exception_in_context(self, tmpdir: pytest.TempdirFactory) -> None:
         doc = self.create_reference(tmpdir)
         with pytest.raises(RuntimeError) as exc:
             with doc.in_place() as (reader, writer):
@@ -1209,7 +1218,7 @@ class TestInPlace:
         assert 'Lorem' not in data
         assert 'lazy dog' in data
 
-    def test_write_mode_invalid(self, tmpdir):
+    def test_write_mode_invalid(self, tmpdir: pytest.TempdirFactory) -> None:
         with pytest.raises(ValueError):
             with (Path(tmpdir) / 'document').in_place(mode='w'):
                 pass
@@ -1217,11 +1226,11 @@ class TestInPlace:
 
 class TestSpecialPaths:
     @pytest.fixture(autouse=True, scope='class')
-    def appdirs_installed(cls):
+    def appdirs_installed(cls):  # type: ignore
         pytest.importorskip('appdirs')
 
     @pytest.fixture
-    def feign_linux(self, monkeypatch):
+    def feign_linux(self, monkeypatch):  # type: ignore
         monkeypatch.setattr("platform.system", lambda: "Linux")
         monkeypatch.setattr("sys.platform", "linux")
         monkeypatch.setattr("os.pathsep", ":")
@@ -1229,7 +1238,7 @@ class TestSpecialPaths:
         # state during import.
         sys.modules.pop('appdirs')
 
-    def test_basic_paths(self):
+    def test_basic_paths(self) -> None:
         appdirs = importlib.import_module('appdirs')
 
         expected = appdirs.user_config_dir()
@@ -1241,47 +1250,53 @@ class TestSpecialPaths:
         expected = appdirs.user_config_dir('My App', 'Me')
         assert SpecialResolver(Path, 'My App', 'Me').user.config == expected
 
-    def test_unix_paths(self, tmpdir, monkeypatch, feign_linux):
-        fake_config = tmpdir / '_config'
+    def test_unix_paths(
+        self, tmpdir: pytest.TempdirFactory, monkeypatch: Any, feign_linux: Any
+    ) -> None:
+        fake_config = Path(tmpdir) / '_config'
         monkeypatch.setitem(os.environ, 'XDG_CONFIG_HOME', str(fake_config))
-        expected = str(tmpdir / '_config')
+        expected = str(Path(tmpdir) / '_config')
         assert SpecialResolver(Path).user.config == expected
 
-    def test_unix_paths_fallback(self, tmpdir, monkeypatch, feign_linux):
+    def test_unix_paths_fallback(
+        self, tmpdir: pytest.TempdirFactory, monkeypatch: Any, feign_linux: Any
+    ) -> None:
         "Without XDG_CONFIG_HOME set, ~/.config should be used."
-        fake_home = tmpdir / '_home'
+        fake_home = Path(tmpdir) / '_home'
         monkeypatch.delitem(os.environ, 'XDG_CONFIG_HOME', raising=False)
         monkeypatch.setitem(os.environ, 'HOME', str(fake_home))
         expected = Path('~/.config').expanduser()
         assert SpecialResolver(Path).user.config == expected
 
-    def test_property(self):
+    def test_property(self) -> None:
         assert isinstance(Path.special().user.config, Path)
         assert isinstance(Path.special().user.data, Path)
         assert isinstance(Path.special().user.cache, Path)
 
-    def test_other_parameters(self):
+    def test_other_parameters(self) -> None:
         """
         Other parameters should be passed through to appdirs function.
         """
         res = Path.special(version="1.0", multipath=True).site.config
         assert isinstance(res, Path)
 
-    def test_multipath(self, feign_linux, monkeypatch, tmpdir):
+    def test_multipath(
+        self, feign_linux: Any, monkeypatch: Any, tmpdir: pytest.TempdirFactory
+    ) -> None:
         """
         If multipath is provided, on Linux return the XDG_CONFIG_DIRS
         """
-        fake_config_1 = str(tmpdir / '_config1')
-        fake_config_2 = str(tmpdir / '_config2')
+        fake_config_1 = str(Path(tmpdir) / '_config1')
+        fake_config_2 = str(Path(tmpdir) / '_config2')
         config_dirs = os.pathsep.join([fake_config_1, fake_config_2])
         monkeypatch.setitem(os.environ, 'XDG_CONFIG_DIRS', config_dirs)
         res = Path.special(multipath=True).site.config
         assert isinstance(res, Multi)
-        assert fake_config_1 in res
-        assert fake_config_2 in res
+        assert fake_config_1 in res  # type: ignore
+        assert fake_config_2 in res  # type: ignore
         assert '_config1' in str(res)
 
-    def test_reused_SpecialResolver(self):
+    def test_reused_SpecialResolver(self) -> None:
         """
         Passing additional args and kwargs to SpecialResolver should be
         passed through to each invocation of the function in appdirs.
@@ -1296,7 +1311,7 @@ class TestSpecialPaths:
 
 
 class TestMultiPath:
-    def test_for_class(self):
+    def test_for_class(self) -> None:
         """
         Multi.for_class should return a subclass of the Path class provided.
         """
@@ -1306,7 +1321,7 @@ class TestMultiPath:
         expected_name = 'Multi' + Path.__name__
         assert cls.__name__ == expected_name
 
-    def test_detect_no_pathsep(self):
+    def test_detect_no_pathsep(self) -> None:
         """
         If no pathsep is provided, multipath detect should return an instance
         of the parent class with no Multi mix-in.
@@ -1315,7 +1330,7 @@ class TestMultiPath:
         assert isinstance(path, Path)
         assert not isinstance(path, Multi)
 
-    def test_detect_with_pathsep(self):
+    def test_detect_with_pathsep(self) -> None:
         """
         If a pathsep appears in the input, detect should return an instance
         of a Path with the Multi mix-in.
@@ -1326,7 +1341,7 @@ class TestMultiPath:
 
         assert isinstance(path, Multi)
 
-    def test_iteration(self):
+    def test_iteration(self) -> None:
         """
         Iterating over a MultiPath should yield instances of the
         parent class.
@@ -1344,7 +1359,7 @@ class TestMultiPath:
         assert path == input
 
 
-def test_no_dependencies():
+def test_no_dependencies() -> None:
     """
     Path pie guarantees that the path module can be
     transplanted into an environment without any dependencies.
@@ -1355,26 +1370,26 @@ def test_no_dependencies():
 
 class TestHandlers:
     @staticmethod
-    def run_with_handler(handler):
+    def run_with_handler(handler: Callable[[str], None]) -> None:
         try:
             raise ValueError()
         except Exception:
             handler("Something unexpected happened")
 
-    def test_raise(self):
+    def test_raise(self) -> None:
         handler = path.Handlers._resolve('strict')
         with pytest.raises(ValueError):
             self.run_with_handler(handler)
 
-    def test_warn(self):
+    def test_warn(self) -> None:
         handler = path.Handlers._resolve('warn')
         with pytest.warns(path.TreeWalkWarning):
             self.run_with_handler(handler)
 
-    def test_ignore(self):
+    def test_ignore(self) -> None:
         handler = path.Handlers._resolve('ignore')
         self.run_with_handler(handler)
 
-    def test_invalid_handler(self):
+    def test_invalid_handler(self) -> None:
         with pytest.raises(ValueError):
             path.Handlers._resolve('raise')
