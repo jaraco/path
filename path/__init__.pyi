@@ -3,14 +3,6 @@ from __future__ import annotations
 import builtins
 import contextlib
 import os
-from _typeshed import (
-    OpenBinaryMode,
-    OpenBinaryModeUpdating,
-    OpenBinaryModeReading,
-    OpenBinaryModeWriting,
-    OpenTextMode,
-    Self,
-)
 from io import (
     BufferedRandom,
     BufferedReader,
@@ -29,15 +21,23 @@ from typing import (
     Iterator,
     IO,
     List,
-    Literal,
     Optional,
     Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
     overload,
 )
+
+from _typeshed import (
+    OpenBinaryMode,
+    OpenBinaryModeUpdating,
+    OpenBinaryModeReading,
+    OpenBinaryModeWriting,
+    OpenTextMode,
+    Self,
+)
+from typing_extensions import Literal
 
 from . import classes
 

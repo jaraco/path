@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Literal, overload
+from typing import Any, Callable, overload
+
+from typing_extensions import Literal
 
 from path import Path
 @overload
