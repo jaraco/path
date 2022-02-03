@@ -256,11 +256,13 @@ class TestBasics:
 
     @pytest.mark.skipif("not hasattr(os, 'statvfs')")  # type: ignore
     def test_statvfs(self) -> None:
-        Path('.').statvfs()
+        if sys.platform != "win32":  # needed to prevent mypy checking on windows
+            Path('.').statvfs()
 
     @pytest.mark.skipif("not hasattr(os, 'pathconf')")  # type: ignore
     def test_pathconf(self) -> None:
-        assert isinstance(Path('.').pathconf(1), int)
+        if sys.platform != "win32":  # needed to prevent mypy checking on windows
+            assert isinstance(Path('.').pathconf(1), int)
 
     def test_utime(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
@@ -277,13 +279,14 @@ class TestBasics:
 
     @pytest.mark.skipif("not hasattr(Path, 'chown')")  # type: ignore
     def test_chown(self, tmpdir: pytest.TempdirFactory) -> None:
-        tmpfile = Path(tmpdir) / 'file'
-        tmpfile.touch()
-        tmpfile.chown(os.getuid(), os.getgid())
-        import pwd
+        if sys.platform != "win32":  # needed to prevent mypy checking on windows
+            tmpfile = Path(tmpdir) / 'file'
+            tmpfile.touch()
+            tmpfile.chown(os.getuid(), os.getgid())
+            import pwd
 
-        name = pwd.getpwuid(os.getuid()).pw_name
-        tmpfile.chown(name)
+            name = pwd.getpwuid(os.getuid()).pw_name
+            tmpfile.chown(name)
 
     def test_renames(self, tmpdir: pytest.TempdirFactory) -> None:
         tmpfile = Path(tmpdir) / 'file'
@@ -425,18 +428,20 @@ class TestSelfReturn:
 
 @pytest.mark.skipif("not hasattr(Path, 'chroot')")  # type: ignore
 def test_chroot(monkeypatch: Any) -> None:
-    results: List[str] = []
-    monkeypatch.setattr(os, 'chroot', results.append)
-    Path().chroot()
-    assert results == ['']
+    if sys.platform != "win32":  # needed to prevent mypy checking on windows
+        results: List[str] = []
+        monkeypatch.setattr(os, 'chroot', results.append)
+        Path().chroot()
+        assert results == ['']
 
 
 @pytest.mark.skipif("not hasattr(Path, 'startfile')")  # type: ignore
 def test_startfile(monkeypatch: Any) -> None:
-    results: List[str] = []
-    monkeypatch.setattr(os, 'startfile', results.append)
-    Path().startfile()
-    assert results == ['']
+    if sys.platform == "win32":  # needed to prevent mypy checking on non-windows
+        results: List[str] = []
+        monkeypatch.setattr(os, 'startfile', results.append)
+        Path().startfile()
+        assert results == ['']
 
 
 class TestScratchDir:
