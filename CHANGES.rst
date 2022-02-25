@@ -1,3 +1,8 @@
+v16.4.0
+-------
+
+- #207: Added type hints and declare the library as typed.
+
 v16.3.0
 -------
 
