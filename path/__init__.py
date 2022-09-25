@@ -63,6 +63,8 @@ U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 B_NL_END = re.compile(B_NEWLINE.pattern + b'$')
 U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 
+_default_linesep = object()
+
 
 class TreeWalkWarning(Warning):
     pass
@@ -102,6 +104,14 @@ class Traversal:
             yield item
 
             traverse = functools.partial(self.follow, item)
+
+
+def _strip_newlines(lines):
+    r"""
+    >>> list(_strip_newlines(['Hello World\r\n', 'foo']))
+    ['Hello World', 'foo']
+    """
+    return (U_NL_END.sub('', line) for line in lines)
 
 
 class Path(str):
@@ -759,7 +769,12 @@ class Path(str):
         return text.splitlines(retain)
 
     def write_lines(
-        self, lines, encoding=None, errors='strict', linesep=os.linesep, append=False
+        self,
+        lines,
+        encoding=None,
+        errors='strict',
+        linesep=_default_linesep,
+        append=False,
     ):
         r"""Write the given lines of text to this file.
 
@@ -776,7 +791,7 @@ class Path(str):
             `errors` - How to handle errors in Unicode encoding.  This
                 also applies only to Unicode strings.
 
-            linesep - The desired line-ending.  This line-ending is
+            linesep - (deprecated) The desired line-ending.  This line-ending is
                 applied to every line.  If a line already has any
                 standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
                 ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
@@ -788,24 +803,21 @@ class Path(str):
 
         Use the keyword argument ``append=True`` to append lines to the
         file.  The default is to overwrite the file.
-
-        .. warning ::
-
-            When you use this with Unicode data, if the encoding of the
-            existing data in the file is different from the encoding
-            you specify with the `encoding=` parameter, the result is
-            mixed-encoding data, which can really confuse someone trying
-            to read the file later.
         """
-        with self.open('ab' if append else 'wb') as f:
-            for line in lines:
-                isUnicode = isinstance(line, str)
-                if linesep is not None:
-                    pattern = U_NL_END if isUnicode else B_NL_END
-                    line = pattern.sub('', line) + linesep
-                if isUnicode:
-                    line = line.encode(encoding or sys.getdefaultencoding(), errors)
-                f.write(line)
+        mode = 'a' if append else 'w'
+        with self.open(mode, encoding=encoding, errors=errors, newline='') as f:
+            f.writelines(self._replace_linesep(lines, linesep))
+
+    @staticmethod
+    def _replace_linesep(lines, linesep):
+        if linesep != _default_linesep:
+            warnings.warn("linesep is deprecated", DeprecationWarning, stacklevel=3)
+        else:
+            linesep = os.linesep
+        if linesep is None:
+            return lines
+
+        return (line + linesep for line in _strip_newlines(lines))
 
     def read_md5(self):
         """Calculate the md5 hash for this file.
