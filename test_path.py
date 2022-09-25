@@ -795,14 +795,16 @@ class TestScratchDir:
             expected = 2 * cleanNoHanging.replace('\n', eol).encode(encoding)
             assert p.bytes() == expected
 
-        testLinesep('\n')
-        testLinesep('\r')
-        testLinesep('\r\n')
-        testLinesep('\x0d\x85')
+        with pytest.deprecated_call():
+            testLinesep('\n')
+            testLinesep('\r')
+            testLinesep('\r\n')
+            testLinesep('\x0d\x85')
 
         # Again, but with linesep=None.
-        p.write_lines(givenLines, encoding, linesep=None)
-        p.write_lines(givenLines, encoding, linesep=None, append=True)
+        with pytest.deprecated_call():
+            p.write_lines(givenLines, encoding, linesep=None)
+            p.write_lines(givenLines, encoding, linesep=None, append=True)
         # Check the result.
         expectedBytes = 2 * given.encode(encoding)
         assert p.bytes() == expectedBytes
