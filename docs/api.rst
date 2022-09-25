@@ -9,3 +9,7 @@ API
 .. automodule:: path
    :members:
    :undoc-members:
+
+.. automodule:: path.masks
+   :members:
+   :undoc-members:
