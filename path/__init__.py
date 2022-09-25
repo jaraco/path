@@ -63,6 +63,8 @@ U_NEWLINE = re.compile('|'.join(U_LINESEPS))
 B_NL_END = re.compile(B_NEWLINE.pattern + b'$')
 U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 
+_default_linesep = object()
+
 
 class TreeWalkWarning(Warning):
     pass
@@ -759,7 +761,12 @@ class Path(str):
         return text.splitlines(retain)
 
     def write_lines(
-        self, lines, encoding=None, errors='strict', linesep=os.linesep, append=False
+        self,
+        lines,
+        encoding=None,
+        errors='strict',
+        linesep=_default_linesep,
+        append=False,
     ):
         r"""Write the given lines of text to this file.
 
@@ -776,7 +783,7 @@ class Path(str):
             `errors` - How to handle errors in Unicode encoding.  This
                 also applies only to Unicode strings.
 
-            linesep - The desired line-ending.  This line-ending is
+            linesep - (deprecated) The desired line-ending.  This line-ending is
                 applied to every line.  If a line already has any
                 standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
                 ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
@@ -799,10 +806,22 @@ class Path(str):
         """
         mode = 'a' if append else 'w'
         with self.open(mode, encoding=encoding, errors=errors) as f:
-            for line in lines:
-                if linesep is not None:
-                    line = U_NL_END.sub('', line) + linesep
-                f.write(line)
+            f.writelines(self._replace_linesep(lines, linesep))
+
+    @staticmethod
+    def _replace_linesep(lines, linesep):
+        r"""
+        >>> U_NL_END.sub('', 'Hello World\r\n') + '\r\n'
+        'Hello World\r\n'
+        """
+        if linesep != _default_linesep:
+            warnings.warn("linesep is deprecated", DeprecationWarning, stacklevel=3)
+        else:
+            linesep = os.linesep
+        if linesep is None:
+            return lines
+
+        return (U_NL_END.sub('', line) + linesep for line in lines)
 
     def read_md5(self):
         """Calculate the md5 hash for this file.
