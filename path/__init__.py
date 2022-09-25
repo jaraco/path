@@ -805,7 +805,7 @@ class Path(str):
             to read the file later.
         """
         mode = 'a' if append else 'w'
-        with self.open(mode, encoding=encoding, errors=errors) as f:
+        with self.open(mode, encoding=encoding, errors=errors, newline='') as f:
             f.writelines(self._replace_linesep(lines, linesep))
 
     @staticmethod
