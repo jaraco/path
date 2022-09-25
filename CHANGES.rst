@@ -1,8 +1,10 @@
-v16.4.1
+v16.5.0
 -------
 
 - Refreshed packaging.
 - #197: Fixed default argument rendering in docs.
+- #209: Refactored ``write_lines`` to re-use open semantics.
+  Deprecated the ``linesep`` parameter.
 
 v16.4.0
 -------
