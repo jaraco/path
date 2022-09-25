@@ -1,3 +1,9 @@
+v16.4.1
+-------
+
+- Refreshed packaging.
+- #197: Fixed default argument rendering in docs.
+
 v16.4.0
 -------
 
