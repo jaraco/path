@@ -106,6 +106,14 @@ class Traversal:
             traverse = functools.partial(self.follow, item)
 
 
+def _strip_newlines(lines):
+    r"""
+    >>> list(_strip_newlines(['Hello World\r\n', 'foo']))
+    ['Hello World', 'foo']
+    """
+    return (U_NL_END.sub('', line) for line in lines)
+
+
 class Path(str):
     """
     Represents a filesystem path.
@@ -802,10 +810,6 @@ class Path(str):
 
     @staticmethod
     def _replace_linesep(lines, linesep):
-        r"""
-        >>> U_NL_END.sub('', 'Hello World\r\n') + '\r\n'
-        'Hello World\r\n'
-        """
         if linesep != _default_linesep:
             warnings.warn("linesep is deprecated", DeprecationWarning, stacklevel=3)
         else:
@@ -813,7 +817,7 @@ class Path(str):
         if linesep is None:
             return lines
 
-        return (U_NL_END.sub('', line) + linesep for line in lines)
+        return (line + linesep for line in _strip_newlines(lines))
 
     def read_md5(self):
         """Calculate the md5 hash for this file.
