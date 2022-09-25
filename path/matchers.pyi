@@ -5,6 +5,7 @@ from typing import Any, Callable, overload
 from typing_extensions import Literal
 
 from path import Path
+
 @overload
 def load(param: None) -> Null: ...
 @overload
