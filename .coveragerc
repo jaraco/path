@@ -2,6 +2,7 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
+	*/pep517-build-env-*
 	path/py37compat.py
 
 [report]

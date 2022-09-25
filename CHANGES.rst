@@ -1,3 +1,21 @@
+v16.4.1
+-------
+
+- Refreshed packaging.
+- #197: Fixed default argument rendering in docs.
+
+v16.4.0
+-------
+
+- #207: Added type hints and declare the library as typed.
+
+v16.3.0
+-------
+
+- Require Python 3.7 or later.
+- #205: test_listdir_other_encoding now automatically skips
+  itself on file systems where it's not appropriate.
+
 v16.2.0
 -------
 
