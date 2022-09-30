@@ -7,6 +7,7 @@ extensions = [
 ]
 
 master_doc = "index"
+html_theme = "furo"
 
 pygments_style = "sphinx"
 
