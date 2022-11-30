@@ -334,6 +334,7 @@ class TestPerformance:
 
 
 class TestOwnership:
+    @pytest.mark.skipif('platform.system() == "Windows" and sys.version_info > (3, 12)')
     def test_get_owner(self):
         Path('/').get_owner()
 
