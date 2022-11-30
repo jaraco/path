@@ -37,6 +37,9 @@ import contextlib
 import io
 import importlib
 import itertools
+import datetime
+from numbers import Number
+from typing import Union
 
 with contextlib.suppress(ImportError):
     import win32security
@@ -64,6 +67,11 @@ B_NL_END = re.compile(B_NEWLINE.pattern + b'$')
 U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 
 _default_linesep = object()
+
+
+def _make_timestamp_ns(value: Union[Number, datetime.datetime]) -> Number:
+    timestamp_s = value if isinstance(value, Number) else value.timestamp()
+    return int(timestamp_s * 10**9)
 
 
 class TreeWalkWarning(Warning):
@@ -906,15 +914,27 @@ class Path(str):
         """.. seealso:: :attr:`atime`, :func:`os.path.getatime`"""
         return self.module.getatime(self)
 
+    def set_atime(self, value):
+        mtime_ns = self.stat().st_atime_ns
+        self.utime(ns=(_make_timestamp_ns(value), mtime_ns))
+
     atime = property(
         getatime,
-        None,
+        set_atime,
         None,
         """
         Last access time of the file.
 
         >>> Path('.').atime > 0
         True
+
+        Allows setting:
+
+        >>> some_file = Path(getfixture('tmp_path')).joinpath('file.txt').touch()
+        >>> MST = datetime.timezone(datetime.timedelta(hours=-7))
+        >>> some_file.atime = datetime.datetime(1976, 5, 7, 10, tzinfo=MST)
+        >>> some_file.atime
+        200336400.0
 
         .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
         """,
@@ -924,12 +944,24 @@ class Path(str):
         """.. seealso:: :attr:`mtime`, :func:`os.path.getmtime`"""
         return self.module.getmtime(self)
 
+    def set_mtime(self, value):
+        atime_ns = self.stat().st_atime_ns
+        self.utime(ns=(atime_ns, _make_timestamp_ns(value)))
+
     mtime = property(
         getmtime,
-        None,
+        set_mtime,
         None,
         """
         Last modified time of the file.
+
+        Allows setting:
+
+        >>> some_file = Path(getfixture('tmp_path')).joinpath('file.txt').touch()
+        >>> MST = datetime.timezone(datetime.timedelta(hours=-7))
+        >>> some_file.mtime = datetime.datetime(1976, 5, 7, 10, tzinfo=MST)
+        >>> some_file.mtime
+        200336400.0
 
         .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
         """,

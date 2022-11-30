@@ -1,3 +1,8 @@
+v16.6.0
+-------
+
+- ``.mtime`` and ``.atime`` are now settable.
+
 v16.5.0
 -------
 
