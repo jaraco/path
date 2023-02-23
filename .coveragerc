@@ -4,6 +4,8 @@ omit =
 	*/.tox/*
 	*/pep517-build-env-*
 	path/py37compat.py
+disable_warnings =
+	couldnt-parse
 
 [report]
 show_missing = True
