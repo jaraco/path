@@ -53,7 +53,6 @@ with contextlib.suppress(ImportError):
 from . import matchers
 from . import masks
 from . import classes
-from .py37compat import best_realpath, lru_cache
 
 
 __all__ = ['Path', 'TempDir']
@@ -151,7 +150,7 @@ class Path(str):
             self._validate()
 
     @classmethod
-    @lru_cache
+    @functools.lru_cache
     def using_module(cls, module):
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)
@@ -239,8 +238,7 @@ class Path(str):
 
     def realpath(self):
         """.. seealso:: :func:`os.path.realpath`"""
-        realpath = best_realpath(self.module)
-        return self._next_class(realpath(self))
+        return self._next_class(self.module.realpath(self))
 
     def expanduser(self):
         """.. seealso:: :func:`os.path.expanduser`"""
