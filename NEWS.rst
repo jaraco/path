@@ -1,3 +1,13 @@
+v16.7.0
+=======
+
+Features
+--------
+
+- Added ``.permissions`` attribute. (#211)
+- Require Python 3.8 or later.
+
+
 v16.6.0
 -------
 
