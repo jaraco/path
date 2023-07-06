@@ -1105,6 +1105,12 @@ class Path(str):
         Set the mode. May be the new mode (os.chmod behavior) or a `symbolic
         mode <http://en.wikipedia.org/wiki/Chmod#Symbolic_modes>`_.
 
+        >>> a_file = Path(getfixture('tmp_path')).joinpath('afile.txt').touch()
+        >>> a_file.chmod(0o700)
+        Path(...
+        >>> a_file.chmod('u+x')
+        Path(...
+
         .. seealso:: :func:`os.chmod`
         """
         if isinstance(mode, str):
