@@ -674,7 +674,11 @@ class Path(str):
 
         Converts all newline sequences to ``\n``.
         """
-        warnings.warn(".text is deprecated; use read_text", DeprecationWarning)
+        warnings.warn(
+            ".text is deprecated; use read_text",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return U_NEWLINE.sub('\n', self.read_text(encoding, errors))
 
     def write_text(
