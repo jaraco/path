@@ -23,6 +23,39 @@ def gen_bit_values(number):
     return map(int, reversed(digits))
 
 
+# from more_itertools
+def padded(iterable, fillvalue=None, n=None, next_multiple=False):
+    """Yield the elements from *iterable*, followed by *fillvalue*, such that
+    at least *n* items are emitted.
+
+        >>> list(padded([1, 2, 3], '?', 5))
+        [1, 2, 3, '?', '?']
+
+    If *next_multiple* is ``True``, *fillvalue* will be emitted until the
+    number of items emitted is a multiple of *n*::
+
+        >>> list(padded([1, 2, 3, 4], n=3, next_multiple=True))
+        [1, 2, 3, 4, None, None]
+
+    If *n* is ``None``, *fillvalue* will be emitted indefinitely.
+
+    """
+    it = iter(iterable)
+    if n is None:
+        yield from itertools.chain(it, itertools.repeat(fillvalue))
+    elif n < 1:
+        raise ValueError('n must be at least 1')
+    else:
+        item_count = 0
+        for item in it:
+            yield item
+            item_count += 1
+
+        remaining = (n - item_count) % n if next_multiple else n - item_count
+        for _ in range(remaining):
+            yield fillvalue
+
+
 def compound(mode):
     """
     Support multiple, comma-separated Unix chmod symbolic modes.
@@ -108,6 +141,8 @@ class Permissions(int):
     'rwxrw-r--'
     >>> str(perms)
     'rwxrw-r--'
+    >>> str(Permissions(0o222))
+    '-w--w--w-'
     """
 
     @property
@@ -118,7 +153,7 @@ class Permissions(int):
 
     @property
     def bits(self):
-        return reversed(tuple(gen_bit_values(self)))
+        return reversed(tuple(padded(gen_bit_values(self), 0, n=9)))
 
     def __str__(self):
         return self.symbolic
