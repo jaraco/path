@@ -34,7 +34,6 @@ import tempfile
 import functools
 import re
 import contextlib
-import io
 import importlib
 import itertools
 import datetime
@@ -168,11 +167,11 @@ class Path(str):
     # --- Special Python methods.
 
     def __repr__(self):
-        return '%s(%s)' % (type(self).__name__, super(Path, self).__repr__())
+        return '{}({})'.format(type(self).__name__, super().__repr__())
 
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
-        return self._next_class(super(Path, self).__add__(more))
+        return self._next_class(super().__add__(more))
 
     def __radd__(self, other):
         return self._next_class(other.__add__(self))
@@ -296,7 +295,7 @@ class Path(str):
         ValueError: Invalid suffix 'zip'
         """
         if not suffix.startswith('.'):
-            raise ValueError("Invalid suffix {suffix!r}".format(**locals()))
+            raise ValueError(f"Invalid suffix {suffix!r}")
 
         return self.stripext() + suffix
 
@@ -549,8 +548,7 @@ class Path(str):
                 continue
 
             if do_traverse:
-                for item in child.walk(errors=errors, match=match):
-                    yield item
+                yield from child.walk(errors=errors, match=match)
 
     def walkdirs(self, *args, **kwargs):
         """Iterator over subdirs, recursively."""
@@ -623,7 +621,7 @@ class Path(str):
         Keyword arguments work as in :func:`io.open`.  If the file cannot be
         opened, an :class:`OSError` is raised.
         """
-        return io.open(self, *args, **kwargs)
+        return open(self, *args, **kwargs)
 
     def bytes(self):
         """Open this file, read all bytes, return them as a string."""
@@ -645,8 +643,7 @@ class Path(str):
          This will read the file by chunks of 8192 bytes.
         """
         with self.open(*args, **kwargs) as f:
-            for chunk in iter(lambda: f.read(size) or None, None):
-                yield chunk
+            yield from iter(lambda: f.read(size) or None, None)
 
     def write_bytes(self, bytes, append=False):
         """Open this file and write the given bytes to it.
@@ -1402,7 +1399,7 @@ class Path(str):
         backup_fn = self + (backup_extension or os.extsep + 'bak')
         backup_fn.remove_p()
         self.rename(backup_fn)
-        readable = io.open(
+        readable = open(
             backup_fn,
             mode,
             buffering=buffering,
@@ -1424,7 +1421,7 @@ class Path(str):
             os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             os_mode |= getattr(os, 'O_BINARY', 0)
             fd = os.open(self, os_mode, perm)
-            writable = io.open(
+            writable = open(
                 fd,
                 "w" + mode.replace('r', ''),
                 buffering=buffering,
@@ -1556,7 +1553,7 @@ class SpecialResolver:
         Return the callable function from appdirs, but with the
         result wrapped in self.path_class
         """
-        prop_name = '{scope}_{class_}_dir'.format(**locals())
+        prop_name = f'{scope}_{class_}_dir'
         value = getattr(self.wrapper, prop_name)
         MultiPath = Multi.for_class(self.path_class)
         return MultiPath.detect(value)
@@ -1617,7 +1614,7 @@ class TempDir(Path):
 
     def __new__(cls, *args, **kwargs):
         dirname = tempfile.mkdtemp(*args, **kwargs)
-        return super(TempDir, cls).__new__(cls, dirname)
+        return super().__new__(cls, dirname)
 
     def __init__(self, *args, **kwargs):
         pass

@@ -3,7 +3,6 @@ from __future__ import annotations
 import builtins
 import contextlib
 import os
-import shutil
 import sys
 from io import (
     BufferedRandom,

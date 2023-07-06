@@ -13,7 +13,6 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
-import io
 import os
 import sys
 import shutil
@@ -94,7 +93,7 @@ class TestBasics:
         """Test compatibility with ordinary strings."""
         x = Path('xyzzy')
         assert x == 'xyzzy'
-        assert x == str('xyzzy')
+        assert x == 'xyzzy'
 
         # sorting
         items = [Path('fhj'), Path('fgh'), 'E', Path('d'), 'A', Path('B'), 'c']
@@ -316,7 +315,7 @@ class TestPerformance:
         args = [sys.executable, '-m', 'timeit', '-n', '1', '-r', '1', '-u', 'usec'] + [
             cmd
         ]
-        res = subprocess.check_output(args, universal_newlines=True)
+        res = subprocess.check_output(args, text=True)
         dur = re.search(r'(\d+) usec per loop', res).group(1)
         return datetime.timedelta(microseconds=int(dur))
 
@@ -474,7 +473,7 @@ class TestScratchDir:
 
         time.sleep(threshold * 2)
         fobj = open(f, 'ab')
-        fobj.write('some bytes'.encode('utf-8'))
+        fobj.write(b'some bytes')
         fobj.close()
 
         time.sleep(threshold * 2)
@@ -550,7 +549,7 @@ class TestScratchDir:
 
     @pytest.fixture
     def bytes_filename(self, tmpdir):
-        name = r'r\xe9\xf1emi'.encode('latin-1')
+        name = br'r\xe9\xf1emi'
         base = str(tmpdir).encode('ascii')
         try:
             with open(os.path.join(base, name), 'wb'):
@@ -739,7 +738,7 @@ class TestScratchDir:
         stripped = [line.replace('\n', '') for line in expectedLines]
 
         # write bytes manually to file
-        with io.open(p, 'wb') as strm:
+        with open(p, 'wb') as strm:
             strm.write(given.encode(encoding))
 
         # test all 3 path read-fully functions, including
@@ -913,18 +912,20 @@ class TestMergeTree:
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
         assert self.subdir_b.isdir()
-        expected = set(
-            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
-        )
+        expected = {
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+        }
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
         assert self.subdir_b.isdir()
-        expected = set(
-            (self.subdir_b / self.test_file.name, self.subdir_b / self.test_link.name)
-        )
+        expected = {
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+        }
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
 
@@ -941,13 +942,11 @@ class TestMergeTree:
         self.subdir_a.merge_tree(self.subdir_b, True)
 
         assert self.subdir_b.isdir()
-        expected = set(
-            (
-                self.subdir_b / self.test_file.name,
-                self.subdir_b / self.test_link.name,
-                self.subdir_b / test_new.name,
-            )
-        )
+        expected = {
+            self.subdir_b / self.test_file.name,
+            self.subdir_b / self.test_link.name,
+            self.subdir_b / test_new.name,
+        }
         assert set(self.subdir_b.listdir()) == expected
         self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
