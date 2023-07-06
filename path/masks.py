@@ -1,12 +1,26 @@
 import re
 import functools
 import operator
+import itertools
 
 
 # from jaraco.functools
 def compose(*funcs):
     compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))  # noqa
     return functools.reduce(compose_two, funcs)
+
+
+# from jaraco.structures.binary
+def gen_bit_values(number):
+    """
+    Return a zero or one for each bit of a numeric value up to the most
+    significant 1 bit, beginning with the least significant bit.
+
+    >>> list(gen_bit_values(16))
+    [0, 0, 0, 0, 1]
+    """
+    digits = bin(number)[2:]
+    return map(int, reversed(digits))
 
 
 def compound(mode):
@@ -83,3 +97,28 @@ def simple(mode):
         '=': lambda mask, target: target & retain ^ mask,
     }
     return functools.partial(op_map[op], mask)
+
+
+class Permissions(int):
+    """
+    >>> perms = Permissions(0o764)
+    >>> oct(perms)
+    '0o764'
+    >>> perms.symbolic
+    'rwxrw-r--'
+    >>> str(perms)
+    'rwxrw-r--'
+    """
+
+    @property
+    def symbolic(self):
+        return ''.join(
+            ['-', val][bit] for val, bit in zip(itertools.cycle('rwx'), self.bits)
+        )
+
+    @property
+    def bits(self):
+        return reversed(tuple(gen_bit_values(self)))
+
+    def __str__(self):
+        return self.symbolic

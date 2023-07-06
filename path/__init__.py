@@ -990,6 +990,21 @@ class Path(str):
         """,
     )
 
+    @property
+    def permissions(self) -> masks.Permissions:
+        """
+        Permissions.
+
+        >>> perms = Path('.').permissions
+        >>> isinstance(perms, int)
+        True
+        >>> set(perms.symbolic) <= set('rwx-')
+        True
+        >>> perms.symbolic
+        'r...'
+        """
+        return masks.Permissions(self.stat().st_mode)
+
     def access(self, *args, **kwargs):
         """
         Return does the real user have access to this path.
