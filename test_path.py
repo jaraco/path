@@ -302,8 +302,8 @@ class TestBasics:
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
         file = path.Path(tmpdir) / 'filename'
-        file.write_text('hello world')
-        assert file.read_text() == 'hello world'
+        file.write_text('hello world', encoding='utf-8')
+        assert file.read_text(encoding='utf-8') == 'hello world'
         assert file.read_bytes() == b'hello world'
 
     @pytest.mark.filterwarnings('ignore:Writing bytes in write_text')
@@ -318,7 +318,7 @@ class TestPerformance:
         args = [sys.executable, '-m', 'timeit', '-n', '1', '-r', '1', '-u', 'usec'] + [
             cmd
         ]
-        res = subprocess.check_output(args, text=True)
+        res = subprocess.check_output(args, text=True, encoding='utf-8')
         dur = re.search(r'(\d+) usec per loop', res).group(1)
         return datetime.timedelta(microseconds=int(dur))
 
@@ -346,7 +346,7 @@ class TestLinks:
         target = Path(tmpdir) / 'target'
         target.write_text('hello', encoding='utf-8')
         link = target.link(Path(tmpdir) / 'link')
-        assert link.read_text() == 'hello'
+        assert link.read_text(encoding='utf-8') == 'hello'
 
     def test_symlink_none(self, tmpdir):
         root = Path(tmpdir)
@@ -537,7 +537,7 @@ class TestScratchDir:
         # Try a test with 20 files
         files = [d / ('%d.txt' % i) for i in range(20)]
         for f in files:
-            fobj = open(f, 'w')
+            fobj = open(f, 'w', encoding='utf-8')
             fobj.write('some text\n')
             fobj.close()
         try:
@@ -638,7 +638,7 @@ class TestScratchDir:
         testA.mkdir()
         testB.mkdir()
 
-        f = open(testFile, 'w')
+        f = open(testFile, 'w', encoding='utf-8')
         f.write('x' * 10000)
         f.close()
 
@@ -822,8 +822,8 @@ class TestScratchDir:
         p = (TempDir() / 'test.txt').touch()
         txt = "0123456789"
         size = 5
-        p.write_text(txt)
-        for i, chunk in enumerate(p.chunks(size)):
+        p.write_text(txt, encoding='utf-8')
+        for i, chunk in enumerate(p.chunks(size, encoding='utf-8')):
             assert chunk == txt[i * size : i * size + size]
 
         assert i == len(txt) / size - 1
@@ -902,7 +902,7 @@ class TestMergeTree:
         self.subdir_a.mkdir()
         self.subdir_b.mkdir()
 
-        with open(self.test_file, 'w') as f:
+        with open(self.test_file, 'w', encoding='utf-8') as f:
             f.write('x' * 10000)
 
         self.test_file.symlink(self.test_link)
@@ -939,7 +939,7 @@ class TestMergeTree:
         self.test_link.remove()
         test_new = self.subdir_a / 'newfile.txt'
         test_new.touch()
-        with open(self.test_file, 'w') as f:
+        with open(self.test_file, 'w', encoding='utf-8') as f:
             f.write('x' * 5000)
 
         self.subdir_a.merge_tree(self.subdir_b, True)
@@ -971,11 +971,11 @@ class TestMergeTree:
         newer copies in the dest.
         """
         target = self.subdir_b / 'testfile.txt'
-        target.write_text('this is newer')
+        target.write_text('this is newer', encoding='utf-8')
         self.subdir_a.merge_tree(
             self.subdir_b, copy_function=path.only_newer(shutil.copy2)
         )
-        assert target.read_text() == 'this is newer'
+        assert target.read_text(encoding='utf-8') == 'this is newer'
 
 
 class TestChdir:
@@ -1187,29 +1187,29 @@ class TestInPlace:
     @classmethod
     def create_reference(cls, tmpdir):
         p = Path(tmpdir) / 'document'
-        with p.open('w') as stream:
+        with p.open('w', encoding='utf-8') as stream:
             stream.write(cls.reference_content)
         return p
 
     def test_line_by_line_rewrite(self, tmpdir):
         doc = self.create_reference(tmpdir)
         # reverse all the text in the document, line by line
-        with doc.in_place() as (reader, writer):
+        with doc.in_place(encoding='utf-8') as (reader, writer):
             for line in reader:
                 r_line = ''.join(reversed(line.strip())) + '\n'
                 writer.write(r_line)
-        with doc.open() as stream:
+        with doc.open(encoding='utf-8') as stream:
             data = stream.read()
         assert data == self.reversed_content
 
     def test_exception_in_context(self, tmpdir):
         doc = self.create_reference(tmpdir)
         with pytest.raises(RuntimeError) as exc:
-            with doc.in_place() as (reader, writer):
+            with doc.in_place(encoding='utf-8') as (reader, writer):
                 writer.write(self.alternate_content)
                 raise RuntimeError("some error")
         assert "some error" in str(exc.value)
-        with doc.open() as stream:
+        with doc.open(encoding='utf-8') as stream:
             data = stream.read()
         assert 'Lorem' not in data
         assert 'lazy dog' in data
