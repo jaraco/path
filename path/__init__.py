@@ -141,8 +141,10 @@ class Path(str):
 
     .. seealso:: :mod:`os.path`
     """
+    def __new__(cls, /, object='.'):
+        return super().__new__(cls, object)
 
-    def __init__(self, other=''):
+    def __init__(self, other='.'):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
         with contextlib.suppress(AttributeError):

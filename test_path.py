@@ -78,6 +78,12 @@ class TestBasics:
             d = Path('D:\\')
             assert d.relpathto(boz) == boz
 
+    def test_construction_without_args(self):
+        """
+        Path class will construct a path to current directory when called with no arguments.
+        """
+        assert Path() == '.'
+
     def test_construction_from_none(self):
         """ """
         with pytest.raises(TypeError):
@@ -432,7 +438,7 @@ def test_startfile(monkeypatch):
     results = []
     monkeypatch.setattr(os, 'startfile', results.append)
     Path().startfile()
-    assert results == ['']
+    assert results == ['.']
 
 
 class TestScratchDir:
