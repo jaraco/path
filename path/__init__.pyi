@@ -766,8 +766,8 @@ class TempDir(Path):
     def __init__(self) -> None:
         ...
 
-    def __enter__(self) -> Path:
-        ...  # type: ignore
+    def __enter__(self) -> Path:  # type: ignore
+        ...
 
     def __exit__(
         self,
