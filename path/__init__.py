@@ -1425,30 +1425,22 @@ class Path(str):
             errors=errors,
             newline=newline,
         )
-        try:
-            perm = os.fstat(readable.fileno()).st_mode
-        except OSError:
-            writable = self.open(
-                'w' + mode.replace('r', ''),
-                buffering=buffering,
-                encoding=encoding,
-                errors=errors,
-                newline=newline,
-            )
-        else:
-            os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
-            os_mode |= getattr(os, 'O_BINARY', 0)
-            fd = os.open(self, os_mode, perm)
-            writable = open(
-                fd,
-                "w" + mode.replace('r', ''),
-                buffering=buffering,
-                encoding=encoding,
-                errors=errors,
-                newline=newline,
-            )
-            with contextlib.suppress(OSError, AttributeError):
-                self.chmod(perm)
+
+        perm = os.stat(readable.fileno()).st_mode
+        os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
+        os_mode |= getattr(os, 'O_BINARY', 0)
+        fd = os.open(self, os_mode, perm)
+        writable = open(
+            fd,
+            "w" + mode.replace('r', ''),
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+        )
+        with contextlib.suppress(OSError, AttributeError):
+            self.chmod(perm)
+
         try:
             yield readable, writable
         except Exception:
