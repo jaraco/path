@@ -141,8 +141,8 @@ class Path(str):
 
     .. seealso:: :mod:`os.path`
     """
-    def __new__(cls, /, object='.'):
-        return super().__new__(cls, object)
+    def __new__(cls, /, other='.'):
+        return super().__new__(cls, other)
 
     def __init__(self, other='.'):
         if other is None:
