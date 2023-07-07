@@ -72,18 +72,16 @@ One may have imagined ``pathlib`` would supersede ``path``.
 But the implementation and the usage quickly diverge, and ``path``
 has several advantages over ``pathlib``:
 
-- ``path`` implements ``Path`` objects as a subclass of
-  ``str``, and as a result these ``Path``
-  objects may be passed directly to other APIs that expect simple
-  text representations of paths, whereas with ``pathlib``, one
-  must first cast values to strings before passing them to
-  APIs unaware of ``pathlib``. This shortcoming was `addressed
-  by PEP 519 <https://www.python.org/dev/peps/pep-0519/>`_,
-  in Python 3.6.
-- ``path`` goes beyond exposing basic functionality of a path
-  and exposes commonly-used behaviors on a path, providing
-  methods like ``rmtree`` (from shlib) and ``remove_p`` (remove
-  a file if it exists).
+- ``path`` implements ``Path`` objects as a subclass of ``str``, and as a
+  result these ``Path`` objects may be passed directly to other APIs that
+  expect simple text representations of paths, whereas with ``pathlib``, one
+  must first cast values to strings before passing them to APIs unaware of
+  ``pathlib``. This shortcoming was somewhat `mitigated by PEP 519
+  <https://www.python.org/dev/peps/pep-0519/>`_, in Python 3.6.
+- ``path`` give quality of life features beyond exposing basic functionality
+  of a path. ``path`` provides methods like ``rmtree`` (from shlib) and
+  ``remove_p`` (remove a file if it exists), properties like ``.permissions``,
+  and sophisticated ``walk``, ``TempDir``, and ``chmod`` behaviors.
 - As a PyPI-hosted package, ``path`` is free to iterate
   faster than a stdlib package. Contributions are welcome
   and encouraged.
@@ -104,40 +102,6 @@ object is a drop-in replacement for ``pathlib.Path*`` objects.
 This project welcomes contributions to improve that compatibility
 where it's lacking.
 
-Alternatives
-============
-
-In addition to
-`pathlib <https://docs.python.org/3/library/pathlib.html>`_, the
-`pylib project <https://pypi.org/project/py/>`_ implements a
-`LocalPath <https://github.com/pytest-dev/py/blob/72601dc8bbb5e11298bf9775bb23b0a395deb09b/py/_path/local.py#L106>`_
-class, which shares some behaviors and interfaces with ``path``.
-
-Development
-===========
-
-To install a development version, use the Github links to clone or
-download a snapshot of the latest code. Alternatively, if you have git
-installed, you may be able to use ``pip`` to install directly from
-the repository::
-
-    pip install git+https://github.com/jaraco/path.git
-
-Testing
-=======
-
-Tests are invoked with `tox <https://pypi.org/project/tox>`_. After
-having installed tox, simply invoke ``tox`` in a checkout of the repo
-to invoke the tests.
-
-Tests are also run in continuous integration. See the badges above
-for links to the CI runs.
-
-Releasing
-=========
-
-Tagged releases are automatically published to PyPI by Azure
-Pipelines, assuming the tests pass.
 
 Origins
 =======
@@ -145,6 +109,7 @@ Origins
 The ``path.py`` project was initially released in 2003 by Jason Orendorff
 and has been continuously developed and supported by several maintainers
 over the years.
+
 
 For Enterprise
 ==============
