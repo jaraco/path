@@ -1,1 +1,0 @@
-Set ``stacklevel=2`` in deprecation warning for ``.text``.

@@ -1,3 +1,12 @@
+v16.7.1
+=======
+
+Bugfixes
+--------
+
+- Set ``stacklevel=2`` in deprecation warning for ``.text``. (#210)
+
+
 v16.7.0
 =======
 
