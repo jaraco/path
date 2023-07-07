@@ -475,9 +475,8 @@ class TestScratchDir:
             assert t0 <= ct <= t1
 
         time.sleep(threshold * 2)
-        fobj = open(f, 'ab')
-        fobj.write(b'some bytes')
-        fobj.close()
+        with open(f, 'ab') as fobj:
+            fobj.write(b'some bytes')
 
         time.sleep(threshold * 2)
         t2 = time.time() - threshold
@@ -537,9 +536,8 @@ class TestScratchDir:
         # Try a test with 20 files
         files = [d / ('%d.txt' % i) for i in range(20)]
         for f in files:
-            fobj = open(f, 'w', encoding='utf-8')
-            fobj.write('some text\n')
-            fobj.close()
+            with open(f, 'w', encoding='utf-8') as fobj:
+                fobj.write('some text\n')
         try:
             files2 = d.listdir()
             files.sort()
@@ -638,9 +636,8 @@ class TestScratchDir:
         testA.mkdir()
         testB.mkdir()
 
-        f = open(testFile, 'w', encoding='utf-8')
-        f.write('x' * 10000)
-        f.close()
+        with open(testFile, 'w', encoding='utf-8') as f:
+            f.write('x' * 10000)
 
         # Test simple file copying.
         testFile.copyfile(testCopy)
