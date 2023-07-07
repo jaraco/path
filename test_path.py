@@ -974,6 +974,11 @@ class TestMergeTree:
         )
         assert target.read_text(encoding='utf-8') == 'this is newer'
 
+    def test_nested(self):
+        self.subdir_a.joinpath('subsub').mkdir()
+        self.subdir_a.merge_tree(self.subdir_b)
+        assert self.subdir_b.joinpath('subsub').isdir()
+
 
 class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
