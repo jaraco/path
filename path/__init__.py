@@ -1221,8 +1221,7 @@ class Path(str):
         """Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0o666)
-        os.close(fd)
+        os.close(os.open(self, os.O_WRONLY | os.O_CREAT, 0o666))
         os.utime(self, None)
         return self
 
