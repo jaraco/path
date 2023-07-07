@@ -21,7 +21,9 @@ Example::
     # Concatenate paths with /
     foo_txt = Path("bar") / "foo.txt"
 """
+from __future__ import annotations
 
+import builtins
 import sys
 import warnings
 import os
@@ -48,6 +50,35 @@ with contextlib.suppress(ImportError):
 
 with contextlib.suppress(ImportError):
     import grp
+
+from io import (
+    BufferedRandom,
+    BufferedReader,
+    BufferedWriter,
+    FileIO,
+    TextIOWrapper,
+)
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    IO,
+    Iterator,
+    Optional,
+    overload,
+)
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import (
+        OpenBinaryMode,
+        OpenBinaryModeUpdating,
+        OpenBinaryModeReading,
+        OpenBinaryModeWriting,
+        OpenTextMode,
+    )
+    from typing_extensions import Literal
 
 from . import matchers
 from . import masks
@@ -615,6 +646,97 @@ class Path(str):
     #
     # --- Reading or writing an entire file at once.
 
+    @overload
+    def open(
+        self,
+        mode: OpenTextMode = ...,
+        buffering: int = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Optional[Callable[[str, int], int]] = ...,
+    ) -> TextIOWrapper:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: Literal[0],
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> FileIO:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeUpdating,
+        buffering: Literal[-1, 1] = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> BufferedRandom:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeReading,
+        buffering: Literal[-1, 1] = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> BufferedReader:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeWriting,
+        buffering: Literal[-1, 1] = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> BufferedWriter:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: int,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> BinaryIO:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: str,
+        buffering: int = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Callable[[str, int], int] = ...,
+    ) -> IO[Any]:
+        ...
+
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
 
@@ -627,6 +749,48 @@ class Path(str):
         """Open this file, read all bytes, return them as a string."""
         with self.open('rb') as f:
             return f.read()
+
+    @overload
+    def chunks(
+        self,
+        size: int,
+        mode: OpenTextMode = ...,
+        buffering: int = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Optional[Callable[[str, int], int]] = ...,
+    ) -> Iterator[str]:
+        ...
+
+    @overload
+    def chunks(
+        self,
+        size: int,
+        mode: OpenBinaryMode,
+        buffering: int = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Optional[Callable[[str, int], int]] = ...,
+    ) -> Iterator[builtins.bytes]:
+        ...
+
+    @overload
+    def chunks(
+        self,
+        size: int,
+        mode: str,
+        buffering: int = ...,
+        encoding: Optional[str] = ...,
+        errors: Optional[str] = ...,
+        newline: Optional[str] = ...,
+        closefd: bool = ...,
+        opener: Optional[Callable[[str, int], int]] = ...,
+    ) -> Iterator[Union[str, builtins.bytes]]:
+        ...
 
     def chunks(self, size, *args, **kwargs):
         """Returns a generator yielding chunks of the file, so it can
@@ -680,6 +844,28 @@ class Path(str):
             stacklevel=2,
         )
         return U_NEWLINE.sub('\n', self.read_text(encoding, errors))
+
+    @overload
+    def write_text(
+        self,
+        text: str,
+        encoding: Optional[str] = ...,
+        errors: str = ...,
+        linesep: Optional[str] = ...,
+        append: bool = ...,
+    ) -> None:
+        ...
+
+    @overload
+    def write_text(
+        self,
+        text: builtins.bytes,
+        encoding: None = ...,
+        errors: str = ...,
+        linesep: Optional[str] = ...,
+        append: bool = ...,
+    ) -> None:
+        ...
 
     def write_text(
         self, text, encoding=None, errors='strict', linesep=os.linesep, append=False

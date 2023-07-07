@@ -4,18 +4,10 @@ import builtins
 import contextlib
 import os
 import sys
-from io import (
-    BufferedRandom,
-    BufferedReader,
-    BufferedWriter,
-    FileIO,
-    TextIOWrapper,
-)
 from types import ModuleType, TracebackType
 from typing import (
     Any,
     AnyStr,
-    BinaryIO,
     Callable,
     Generator,
     Iterable,
@@ -27,18 +19,11 @@ from typing import (
     Tuple,
     Type,
     Union,
-    overload,
 )
 
 from _typeshed import (
-    OpenBinaryMode,
-    OpenBinaryModeUpdating,
-    OpenBinaryModeReading,
-    OpenBinaryModeWriting,
-    OpenTextMode,
     Self,
 )
-from typing_extensions import Literal
 
 from . import classes
 
@@ -242,140 +227,7 @@ class Path(str):
     def iglob(self: Self, pattern: str) -> Iterator[Self]:
         ...
 
-    @overload
-    def open(
-        self,
-        mode: OpenTextMode = ...,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> TextIOWrapper:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: Literal[0],
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> FileIO:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeUpdating,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedRandom:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeReading,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedReader:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeWriting,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedWriter:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: int,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BinaryIO:
-        ...
-
-    @overload
-    def open(
-        self,
-        mode: str,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> IO[Any]:
-        ...
-
     def bytes(self) -> builtins.bytes:
-        ...
-
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: OpenTextMode = ...,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[str]:
-        ...
-
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: OpenBinaryMode,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[builtins.bytes]:
-        ...
-
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: str,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[Union[str, builtins.bytes]]:
         ...
 
     def write_bytes(self, bytes: builtins.bytes, append: bool = ...) -> None:
@@ -390,28 +242,6 @@ class Path(str):
         ...
 
     def text(self, encoding: Optional[str] = ..., errors: str = ...) -> str:
-        ...
-
-    @overload
-    def write_text(
-        self,
-        text: str,
-        encoding: Optional[str] = ...,
-        errors: str = ...,
-        linesep: Optional[str] = ...,
-        append: bool = ...,
-    ) -> None:
-        ...
-
-    @overload
-    def write_text(
-        self,
-        text: builtins.bytes,
-        encoding: None = ...,
-        errors: str = ...,
-        linesep: Optional[str] = ...,
-        append: bool = ...,
-    ) -> None:
         ...
 
     def lines(
