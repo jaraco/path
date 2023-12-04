@@ -30,6 +30,7 @@ import contextlib
 import stat
 
 import pytest
+from more_itertools import ilen
 
 import path
 from path import Path
@@ -512,7 +513,7 @@ class TestScratchDir:
 
     def test_listing(self, tmpdir):
         d = Path(tmpdir)
-        assert d.listdir() == []
+        assert list(d.iterdir()) == []
 
         f = 'testfile.txt'
         af = d / f
@@ -521,7 +522,7 @@ class TestScratchDir:
         try:
             assert af.exists()
 
-            assert d.listdir() == [af]
+            assert list(d.iterdir()) == [af]
 
             # .glob()
             assert d.glob('testfile.txt') == [af]
@@ -545,7 +546,7 @@ class TestScratchDir:
             with open(f, 'w', encoding='utf-8') as fobj:
                 fobj.write('some text\n')
         try:
-            files2 = d.listdir()
+            files2 = list(d.iterdir())
             files.sort()
             files2.sort()
             assert files == files2
@@ -565,17 +566,17 @@ class TestScratchDir:
             raise pytest.skip(f"Invalid encodings disallowed {exc}")
         return name
 
-    def test_listdir_other_encoding(self, tmpdir, bytes_filename):  # pragma: nocover
+    def test_iterdir_other_encoding(self, tmpdir, bytes_filename):  # pragma: nocover
         """
         Some filesystems allow non-character sequences in path names.
-        ``.listdir`` should still function in this case.
+        ``.iterdir`` should still function in this case.
         See issue #61 for details.
         """
         # first demonstrate that os.listdir works
         assert os.listdir(str(tmpdir).encode('ascii'))
 
         # now try with path
-        results = Path(tmpdir).listdir()
+        results = Path(tmpdir).iterdir()
         (res,) = results
         assert isinstance(res, Path)
         assert len(res.basename()) == len(bytes_filename)
@@ -663,7 +664,7 @@ class TestScratchDir:
         testA.copytree(testC)
         assert testC.isdir()
         self.assertSetsEqual(
-            testC.listdir(),
+            testC.iterdir(),
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
         )
         assert not testCopyOfLink.islink()
@@ -676,7 +677,7 @@ class TestScratchDir:
         testA.copytree(testC, True)
         assert testC.isdir()
         self.assertSetsEqual(
-            testC.listdir(),
+            testC.iterdir(),
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
         )
         if hasattr(os, 'symlink'):
@@ -686,7 +687,7 @@ class TestScratchDir:
         # Clean up.
         testDir.rmtree()
         assert not testDir.exists()
-        self.assertList(d.listdir(), [])
+        self.assertList(d.iterdir(), [])
 
     def assertList(self, listing, expected):
         assert sorted(listing) == sorted(expected)
@@ -702,7 +703,7 @@ class TestScratchDir:
 
             for name in names:
                 (e / name).touch()
-        self.assertList(d.listdir('*.tmp'), [d / 'x.tmp', d / 'xdir.tmp'])
+        self.assertList(d.iterdir('*.tmp'), [d / 'x.tmp', d / 'xdir.tmp'])
         self.assertList(d.files('*.tmp'), [d / 'x.tmp'])
         self.assertList(d.dirs('*.tmp'), [d / 'xdir.tmp'])
         self.assertList(
@@ -922,7 +923,7 @@ class TestMergeTree:
             self.subdir_b / self.test_file.name,
             self.subdir_b / self.test_link.name,
         }
-        assert set(self.subdir_b.listdir()) == expected
+        assert set(self.subdir_b.iterdir()) == expected
         self.check_link()
 
     def test_with_nonexisting_dst_args(self):
@@ -932,7 +933,7 @@ class TestMergeTree:
             self.subdir_b / self.test_file.name,
             self.subdir_b / self.test_link.name,
         }
-        assert set(self.subdir_b.listdir()) == expected
+        assert set(self.subdir_b.iterdir()) == expected
         self.check_link()
 
     def test_with_existing_dst(self):
@@ -953,7 +954,7 @@ class TestMergeTree:
             self.subdir_b / self.test_link.name,
             self.subdir_b / test_new.name,
         }
-        assert set(self.subdir_b.listdir()) == expected
+        assert set(self.subdir_b.iterdir()) == expected
         self.check_link()
         assert len(Path(self.subdir_b / self.test_file.name).bytes()) == 5000
 
@@ -965,7 +966,7 @@ class TestMergeTree:
         self.subdir_a.merge_tree(self.subdir_b, ignore=ignore)
 
         assert self.subdir_b.isdir()
-        assert self.subdir_b.listdir() == [self.subdir_b / self.test_file.name]
+        assert list(self.subdir_b.iterdir()) == [self.subdir_b / self.test_file.name]
 
     def test_only_newer(self):
         """
@@ -984,6 +985,10 @@ class TestMergeTree:
         self.subdir_a.joinpath('subsub').mkdir()
         self.subdir_a.merge_tree(self.subdir_b)
         assert self.subdir_b.joinpath('subsub').isdir()
+
+    def test_listdir(self):
+        with pytest.deprecated_call():
+            Path().listdir()
 
 
 class TestChdir:
@@ -1111,22 +1116,22 @@ class TestPatternMatching:
         assert p.fnmatch('foobar', normcase=normcase)
         assert p.fnmatch('FOO[ABC]AR', normcase=normcase)
 
-    def test_listdir_simple(self):
+    def test_iterdir_simple(self):
         p = Path('.')
-        assert len(p.listdir()) == len(os.listdir('.'))
+        assert ilen(p.iterdir()) == len(os.listdir('.'))
 
-    def test_listdir_empty_pattern(self):
+    def test_iterdir_empty_pattern(self):
         p = Path('.')
-        assert p.listdir('') == []
+        assert list(p.iterdir('')) == []
 
-    def test_listdir_patterns(self, tmpdir):
+    def test_iterdir_patterns(self, tmpdir):
         p = Path(tmpdir)
         (p / 'sub').mkdir()
         (p / 'File').touch()
-        assert p.listdir('s*') == [p / 'sub']
-        assert len(p.listdir('*')) == 2
+        assert list(p.iterdir('s*')) == [p / 'sub']
+        assert ilen(p.iterdir('*')) == 2
 
-    def test_listdir_custom_module(self, tmpdir):
+    def test_iterdir_custom_module(self, tmpdir):
         """
         Listdir patterns should honor the case sensitivity of the path module
         used by that Path class.
@@ -1135,14 +1140,14 @@ class TestPatternMatching:
         p = always_unix(tmpdir)
         (p / 'sub').mkdir()
         (p / 'File').touch()
-        assert p.listdir('S*') == []
+        assert list(p.iterdir('S*')) == []
 
         always_win = Path.using_module(ntpath)
         p = always_win(tmpdir)
-        assert p.listdir('S*') == [p / 'sub']
-        assert p.listdir('f*') == [p / 'File']
+        assert list(p.iterdir('S*')) == [p / 'sub']
+        assert list(p.iterdir('f*')) == [p / 'File']
 
-    def test_listdir_case_insensitive(self, tmpdir):
+    def test_iterdir_case_insensitive(self, tmpdir):
         """
         Listdir patterns should honor the case sensitivity of the path module
         used by that Path class.
@@ -1150,8 +1155,8 @@ class TestPatternMatching:
         p = Path(tmpdir)
         (p / 'sub').mkdir()
         (p / 'File').touch()
-        assert p.listdir(matchers.CaseInsensitive('S*')) == [p / 'sub']
-        assert p.listdir(matchers.CaseInsensitive('f*')) == [p / 'File']
+        assert list(p.iterdir(matchers.CaseInsensitive('S*'))) == [p / 'sub']
+        assert list(p.iterdir(matchers.CaseInsensitive('f*'))) == [p / 'File']
         assert p.files(matchers.CaseInsensitive('S*')) == []
         assert p.dirs(matchers.CaseInsensitive('f*')) == []
 

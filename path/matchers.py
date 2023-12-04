@@ -46,7 +46,7 @@ class Pattern(Base):
 class CaseInsensitive(Pattern):
     """
     A Pattern with a ``'normcase'`` property, suitable for passing to
-    :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
+    :meth:`iterdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
     :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
 
     For example, to get all files ending in .py, .Py, .pY, or .PY in the

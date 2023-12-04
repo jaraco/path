@@ -1,0 +1,1 @@
+Added Path.iterdir() and deprecated Path.listdir(). Ref #214.

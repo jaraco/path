@@ -475,8 +475,8 @@ class Path(str):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, match=None):
-        """List of items in this directory.
+    def iterdir(self, match=None):
+        """Yields items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
         of just files or just subdirectories.
@@ -489,7 +489,15 @@ class Path(str):
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
         match = matchers.load(match)
-        return list(filter(match, (self / child for child in os.listdir(self))))
+        return filter(match, (self / child for child in os.listdir(self)))
+
+    def listdir(self, match=None):
+        warnings.warn(
+            ".listdir is deprecated; use iterdir",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return list(self.iterdir(match=match))
 
     def dirs(self, *args, **kwargs):
         """List of this directory's subdirectories.
@@ -498,9 +506,9 @@ class Path(str):
         This does not walk recursively into subdirectories
         (but see :meth:`walkdirs`).
 
-        Accepts parameters to :meth:`listdir`.
+        Accepts parameters to :meth:`iterdir`.
         """
-        return [p for p in self.listdir(*args, **kwargs) if p.isdir()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.isdir()]
 
     def files(self, *args, **kwargs):
         """List of the files in self.
@@ -508,10 +516,10 @@ class Path(str):
         The elements of the list are Path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
 
-        Accepts parameters to :meth:`listdir`.
+        Accepts parameters to :meth:`iterdir`.
         """
 
-        return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.isfile()]
 
     def walk(self, match=None, errors='strict'):
         """Iterator over files and subdirs, recursively.
@@ -534,7 +542,7 @@ class Path(str):
         match = matchers.load(match)
 
         try:
-            childList = self.listdir()
+            childList = self.iterdir()
         except Exception as exc:
             errors(f"Unable to list directory '{self}': {exc}")
             return
@@ -1336,7 +1344,7 @@ class Path(str):
         dst = self._next_class(dst)
         dst.makedirs_p()
 
-        sources = self.listdir()
+        sources = list(self.iterdir())
         _ignored = ignore(self, [item.name for item in sources])
 
         def ignored(item):
