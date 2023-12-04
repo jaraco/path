@@ -4,7 +4,7 @@ v16.9.0
 Features
 --------
 
-- Added Path.iterdir() and deprecated Path.listdir(). Ref #214. (#214)
+- Added ``.iterdir()`` and deprecated ``.listdir()``. (#214)
 
 
 v16.8.0
