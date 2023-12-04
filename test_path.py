@@ -430,7 +430,7 @@ def test_chroot(monkeypatch):
     results = []
     monkeypatch.setattr(os, 'chroot', results.append)
     Path().chroot()
-    assert results == ['']
+    assert results == [Path()]
 
 
 @pytest.mark.skipif("not hasattr(Path, 'startfile')")
@@ -438,7 +438,7 @@ def test_startfile(monkeypatch):
     results = []
     monkeypatch.setattr(os, 'startfile', results.append)
     Path().startfile()
-    assert results == ['.']
+    assert results == [Path()]
 
 
 class TestScratchDir:
