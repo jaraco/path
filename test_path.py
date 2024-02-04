@@ -557,7 +557,7 @@ class TestScratchDir:
 
     @pytest.fixture
     def bytes_filename(self, tmpdir):
-        name = br'r\xe9\xf1emi'
+        name = rb'r\xe9\xf1emi'
         base = str(tmpdir).encode('ascii')
         try:
             with open(os.path.join(base, name), 'wb'):
