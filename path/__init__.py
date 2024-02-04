@@ -52,6 +52,7 @@ with contextlib.suppress(ImportError):
 from . import matchers
 from . import masks
 from . import classes
+from .compat.py38 import removesuffix
 
 
 __all__ = ['Path', 'TempDir']
@@ -277,6 +278,14 @@ class Path(str):
         base, ext = self.module.splitext(self.name)
         return base
 
+    def with_stem(self, stem):
+        """Return a new path with the stem changed.
+
+        >>> Path('/home/guido/python.tar.gz').with_stem("foo")
+        Path('/home/guido/foo.gz')
+        """
+        return self.with_name(stem + self.suffix)
+
     @property
     def suffix(self):
         """The file extension, for example ``'.py'``."""
@@ -346,6 +355,14 @@ class Path(str):
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """,
     )
+
+    def with_name(self, name):
+        """Return a new path with the name changed.
+
+        >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
+        Path('/home/guido/foo.zip')
+        """
+        return self._next_class(removesuffix(self, self.name) + name)
 
     def splitpath(self):
         """Return two-tuple of ``.parent``, ``.name``.

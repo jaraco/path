@@ -1,0 +1,1 @@
+Added .with_name and .with_stem.
