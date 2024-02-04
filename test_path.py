@@ -131,9 +131,9 @@ class TestBasics:
         assert f.name == 'xyzzy.py'
         assert f.parent.name == os_choose(nt='Lib', posix='lib')
 
-        # .ext
-        assert f.ext == '.py'
-        assert f.parent.ext == ''
+        # .suffix
+        assert f.suffix == '.py'
+        assert f.parent.suffix == ''
 
         # .drive
         assert f.drive == os_choose(nt='C:', posix='')

@@ -278,10 +278,19 @@ class Path(str):
         return base
 
     @property
-    def ext(self):
+    def suffix(self):
         """The file extension, for example ``'.py'``."""
-        f, ext = self.module.splitext(self)
-        return ext
+        f, suffix = self.module.splitext(self)
+        return suffix
+
+    @property
+    def ext(self):
+        warnings.warn(
+            ".ext is deprecated; use suffix",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.suffix
 
     def with_suffix(self, suffix):
         """Return a new path with the file suffix changed (or added, if none)
