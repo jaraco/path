@@ -1,3 +1,13 @@
+v16.10.0
+========
+
+Features
+--------
+
+- Added .with_name and .with_stem.
+- Prefer .suffix to .ext and deprecate .ext.
+
+
 v16.9.0
 =======
 
