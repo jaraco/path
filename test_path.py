@@ -300,10 +300,10 @@ class TestBasics:
         (dir / 'file').touch()
         (dir / 'sub').mkdir()
         dir.removedirs_p()
-        assert dir.isdir()
-        assert (dir / 'file').isfile()
+        assert dir.is_dir()
+        assert (dir / 'file').is_file()
         # TODO: shouldn't sub get removed?
-        # assert not (dir / 'sub').isdir()
+        # assert not (dir / 'sub').is_dir()
 
 
 class TestReadWriteText:
@@ -360,7 +360,7 @@ class TestLinks:
         with root:
             file = (Path('dir').mkdir() / 'file').touch()
             file.symlink()
-            assert Path('file').isfile()
+            assert Path('file').is_file()
 
     def test_readlinkabs_passthrough(self, tmpdir):
         link = Path(tmpdir) / 'link'
@@ -383,7 +383,7 @@ class TestSymbolicLinksWalk:
         assert len(list(root.walk())) == 4
 
         skip_links = path.Traversal(
-            lambda item: item.isdir() and not item.islink(),
+            lambda item: item.is_dir() and not item.islink(),
         )
         assert len(list(skip_links(root.walk()))) == 3
 
@@ -474,7 +474,7 @@ class TestScratchDir:
         t1 = time.time() + threshold
 
         assert f.exists()
-        assert f.isfile()
+        assert f.is_file()
         assert f.size == 0
         assert t0 <= f.mtime <= t1
         if hasattr(os.path, 'getctime'):
@@ -493,7 +493,7 @@ class TestScratchDir:
         assert t0 <= t1 < t2 <= t3  # sanity check
 
         assert f.exists()
-        assert f.isfile()
+        assert f.is_file()
         assert f.size == 10
         assert t2 <= f.mtime <= t3
         if hasattr(os.path, 'getctime'):
@@ -593,7 +593,7 @@ class TestScratchDir:
             boz = foo / 'bar' / 'baz' / 'boz'
             boz.makedirs()
             try:
-                assert boz.isdir()
+                assert boz.is_dir()
             finally:
                 boz.removedirs()
             assert not foo.exists()
@@ -602,7 +602,7 @@ class TestScratchDir:
             foo.mkdir(0o750)
             boz.makedirs(0o700)
             try:
-                assert boz.isdir()
+                assert boz.is_dir()
             finally:
                 boz.removedirs()
             assert not foo.exists()
@@ -648,13 +648,13 @@ class TestScratchDir:
 
         # Test simple file copying.
         testFile.copyfile(testCopy)
-        assert testCopy.isfile()
+        assert testCopy.is_file()
         assert testFile.bytes() == testCopy.bytes()
 
         # Test copying into a directory.
         testCopy2 = testA / testFile.name
         testFile.copy(testA)
-        assert testCopy2.isfile()
+        assert testCopy2.is_file()
         assert testFile.bytes() == testCopy2.bytes()
 
         # Make a link for the next test to use.
@@ -662,7 +662,7 @@ class TestScratchDir:
 
         # Test copying directory tree.
         testA.copytree(testC)
-        assert testC.isdir()
+        assert testC.is_dir()
         self.assertSetsEqual(
             testC.iterdir(),
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
@@ -675,7 +675,7 @@ class TestScratchDir:
 
         # Copy again, preserving symlinks.
         testA.copytree(testC, True)
-        assert testC.isdir()
+        assert testC.is_dir()
         self.assertSetsEqual(
             testC.iterdir(),
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
@@ -698,7 +698,7 @@ class TestScratchDir:
         dirs = [d, d / 'xdir', d / 'xdir.tmp', d / 'xdir.tmp' / 'xsubdir']
 
         for e in dirs:
-            if not e.isdir():
+            if not e.is_dir():
                 e.makedirs()
 
             for name in names:
@@ -913,12 +913,12 @@ class TestMergeTree:
 
     def check_link(self):
         target = Path(self.subdir_b / self.test_link.name)
-        check = target.islink if hasattr(os, 'symlink') else target.isfile
+        check = target.islink if hasattr(os, 'symlink') else target.is_file
         assert check()
 
     def test_with_nonexisting_dst_kwargs(self):
         self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
-        assert self.subdir_b.isdir()
+        assert self.subdir_b.is_dir()
         expected = {
             self.subdir_b / self.test_file.name,
             self.subdir_b / self.test_link.name,
@@ -928,7 +928,7 @@ class TestMergeTree:
 
     def test_with_nonexisting_dst_args(self):
         self.subdir_a.merge_tree(self.subdir_b, True)
-        assert self.subdir_b.isdir()
+        assert self.subdir_b.is_dir()
         expected = {
             self.subdir_b / self.test_file.name,
             self.subdir_b / self.test_link.name,
@@ -948,7 +948,7 @@ class TestMergeTree:
 
         self.subdir_a.merge_tree(self.subdir_b, True)
 
-        assert self.subdir_b.isdir()
+        assert self.subdir_b.is_dir()
         expected = {
             self.subdir_b / self.test_file.name,
             self.subdir_b / self.test_link.name,
@@ -965,7 +965,7 @@ class TestMergeTree:
         ignore = shutil.ignore_patterns('testlink*')
         self.subdir_a.merge_tree(self.subdir_b, ignore=ignore)
 
-        assert self.subdir_b.isdir()
+        assert self.subdir_b.is_dir()
         assert list(self.subdir_b.iterdir()) == [self.subdir_b / self.test_file.name]
 
     def test_only_newer(self):
@@ -984,7 +984,7 @@ class TestMergeTree:
     def test_nested(self):
         self.subdir_a.joinpath('subsub').mkdir()
         self.subdir_a.merge_tree(self.subdir_b)
-        assert self.subdir_b.joinpath('subsub').isdir()
+        assert self.subdir_b.joinpath('subsub').is_dir()
 
     def test_listdir(self):
         with pytest.deprecated_call():
@@ -1040,7 +1040,7 @@ class TestTempDir:
         d = TempDir()
         assert isinstance(d, path.Path)
         assert d.exists()
-        assert d.isdir()
+        assert d.is_dir()
         d.rmdir()
         assert not d.exists()
 
@@ -1074,8 +1074,8 @@ class TestTempDir:
         """
 
         with TempDir() as d:
-            assert d.isdir()
-        assert not d.isdir()
+            assert d.is_dir()
+        assert not d.is_dir()
 
     def test_cleaned_up_on_interrupt(self):
         with contextlib.suppress(KeyboardInterrupt):

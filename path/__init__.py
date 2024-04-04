@@ -125,7 +125,7 @@ class Traversal:
     Directories beginning with `.` will appear in the results, but
     their children will not.
 
-    >>> dot_dir = next(item for item in items if item.isdir() and item.startswith('.'))
+    >>> dot_dir = next(item for item in items if item.is_dir() and item.startswith('.'))
     >>> any(item.parent == dot_dir for item in items)
     False
     """
@@ -566,7 +566,7 @@ class Path(str):
 
         Accepts parameters to :meth:`iterdir`.
         """
-        return [p for p in self.iterdir(*args, **kwargs) if p.isdir()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.is_dir()]
 
     def files(self, *args, **kwargs):
         """List of the files in self.
@@ -577,14 +577,14 @@ class Path(str):
         Accepts parameters to :meth:`iterdir`.
         """
 
-        return [p for p in self.iterdir(*args, **kwargs) if p.isfile()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.is_file()]
 
     def walk(self, match=None, errors='strict'):
         """Iterator over files and subdirs, recursively.
 
         The iterator yields Path objects naming each child item of
         this directory and its descendants.  This requires that
-        ``D.isdir()``.
+        ``D.is_dir()``.
 
         This performs a depth-first traversal of the directory tree.
         Each directory is returned just before all its children.
@@ -609,7 +609,7 @@ class Path(str):
             traverse = None
             if match(child):
                 traverse = yield child
-            traverse = traverse or child.isdir
+            traverse = traverse or child.is_dir
             try:
                 do_traverse = traverse()
             except Exception as exc:
@@ -621,11 +621,11 @@ class Path(str):
 
     def walkdirs(self, *args, **kwargs):
         """Iterator over subdirs, recursively."""
-        return (item for item in self.walk(*args, **kwargs) if item.isdir())
+        return (item for item in self.walk(*args, **kwargs) if item.is_dir())
 
     def walkfiles(self, *args, **kwargs):
         """Iterator over files, recursively."""
-        return (item for item in self.walk(*args, **kwargs) if item.isfile())
+        return (item for item in self.walk(*args, **kwargs) if item.is_file())
 
     def fnmatch(self, pattern, normcase=None):
         """Return ``True`` if `self.name` matches the given `pattern`.
@@ -1097,10 +1097,24 @@ class Path(str):
         return self.module.exists(self)
 
     def isdir(self):
+        warnings.warn(
+            "isdir is deprecated; use is_dir",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    def is_dir(self):
         """.. seealso:: :func:`os.path.isdir`"""
         return self.module.isdir(self)
 
     def isfile(self):
+        warnings.warn(
+            "isfile is deprecated; use is_file",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    def is_file(self):
         """.. seealso:: :func:`os.path.isfile`"""
         return self.module.isfile(self)
 
@@ -1556,7 +1570,7 @@ class Path(str):
             if symlinks and source.islink():
                 target = source.readlink()
                 target.symlink(dest)
-            elif source.isdir():
+            elif source.is_dir():
                 source.merge_tree(
                     dest,
                     symlinks=symlinks,
@@ -1613,7 +1627,7 @@ class Path(str):
         For example, to add line numbers to a file::
 
             p = Path(filename)
-            assert p.isfile()
+            assert p.is_file()
             with p.in_place() as (reader, writer):
                 for number, line in enumerate(reader, 1):
                     writer.write('{0:3}: '.format(number)))
@@ -1747,7 +1761,7 @@ class ExtantFile(Path):
     """
 
     def _validate(self):
-        if not self.isfile():
+        if not self.is_file():
             raise FileNotFoundError(f"{self} does not exist as a file.")
 
 
@@ -1818,12 +1832,12 @@ class TempDir(Path):
     For example:
 
     >>> with TempDir() as d:
-    ...     d.isdir() and isinstance(d, Path)
+    ...     d.is_dir() and isinstance(d, Path)
     True
 
     The directory is deleted automatically.
 
-    >>> d.isdir()
+    >>> d.is_dir()
     False
 
     .. seealso:: :func:`tempfile.mkdtemp`
