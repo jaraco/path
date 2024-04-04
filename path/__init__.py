@@ -1865,7 +1865,7 @@ class Handlers:
         raise
 
     def warn(msg):
-        warnings.warn(msg, TreeWalkWarning)
+        warnings.warn(msg, TreeWalkWarning, stacklevel=2)
 
     def ignore(msg):
         pass

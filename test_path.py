@@ -361,12 +361,12 @@ class TestLinks:
     def test_readlinkabs_passthrough(self, tmpdir):
         link = Path(tmpdir) / 'link'
         Path('foo').abspath().symlink(link)
-        link.readlinkabs() == Path('foo').abspath()
+        assert link.readlinkabs() == Path('foo').abspath()
 
     def test_readlinkabs_rendered(self, tmpdir):
         link = Path(tmpdir) / 'link'
         Path('foo').symlink(link)
-        link.readlinkabs() == Path(tmpdir) / 'foo'
+        assert link.readlinkabs() == Path(tmpdir) / 'foo'
 
 
 class TestSymbolicLinksWalk:
@@ -559,7 +559,7 @@ class TestScratchDir:
             with open(os.path.join(base, name), 'wb'):
                 pass
         except Exception as exc:
-            raise pytest.skip(f"Invalid encodings disallowed {exc}")
+            raise pytest.skip(f"Invalid encodings disallowed {exc}") from exc
         return name
 
     def test_iterdir_other_encoding(self, tmpdir, bytes_filename):  # pragma: nocover
