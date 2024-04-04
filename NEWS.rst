@@ -1,3 +1,12 @@
+v16.10.1
+========
+
+Bugfixes
+--------
+
+- Add type annotation for iterdir. (#220)
+
+
 v16.10.0
 ========
 
