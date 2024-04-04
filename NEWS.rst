@@ -1,3 +1,12 @@
+v16.12.0
+========
+
+Features
+--------
+
+- Added .is_dir and .is_file for parity with pathlib. Deprecates .isdir and .isfile. (#214)
+
+
 v16.11.0
 ========
 
