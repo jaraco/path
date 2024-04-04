@@ -13,7 +13,6 @@ from typing import (
     Generator,
     Iterable,
     Iterator,
-    Optional,
 )
 
 from _typeshed import (
@@ -23,7 +22,7 @@ from _typeshed import (
 from . import classes
 
 # Type for the match argument for several methods
-_Match = Optional[str | Callable[[str], bool] | Callable[[Path], bool]]
+_Match = str | Callable[[str], bool] | Callable[[Path], bool] | None
 
 class TreeWalkWarning(Warning):
     pass
