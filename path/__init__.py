@@ -319,7 +319,7 @@ class Path(str):
         return suffix
 
     @property
-    def ext(self):
+    def ext(self):  # pragma: no cover
         warnings.warn(
             ".ext is deprecated; use suffix",
             DeprecationWarning,
@@ -1090,7 +1090,7 @@ class Path(str):
         """.. seealso:: :func:`os.path.exists`"""
         return self.module.exists(self)
 
-    def isdir(self):
+    def isdir(self):  # pragma: no cover
         warnings.warn(
             "isdir is deprecated; use is_dir",
             DeprecationWarning,
@@ -1101,7 +1101,7 @@ class Path(str):
         """.. seealso:: :func:`os.path.isdir`"""
         return self.module.isdir(self)
 
-    def isfile(self):
+    def isfile(self):  # pragma: no cover
         warnings.warn(
             "isfile is deprecated; use is_file",
             DeprecationWarning,
