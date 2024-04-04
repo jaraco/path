@@ -1,5 +1,22 @@
+from __future__ import annotations
+
 import ntpath
 import fnmatch
+
+
+from typing import Any, overload
+
+
+@overload
+def load(param: None) -> Null: ...
+
+
+@overload
+def load(param: str) -> Pattern: ...
+
+
+@overload
+def load(param: Any) -> Any: ...
 
 
 def load(param):

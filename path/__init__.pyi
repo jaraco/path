@@ -4,18 +4,10 @@ import builtins
 import contextlib
 import os
 import sys
-from io import (
-    BufferedRandom,
-    BufferedReader,
-    BufferedWriter,
-    FileIO,
-    TextIOWrapper,
-)
 from types import ModuleType, TracebackType
 from typing import (
     Any,
     AnyStr,
-    BinaryIO,
     Callable,
     Generator,
     Iterable,
@@ -27,18 +19,11 @@ from typing import (
     Tuple,
     Type,
     Union,
-    overload,
 )
 
 from _typeshed import (
-    OpenBinaryMode,
-    OpenBinaryModeUpdating,
-    OpenBinaryModeReading,
-    OpenBinaryModeWriting,
-    OpenTextMode,
     Self,
 )
-from typing_extensions import Literal
 
 from . import classes
 
@@ -50,6 +35,7 @@ class TreeWalkWarning(Warning):
 
 class Traversal:
     follow: Callable[[Path], bool]
+
     def __init__(self, follow: Callable[[Path], bool]): ...
     def __call__(
         self,
@@ -58,6 +44,7 @@ class Traversal:
 
 class Path(str):
     module: Any
+
     def __init__(self, other: Any = ...) -> None: ...
     @classmethod
     def using_module(cls, module: ModuleType) -> Type[Path]: ...
@@ -112,6 +99,7 @@ class Path(str):
     def _parts_iter(self: Self) -> Iterator[Union[Self, str]]: ...
     def relpath(self: Self, start: str = ...) -> Self: ...
     def relpathto(self: Self, dest: str) -> Self: ...
+
     # --- Listing, searching, walking, and matching
     def iterdir(self: Self, match: _Match = ...) -> Iterator[Self]: ...
     def listdir(self: Self, match: _Match = ...) -> List[Self]: ...
@@ -139,144 +127,13 @@ class Path(str):
     ) -> bool: ...
     def glob(self: Self, pattern: str) -> List[Self]: ...
     def iglob(self: Self, pattern: str) -> Iterator[Self]: ...
-    @overload
-    def open(
-        self,
-        mode: OpenTextMode = ...,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> TextIOWrapper: ...
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: Literal[0],
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> FileIO: ...
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeUpdating,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedRandom: ...
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeReading,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedReader: ...
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeWriting,
-        buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedWriter: ...
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: int,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BinaryIO: ...
-    @overload
-    def open(
-        self,
-        mode: str,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> IO[Any]: ...
     def bytes(self) -> builtins.bytes: ...
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: OpenTextMode = ...,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[str]: ...
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: OpenBinaryMode,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[builtins.bytes]: ...
-    @overload
-    def chunks(
-        self,
-        size: int,
-        mode: str,
-        buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
-        closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[Union[str, builtins.bytes]]: ...
     def write_bytes(self, bytes: builtins.bytes, append: bool = ...) -> None: ...
     def read_text(
         self, encoding: Optional[str] = ..., errors: Optional[str] = ...
     ) -> str: ...
     def read_bytes(self) -> builtins.bytes: ...
     def text(self, encoding: Optional[str] = ..., errors: str = ...) -> str: ...
-    @overload
-    def write_text(
-        self,
-        text: str,
-        encoding: Optional[str] = ...,
-        errors: str = ...,
-        linesep: Optional[str] = ...,
-        append: bool = ...,
-    ) -> None: ...
-    @overload
-    def write_text(
-        self,
-        text: builtins.bytes,
-        encoding: None = ...,
-        errors: str = ...,
-        linesep: Optional[str] = ...,
-        append: bool = ...,
-    ) -> None: ...
     def lines(
         self,
         encoding: Optional[str] = ...,
@@ -326,6 +183,7 @@ class Path(str):
     def get_owner(self) -> str: ...
     @property
     def owner(self) -> str: ...
+
     if sys.platform != 'win32':
         def statvfs(self) -> os.statvfs_result: ...
         def pathconf(self, name: Union[str, int]) -> int: ...
@@ -339,6 +197,7 @@ class Path(str):
         follow_symlinks: bool = ...,
     ) -> Path: ...
     def chmod(self: Self, mode: Union[str, int]) -> Self: ...
+
     if sys.platform != 'win32':
         def chown(
             self: Self, uid: Union[int, str] = ..., gid: Union[int, str] = ...
@@ -396,8 +255,10 @@ class Path(str):
         copy_function: Callable[[str, str], None] = ...,
         ignore: Callable[[Any, List[str]], Union[List[str], Set[str]]] = ...,
     ) -> None: ...
+
     if sys.platform != 'win32':
         def chroot(self) -> None: ...
+
     if sys.platform == 'win32':
         def startfile(self: Self, operation: Optional[str] = ...) -> Self: ...
 

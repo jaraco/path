@@ -33,6 +33,21 @@ link_files = {
 # Be strict about any broken references
 nitpicky = True
 
+
+nitpick_ignore = [
+    ('py:class', '_io.BufferedRandom'),
+    ('py:class', '_io.BufferedReader'),
+    ('py:class', '_io.BufferedWriter'),
+    ('py:class', '_io.FileIO'),
+    ('py:class', '_io.TextIOWrapper'),
+    ('py:class', 'Literal[-1, 1]'),
+    ('py:class', 'OpenBinaryMode'),
+    ('py:class', 'OpenBinaryModeReading'),
+    ('py:class', 'OpenBinaryModeUpdating'),
+    ('py:class', 'OpenBinaryModeWriting'),
+    ('py:class', 'OpenTextMode'),
+]
+
 # Include Python intersphinx mapping to prevent failures
 # jaraco/skeleton#51
 extensions += ['sphinx.ext.intersphinx']

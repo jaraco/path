@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Callable, overload
+from typing import Callable
 
 from typing_extensions import Literal
 
 from path import Path
-
-@overload
-def load(param: None) -> Null: ...
-@overload
-def load(param: str) -> Pattern: ...
-@overload
-def load(param: Any) -> Any: ...
 
 class Base:
     pass
