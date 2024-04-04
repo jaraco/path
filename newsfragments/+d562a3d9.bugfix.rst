@@ -1,0 +1,1 @@
+Restore functionality in .isdir and .isfile.
