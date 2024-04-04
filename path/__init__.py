@@ -25,23 +25,22 @@ Example::
 from __future__ import annotations
 
 import builtins
-import sys
-import warnings
-import os
-import fnmatch
-import glob
-import shutil
-import hashlib
-import errno
-import tempfile
-import functools
-import re
 import contextlib
+import datetime
+import errno
+import fnmatch
+import functools
+import glob
+import hashlib
 import importlib
 import itertools
-import datetime
+import os
+import re
+import shutil
+import sys
+import tempfile
+import warnings
 from numbers import Number
-from typing import Union
 
 with contextlib.suppress(ImportError):
     import win32security
@@ -60,32 +59,27 @@ from io import (
     TextIOWrapper,
 )
 from typing import (
+    IO,
+    TYPE_CHECKING,
     Any,
     BinaryIO,
     Callable,
-    IO,
     Iterator,
-    Optional,
     overload,
 )
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from _typeshed import (
         OpenBinaryMode,
-        OpenBinaryModeUpdating,
         OpenBinaryModeReading,
+        OpenBinaryModeUpdating,
         OpenBinaryModeWriting,
         OpenTextMode,
     )
     from typing_extensions import Literal
 
-from . import matchers
-from . import masks
-from . import classes
+from . import classes, masks, matchers
 from .compat.py38 import removesuffix
-
 
 __all__ = ['Path', 'TempDir']
 
@@ -100,7 +94,7 @@ U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 _default_linesep = object()
 
 
-def _make_timestamp_ns(value: Union[Number, datetime.datetime]) -> Number:
+def _make_timestamp_ns(value: Number | datetime.datetime) -> Number:
     timestamp_s = value if isinstance(value, Number) else value.timestamp()
     return int(timestamp_s * 10**9)
 
@@ -203,7 +197,7 @@ class Path(str):
     # --- Special Python methods.
 
     def __repr__(self):
-        return '{}({})'.format(type(self).__name__, super().__repr__())
+        return f'{type(self).__name__}({super().__repr__()})'
 
     # Adding a Path and a string yields a Path.
     def __add__(self, more):
@@ -689,11 +683,11 @@ class Path(str):
         self,
         mode: OpenTextMode = ...,
         buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
+        opener: Callable[[str, int], int] | None = ...,
     ) -> TextIOWrapper: ...
 
     @overload
@@ -701,9 +695,9 @@ class Path(str):
         self,
         mode: OpenBinaryMode,
         buffering: Literal[0],
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> FileIO: ...
@@ -713,9 +707,9 @@ class Path(str):
         self,
         mode: OpenBinaryModeUpdating,
         buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> BufferedRandom: ...
@@ -725,9 +719,9 @@ class Path(str):
         self,
         mode: OpenBinaryModeReading,
         buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> BufferedReader: ...
@@ -737,9 +731,9 @@ class Path(str):
         self,
         mode: OpenBinaryModeWriting,
         buffering: Literal[-1, 1] = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> BufferedWriter: ...
@@ -749,9 +743,9 @@ class Path(str):
         self,
         mode: OpenBinaryMode,
         buffering: int,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> BinaryIO: ...
@@ -761,9 +755,9 @@ class Path(str):
         self,
         mode: str,
         buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
     ) -> IO[Any]: ...
@@ -787,11 +781,11 @@ class Path(str):
         size: int,
         mode: OpenTextMode = ...,
         buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
+        opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[str]: ...
 
     @overload
@@ -800,11 +794,11 @@ class Path(str):
         size: int,
         mode: OpenBinaryMode,
         buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
+        opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[builtins.bytes]: ...
 
     @overload
@@ -813,12 +807,12 @@ class Path(str):
         size: int,
         mode: str,
         buffering: int = ...,
-        encoding: Optional[str] = ...,
-        errors: Optional[str] = ...,
-        newline: Optional[str] = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
         closefd: bool = ...,
-        opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[Union[str, builtins.bytes]]: ...
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> Iterator[str | builtins.bytes]: ...
 
     def chunks(self, size, *args, **kwargs):
         """Returns a generator yielding chunks of the file, so it can
@@ -877,9 +871,9 @@ class Path(str):
     def write_text(
         self,
         text: str,
-        encoding: Optional[str] = ...,
+        encoding: str | None = ...,
         errors: str = ...,
-        linesep: Optional[str] = ...,
+        linesep: str | None = ...,
         append: bool = ...,
     ) -> None: ...
 
@@ -889,7 +883,7 @@ class Path(str):
         text: builtins.bytes,
         encoding: None = ...,
         errors: str = ...,
-        linesep: Optional[str] = ...,
+        linesep: str | None = ...,
         append: bool = ...,
     ) -> None: ...
 

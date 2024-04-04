@@ -1,8 +1,7 @@
-import re
 import functools
-import operator
 import itertools
-
+import operator
+import re
 
 # from jaraco.functools
 from typing import Any, Callable

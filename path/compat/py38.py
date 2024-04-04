@@ -1,6 +1,5 @@
 import sys
 
-
 if sys.version_info < (3, 9):
 
     def removesuffix(self, suffix):

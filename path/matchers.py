@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import ntpath
 import fnmatch
-
-
+import ntpath
 from typing import Any, overload
 
 

@@ -13,31 +13,27 @@ seconds to allow some time to pass between calls to check the modify
 time on files.
 """
 
+import contextlib
+import datetime
+import importlib
+import ntpath
 import os
-import sys
+import platform
+import posixpath
+import re
 import shutil
+import stat
+import subprocess
+import sys
+import textwrap
 import time
 import types
-import ntpath
-import posixpath
-import textwrap
-import platform
-import importlib
-import datetime
-import subprocess
-import re
-import contextlib
-import stat
 
 import pytest
 from more_itertools import ilen
 
 import path
-from path import Path
-from path import TempDir
-from path import matchers
-from path import SpecialResolver
-from path import Multi
+from path import Multi, Path, SpecialResolver, TempDir, matchers
 
 
 def os_choose(**choices):
@@ -1092,7 +1088,7 @@ class TestUnicode:
         Path(tmpdir).joinpath('☃').mkdir()
 
     def test_walkdirs_with_unicode_name(self, tmpdir):
-        for res in Path(tmpdir).walkdirs():
+        for _res in Path(tmpdir).walkdirs():
             pass
 
 
