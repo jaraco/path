@@ -1,3 +1,12 @@
+v16.12.1
+========
+
+Bugfixes
+--------
+
+- Restore functionality in .isdir and .isfile.
+
+
 v16.12.0
 ========
 

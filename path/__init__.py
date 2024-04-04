@@ -1096,6 +1096,7 @@ class Path(str):
             DeprecationWarning,
             stacklevel=2,
         )
+        return self.is_dir()
 
     def is_dir(self):
         """.. seealso:: :func:`os.path.isdir`"""
@@ -1107,6 +1108,7 @@ class Path(str):
             DeprecationWarning,
             stacklevel=2,
         )
+        return self.is_file()
 
     def is_file(self):
         """.. seealso:: :func:`os.path.isfile`"""
