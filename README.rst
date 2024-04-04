@@ -3,7 +3,7 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/path.svg
 
-.. image:: https://github.com/jaraco/path/workflows/tests/badge.svg
+.. image:: https://github.com/jaraco/path/actions/workflows/main.yml/badge.svg
    :target: https://github.com/jaraco/path/actions?query=workflow%3A%22tests%22
    :alt: tests
 
@@ -11,14 +11,10 @@
     :target: https://github.com/astral-sh/ruff
     :alt: Ruff
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-   :alt: Code style: Black
-
 .. image:: https://readthedocs.org/projects/path/badge/?version=latest
    :target: https://path.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://img.shields.io/badge/skeleton-2023-informational
+.. image:: https://img.shields.io/badge/skeleton-2024-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://tidelift.com/badges/package/pypi/path
@@ -63,6 +59,8 @@ based on ``path``.
 Advantages
 ==========
 
+Path pie provides a superior experience to similar offerings.
+
 Python 3.4 introduced
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_,
 which shares many characteristics with ``path``. In particular,
@@ -75,9 +73,9 @@ has several advantages over ``pathlib``:
 - ``path`` implements ``Path`` objects as a subclass of ``str``, and as a
   result these ``Path`` objects may be passed directly to other APIs that
   expect simple text representations of paths, whereas with ``pathlib``, one
-  must first cast values to strings before passing them to APIs unaware of
-  ``pathlib``. This shortcoming was somewhat `mitigated by PEP 519
-  <https://www.python.org/dev/peps/pep-0519/>`_, in Python 3.6.
+  must first cast values to strings before passing them to APIs that do
+  not honor `PEP 519 <https://www.python.org/dev/peps/pep-0519/>`_
+  ``PathLike`` interface.
 - ``path`` give quality of life features beyond exposing basic functionality
   of a path. ``path`` provides methods like ``rmtree`` (from shlib) and
   ``remove_p`` (remove a file if it exists), properties like ``.permissions``,
@@ -85,16 +83,19 @@ has several advantages over ``pathlib``:
 - As a PyPI-hosted package, ``path`` is free to iterate
   faster than a stdlib package. Contributions are welcome
   and encouraged.
-- ``path`` provides a uniform abstraction over its Path object,
+- ``path`` provides superior portability using a uniform abstraction
+  over its single Path object,
   freeing the implementer to subclass it readily. One cannot
   subclass a ``pathlib.Path`` to add functionality, but must
   subclass ``Path``, ``PosixPath``, and ``WindowsPath``, even
-  if one only wishes to add a ``__dict__`` to the subclass
+  to do something as simple as to add a ``__dict__`` to the subclass
   instances.  ``path`` instead allows the ``Path.module``
   object to be overridden by subclasses, defaulting to the
   ``os.path``. Even advanced uses of ``path.Path`` that
   subclass the model do not need to be concerned with
-  OS-specific nuances.
+  OS-specific nuances. ``path.Path`` objects are inherently "pure",
+  not requiring the author to distinguish between pure and non-pure
+  variants.
 
 This path project has the explicit aim to provide compatibility
 with ``pathlib`` objects where possible, such that a ``path.Path``
@@ -119,10 +120,3 @@ Available as part of the Tidelift Subscription.
 This project and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
 
 `Learn more <https://tidelift.com/subscription/pkg/pypi-path?utm_source=pypi-path&utm_medium=referral&utm_campaign=github>`_.
-
-Security Contact
-================
-
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.

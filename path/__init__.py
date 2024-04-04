@@ -21,6 +21,7 @@ Example::
     # Concatenate paths with /
     foo_txt = Path("bar") / "foo.txt"
 """
+
 from __future__ import annotations
 
 import builtins
@@ -83,6 +84,7 @@ if TYPE_CHECKING:
 from . import matchers
 from . import masks
 from . import classes
+from .compat.py38 import removesuffix
 
 
 __all__ = ['Path', 'TempDir']
@@ -173,7 +175,10 @@ class Path(str):
     .. seealso:: :mod:`os.path`
     """
 
-    def __init__(self, other=''):
+    def __new__(cls, other='.'):
+        return super().__new__(cls, other)
+
+    def __init__(self, other='.'):
         if other is None:
             raise TypeError("Invalid initial value for path: None")
         with contextlib.suppress(AttributeError):
@@ -305,11 +310,28 @@ class Path(str):
         base, ext = self.module.splitext(self.name)
         return base
 
+    def with_stem(self, stem):
+        """Return a new path with the stem changed.
+
+        >>> Path('/home/guido/python.tar.gz').with_stem("foo")
+        Path('/home/guido/foo.gz')
+        """
+        return self.with_name(stem + self.suffix)
+
+    @property
+    def suffix(self):
+        """The file extension, for example ``'.py'``."""
+        f, suffix = self.module.splitext(self)
+        return suffix
+
     @property
     def ext(self):
-        """The file extension, for example ``'.py'``."""
-        f, ext = self.module.splitext(self)
-        return ext
+        warnings.warn(
+            ".ext is deprecated; use suffix",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.suffix
 
     def with_suffix(self, suffix):
         """Return a new path with the file suffix changed (or added, if none)
@@ -365,6 +387,14 @@ class Path(str):
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
         """,
     )
+
+    def with_name(self, name):
+        """Return a new path with the name changed.
+
+        >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
+        Path('/home/guido/foo.zip')
+        """
+        return self._next_class(removesuffix(self, self.name) + name)
 
     def splitpath(self):
         """Return two-tuple of ``.parent``, ``.name``.
@@ -503,8 +533,8 @@ class Path(str):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, match=None):
-        """List of items in this directory.
+    def iterdir(self, match=None):
+        """Yields items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
         of just files or just subdirectories.
@@ -517,7 +547,15 @@ class Path(str):
         .. seealso:: :meth:`files`, :meth:`dirs`
         """
         match = matchers.load(match)
-        return list(filter(match, (self / child for child in os.listdir(self))))
+        return filter(match, (self / child for child in os.listdir(self)))
+
+    def listdir(self, match=None):
+        warnings.warn(
+            ".listdir is deprecated; use iterdir",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return list(self.iterdir(match=match))
 
     def dirs(self, *args, **kwargs):
         """List of this directory's subdirectories.
@@ -526,9 +564,9 @@ class Path(str):
         This does not walk recursively into subdirectories
         (but see :meth:`walkdirs`).
 
-        Accepts parameters to :meth:`listdir`.
+        Accepts parameters to :meth:`iterdir`.
         """
-        return [p for p in self.listdir(*args, **kwargs) if p.isdir()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.isdir()]
 
     def files(self, *args, **kwargs):
         """List of the files in self.
@@ -536,10 +574,10 @@ class Path(str):
         The elements of the list are Path objects.
         This does not walk into subdirectories (see :meth:`walkfiles`).
 
-        Accepts parameters to :meth:`listdir`.
+        Accepts parameters to :meth:`iterdir`.
         """
 
-        return [p for p in self.listdir(*args, **kwargs) if p.isfile()]
+        return [p for p in self.iterdir(*args, **kwargs) if p.isfile()]
 
     def walk(self, match=None, errors='strict'):
         """Iterator over files and subdirs, recursively.
@@ -562,7 +600,7 @@ class Path(str):
         match = matchers.load(match)
 
         try:
-            childList = self.listdir()
+            childList = self.iterdir()
         except Exception as exc:
             errors(f"Unable to list directory '{self}': {exc}")
             return
@@ -656,8 +694,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> TextIOWrapper:
-        ...
+    ) -> TextIOWrapper: ...
 
     @overload
     def open(
@@ -669,8 +706,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> FileIO:
-        ...
+    ) -> FileIO: ...
 
     @overload
     def open(
@@ -682,8 +718,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> BufferedRandom:
-        ...
+    ) -> BufferedRandom: ...
 
     @overload
     def open(
@@ -695,8 +730,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> BufferedReader:
-        ...
+    ) -> BufferedReader: ...
 
     @overload
     def open(
@@ -708,8 +742,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> BufferedWriter:
-        ...
+    ) -> BufferedWriter: ...
 
     @overload
     def open(
@@ -721,8 +754,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> BinaryIO:
-        ...
+    ) -> BinaryIO: ...
 
     @overload
     def open(
@@ -734,8 +766,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Callable[[str, int], int] = ...,
-    ) -> IO[Any]:
-        ...
+    ) -> IO[Any]: ...
 
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
@@ -761,8 +792,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[str]:
-        ...
+    ) -> Iterator[str]: ...
 
     @overload
     def chunks(
@@ -775,8 +805,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[builtins.bytes]:
-        ...
+    ) -> Iterator[builtins.bytes]: ...
 
     @overload
     def chunks(
@@ -789,8 +818,7 @@ class Path(str):
         newline: Optional[str] = ...,
         closefd: bool = ...,
         opener: Optional[Callable[[str, int], int]] = ...,
-    ) -> Iterator[Union[str, builtins.bytes]]:
-        ...
+    ) -> Iterator[Union[str, builtins.bytes]]: ...
 
     def chunks(self, size, *args, **kwargs):
         """Returns a generator yielding chunks of the file, so it can
@@ -853,8 +881,7 @@ class Path(str):
         errors: str = ...,
         linesep: Optional[str] = ...,
         append: bool = ...,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def write_text(
@@ -864,8 +891,7 @@ class Path(str):
         errors: str = ...,
         linesep: Optional[str] = ...,
         append: bool = ...,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def write_text(
         self, text, encoding=None, errors='strict', linesep=os.linesep, append=False
@@ -1519,7 +1545,7 @@ class Path(str):
         dst = self._next_class(dst)
         dst.makedirs_p()
 
-        sources = self.listdir()
+        sources = list(self.iterdir())
         _ignored = ignore(self, [item.name for item in sources])
 
         def ignored(item):

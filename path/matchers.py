@@ -8,18 +8,15 @@ from typing import Any, overload
 
 
 @overload
-def load(param: None) -> Null:
-    ...
+def load(param: None) -> Null: ...
 
 
 @overload
-def load(param: str) -> Pattern:
-    ...
+def load(param: str) -> Pattern: ...
 
 
 @overload
-def load(param: Any) -> Any:
-    ...
+def load(param: Any) -> Any: ...
 
 
 def load(param):
@@ -66,7 +63,7 @@ class Pattern(Base):
 class CaseInsensitive(Pattern):
     """
     A Pattern with a ``'normcase'`` property, suitable for passing to
-    :meth:`listdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
+    :meth:`iterdir`, :meth:`dirs`, :meth:`files`, :meth:`walk`,
     :meth:`walkdirs`, or :meth:`walkfiles` to match case-insensitive.
 
     For example, to get all files ending in .py, .Py, .pY, or .PY in the

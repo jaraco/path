@@ -1,3 +1,31 @@
+v16.10.0
+========
+
+Features
+--------
+
+- Added .with_name and .with_stem.
+- Prefer .suffix to .ext and deprecate .ext.
+
+
+v16.9.0
+=======
+
+Features
+--------
+
+- Added ``.iterdir()`` and deprecated ``.listdir()``. (#214)
+
+
+v16.8.0
+=======
+
+Features
+--------
+
+- Use '.' as the default path. (#216)
+
+
 v16.7.1
 =======
 
