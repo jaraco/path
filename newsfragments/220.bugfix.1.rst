@@ -1,1 +1,0 @@
-Fix iterdir - it also accepts match. Ref #220.

@@ -1,3 +1,12 @@
+v16.10.2
+========
+
+Bugfixes
+--------
+
+- Fix iterdir - it also accepts match. Ref #220. (#220)
+
+
 v16.10.1
 ========
 
