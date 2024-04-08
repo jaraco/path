@@ -79,7 +79,7 @@ if TYPE_CHECKING:
     from typing_extensions import Literal
 
 from . import classes, masks, matchers
-from .compat.py38 import removesuffix
+from .compat.py38 import removeprefix, removesuffix
 
 __all__ = ['Path', 'TempDir']
 
@@ -1492,7 +1492,7 @@ class Path(str):
 
         .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
         """
-        return self._next_class(os.readlink(self))
+        return self._next_class(removeprefix(os.readlink(self), '\\\\?\\'))
 
     def readlinkabs(self):
         """Return the path to which this symbolic link points.
