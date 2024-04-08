@@ -1,3 +1,13 @@
+v16.13.0
+========
+
+Features
+--------
+
+- Create 'absolute' method and deprecate 'abspath'. (#214)
+- In readlink, prefer the display path to the substitute path. (#222)
+
+
 v16.12.1
 ========
 

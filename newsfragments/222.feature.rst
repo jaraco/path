@@ -1,1 +1,0 @@
-In readlink, prefer the display path to the substitute path.

@@ -1,1 +1,0 @@
-Create 'absolute' method and deprecate 'abspath'.
