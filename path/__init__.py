@@ -235,7 +235,7 @@ class Path(str):
     __rtruediv__ = __rdiv__
 
     def __enter__(self):
-        self._old_dir = self.getcwd()
+        self._old_dir = self.cwd()
         os.chdir(self)
         return self
 
@@ -243,12 +243,21 @@ class Path(str):
         os.chdir(self._old_dir)
 
     @classmethod
-    def getcwd(cls):
+    def cwd(cls):
         """Return the current working directory as a path object.
 
         .. seealso:: :func:`os.getcwd`
         """
         return cls(os.getcwd())
+
+    @classmethod
+    def getcwd(cls):
+        warnings.warn(
+            ".getcwd is deprecated; use cwd",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls.cwd()
 
     #
     # --- Operations on Path strings.

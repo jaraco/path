@@ -137,8 +137,8 @@ class TestBasics:
     def test_absolute(self):
         assert Path(os.curdir).absolute() == os.getcwd()
 
-    def test_getcwd(self):
-        cwd = Path.getcwd()
+    def test_cwd(self):
+        cwd = Path.cwd()
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
@@ -990,7 +990,7 @@ class TestChdir:
     def test_chdir_or_cd(self, tmpdir):
         """tests the chdir or cd method"""
         d = Path(str(tmpdir))
-        cwd = d.getcwd()
+        cwd = d.cwd()
 
         # ensure the cwd isn't our tempdir
         assert str(d) != str(cwd)
@@ -998,18 +998,18 @@ class TestChdir:
         d.chdir()
 
         # we now ensure that our cwd is the tempdir
-        assert str(d.getcwd()) == str(tmpdir)
+        assert str(d.cwd()) == str(tmpdir)
         # we're resetting our path
         d = Path(cwd)
 
         # we ensure that our cwd is still set to tempdir
-        assert str(d.getcwd()) == str(tmpdir)
+        assert str(d.cwd()) == str(tmpdir)
 
         # we're calling the alias cd method
         d.cd()
         # now, we ensure cwd isn'r tempdir
-        assert str(d.getcwd()) == str(cwd)
-        assert str(d.getcwd()) != str(tmpdir)
+        assert str(d.cwd()) == str(cwd)
+        assert str(d.cwd()) != str(tmpdir)
 
 
 class TestSubclass:
