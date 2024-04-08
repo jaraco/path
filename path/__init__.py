@@ -253,9 +253,17 @@ class Path(str):
     #
     # --- Operations on Path strings.
 
-    def abspath(self):
+    def absolute(self):
         """.. seealso:: :func:`os.path.abspath`"""
         return self._next_class(self.module.abspath(self))
+
+    def abspath(self):
+        warnings.warn(
+            ".abspath is deprecated; use absolute",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.absolute()
 
     def normcase(self):
         """.. seealso:: :func:`os.path.normcase`"""
@@ -492,10 +500,10 @@ class Path(str):
 
         If there is no relative path from `self` to `dest`, for example if
         they reside on different drives in Windows, then this returns
-        ``dest.abspath()``.
+        ``dest.absolute()``.
         """
-        origin = self.abspath()
-        dest = self._next_class(dest).abspath()
+        origin = self.absolute()
+        dest = self._next_class(dest).absolute()
 
         orig_list = origin.normcase().splitall()
         # Don't normcase dest!  We want to preserve the case.
@@ -1502,7 +1510,7 @@ class Path(str):
         .. seealso:: :meth:`readlink`, :func:`os.readlink`
         """
         p = self.readlink()
-        return p if p.isabs() else (self.parent / p).abspath()
+        return p if p.isabs() else (self.parent / p).absolute()
 
     # High-level functions from shutil
     # These functions will be bound to the instance such that

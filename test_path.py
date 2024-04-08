@@ -134,11 +134,10 @@ class TestBasics:
         # .drive
         assert f.drive == os_choose(nt='C:', posix='')
 
-    def test_methods(self):
-        # .abspath()
-        assert Path(os.curdir).abspath() == os.getcwd()
+    def test_absolute(self):
+        assert Path(os.curdir).absolute() == os.getcwd()
 
-        # .getcwd()
+    def test_getcwd(self):
         cwd = Path.getcwd()
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
@@ -360,8 +359,8 @@ class TestLinks:
 
     def test_readlinkabs_passthrough(self, tmpdir):
         link = Path(tmpdir) / 'link'
-        Path('foo').abspath().symlink(link)
-        assert link.readlinkabs() == Path('foo').abspath()
+        Path('foo').absolute().symlink(link)
+        assert link.readlinkabs() == Path('foo').absolute()
 
     def test_readlinkabs_rendered(self, tmpdir):
         link = Path(tmpdir) / 'link'
