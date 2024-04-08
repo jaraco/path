@@ -1,0 +1,1 @@
+Add .symlink_to and .hardlink_to.

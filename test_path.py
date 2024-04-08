@@ -344,10 +344,24 @@ class TestOwnership:
 
 
 class TestLinks:
+    def test_hardlink_to(self, tmpdir):
+        target = Path(tmpdir) / 'target'
+        target.write_text('hello', encoding='utf-8')
+        link = Path(tmpdir).joinpath('link')
+        link.hardlink_to(target)
+        assert link.read_text(encoding='utf-8') == 'hello'
+
     def test_link(self, tmpdir):
         target = Path(tmpdir) / 'target'
         target.write_text('hello', encoding='utf-8')
         link = target.link(Path(tmpdir) / 'link')
+        assert link.read_text(encoding='utf-8') == 'hello'
+
+    def test_symlink_to(self, tmpdir):
+        target = Path(tmpdir) / 'target'
+        target.write_text('hello', encoding='utf-8')
+        link = Path(tmpdir).joinpath('link')
+        link.symlink_to(target)
         assert link.read_text(encoding='utf-8') == 'hello'
 
     def test_symlink_none(self, tmpdir):

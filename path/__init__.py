@@ -1481,6 +1481,14 @@ class Path(str):
 
     # --- Links
 
+    def hardlink_to(self, target: str) -> None:
+        """
+        Create a hard link at self, pointing to target.
+
+        .. seealso:: :func:`os.link`
+        """
+        os.link(target, self)
+
     def link(self, newpath):
         """Create a hard link at `newpath`, pointing to this file.
 
@@ -1488,6 +1496,14 @@ class Path(str):
         """
         os.link(self, newpath)
         return self._next_class(newpath)
+
+    def symlink_to(self, target: str, target_is_directory: bool = True) -> None:
+        """
+        Create a symbolic link at self, pointing to target.
+
+        .. seealso:: :func:`os.symlink`
+        """
+        os.symlink(target, self, target_is_directory)
 
     def symlink(self, newlink=None):
         """Create a symbolic link at `newlink`, pointing here.
