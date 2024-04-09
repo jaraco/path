@@ -300,6 +300,11 @@ class TestBasics:
         # TODO: shouldn't sub get removed?
         # assert not (dir / 'sub').is_dir()
 
+    @pytest.mark.skipif("not hasattr(Path, 'group')")
+    def test_group(self, tmpdir):
+        file = Path(tmpdir).joinpath('file').touch()
+        assert isinstance(file.group(), str)
+
 
 class TestReadWriteText:
     def test_read_write(self, tmpdir):

@@ -1259,7 +1259,7 @@ class Path(str):
         """
         return os.access(self, *args, **kwargs)
 
-    def stat(self):
+    def stat(self, *, follow_symlinks=True):
         """
         Perform a ``stat()`` system call on this path.
 
@@ -1268,7 +1268,7 @@ class Path(str):
 
         .. seealso:: :meth:`lstat`, :func:`os.stat`
         """
-        return os.stat(self)
+        return os.stat(self, follow_symlinks=follow_symlinks)
 
     def lstat(self):
         """
@@ -1326,6 +1326,15 @@ class Path(str):
 
         .. seealso:: :meth:`get_owner`""",
     )
+
+    if 'grp' in globals():  # pragma: no cover
+
+        def group(self, *, follow_symlinks=True):
+            """
+            Return the group name of the file gid.
+            """
+            gid = self.stat(follow_symlinks=follow_symlinks).st_gid
+            return grp.getgrgid(gid).gr_name
 
     if hasattr(os, 'statvfs'):
 
