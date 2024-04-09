@@ -1,1 +1,0 @@
-Add .cwd method and deprecated .getcwd.

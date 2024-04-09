@@ -1,3 +1,13 @@
+v16.14.0
+========
+
+Features
+--------
+
+- Add .symlink_to and .hardlink_to. (#214)
+- Add .cwd method and deprecated .getcwd. (#214)
+
+
 v16.13.0
 ========
 
