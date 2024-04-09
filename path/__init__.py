@@ -1497,7 +1497,7 @@ class Path(str):
         os.link(self, newpath)
         return self._next_class(newpath)
 
-    def symlink_to(self, target: str, target_is_directory: bool = True) -> None:
+    def symlink_to(self, target: str, target_is_directory: bool = False) -> None:
         """
         Create a symbolic link at self, pointing to target.
 
