@@ -689,89 +689,91 @@ class Path(str):
     #
     # --- Reading or writing an entire file at once.
 
-    @overload
-    def open(
-        self,
-        mode: OpenTextMode = ...,
-        buffering: int = ...,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] | None = ...,
-    ) -> TextIOWrapper: ...
+    if TYPE_CHECKING:
 
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: Literal[0],
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> FileIO: ...
+        @overload
+        def open(
+            self,
+            mode: OpenTextMode = ...,
+            buffering: int = ...,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] | None = ...,
+        ) -> TextIOWrapper: ...
 
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeUpdating,
-        buffering: Literal[-1, 1] = ...,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedRandom: ...
+        @overload
+        def open(
+            self,
+            mode: OpenBinaryMode,
+            buffering: Literal[0],
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> FileIO: ...
 
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeReading,
-        buffering: Literal[-1, 1] = ...,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedReader: ...
+        @overload
+        def open(
+            self,
+            mode: OpenBinaryModeUpdating,
+            buffering: Literal[-1, 1] = ...,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> BufferedRandom: ...
 
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryModeWriting,
-        buffering: Literal[-1, 1] = ...,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BufferedWriter: ...
+        @overload
+        def open(
+            self,
+            mode: OpenBinaryModeReading,
+            buffering: Literal[-1, 1] = ...,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> BufferedReader: ...
 
-    @overload
-    def open(
-        self,
-        mode: OpenBinaryMode,
-        buffering: int,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> BinaryIO: ...
+        @overload
+        def open(
+            self,
+            mode: OpenBinaryModeWriting,
+            buffering: Literal[-1, 1] = ...,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> BufferedWriter: ...
 
-    @overload
-    def open(
-        self,
-        mode: str,
-        buffering: int = ...,
-        encoding: str | None = ...,
-        errors: str | None = ...,
-        newline: str | None = ...,
-        closefd: bool = ...,
-        opener: Callable[[str, int], int] = ...,
-    ) -> IO[Any]: ...
+        @overload
+        def open(
+            self,
+            mode: OpenBinaryMode,
+            buffering: int,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> BinaryIO: ...
+
+        @overload
+        def open(
+            self,
+            mode: str,
+            buffering: int = ...,
+            encoding: str | None = ...,
+            errors: str | None = ...,
+            newline: str | None = ...,
+            closefd: bool = ...,
+            opener: Callable[[str, int], int] = ...,
+        ) -> IO[Any]: ...
 
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
