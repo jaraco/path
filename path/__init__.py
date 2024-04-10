@@ -675,7 +675,7 @@ class Path(str):
     #
     # --- Reading or writing an entire file at once.
 
-    @functools.wraps(open)
+    @functools.wraps(open, assigned=())
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
 
