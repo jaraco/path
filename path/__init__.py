@@ -207,8 +207,8 @@ class Path(str):
         return self._next_class(other.__add__(self))
 
     # The / operator joins Paths.
-    def __div__(self, rel):
-        """fp.__div__(rel) == fp / rel == fp.joinpath(rel)
+    def __truediv__(self, rel):
+        """fp.__truediv__(rel) == fp / rel == fp.joinpath(rel)
 
         Join two path components, adding a separator character if
         needed.
@@ -217,12 +217,9 @@ class Path(str):
         """
         return self._next_class(self.module.join(self, rel))
 
-    # Make the / operator work even when true division is enabled.
-    __truediv__ = __div__
-
     # The / operator joins Paths the other way around
-    def __rdiv__(self, rel):
-        """fp.__rdiv__(rel) == rel / fp
+    def __rtruediv__(self, rel):
+        """fp.__rtruediv__(rel) == rel / fp
 
         Join two path components, adding a separator character if
         needed.
@@ -230,9 +227,6 @@ class Path(str):
         .. seealso:: :func:`os.path.join`
         """
         return self._next_class(self.module.join(rel, self))
-
-    # Make the / operator work even when true division is enabled.
-    __rtruediv__ = __rdiv__
 
     def __enter__(self):
         self._old_dir = self.cwd()
