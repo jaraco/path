@@ -3,10 +3,10 @@ import itertools
 import operator
 import re
 
-# from jaraco.functools
 from typing import Any, Callable
 
 
+# from jaraco.functools
 def compose(*funcs: Callable[..., Any]) -> Callable[..., Any]:
     compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))  # noqa
     return functools.reduce(compose_two, funcs)
