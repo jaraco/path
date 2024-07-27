@@ -232,15 +232,6 @@ class Path(str):
         return cls(os.getcwd())
 
     @classmethod
-    def getcwd(cls):
-        warnings.warn(
-            ".getcwd is deprecated; use cwd",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return cls.cwd()
-
-    @classmethod
     def home(cls) -> Path:
         return cls(os.path.expanduser('~'))
 
@@ -250,14 +241,6 @@ class Path(str):
     def absolute(self):
         """.. seealso:: :func:`os.path.abspath`"""
         return self._next_class(self.module.abspath(self))
-
-    def abspath(self):
-        warnings.warn(
-            ".abspath is deprecated; use absolute",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.absolute()
 
     def normcase(self):
         """.. seealso:: :func:`os.path.normcase`"""
@@ -319,15 +302,6 @@ class Path(str):
         """The file extension, for example ``'.py'``."""
         f, suffix = self.module.splitext(self)
         return suffix
-
-    @property
-    def ext(self):  # pragma: no cover
-        warnings.warn(
-            ".ext is deprecated; use suffix",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.suffix
 
     def with_suffix(self, suffix):
         """Return a new path with the file suffix changed (or added, if none)
@@ -544,14 +518,6 @@ class Path(str):
         """
         match = matchers.load(match)
         return filter(match, (self / child for child in os.listdir(self)))
-
-    def listdir(self, match=None):
-        warnings.warn(
-            ".listdir is deprecated; use iterdir",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return list(self.iterdir(match=match))
 
     def dirs(self, *args, **kwargs):
         """List of this directory's subdirectories.
@@ -774,41 +740,14 @@ class Path(str):
         with self.open(mode='rb') as f:
             return f.read()
 
-    def text(self, encoding=None, errors='strict'):
-        r"""Legacy function to read text.
-
-        Converts all newline sequences to ``\n``.
-        """
-        warnings.warn(
-            ".text is deprecated; use read_text",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return U_NEWLINE.sub('\n', self.read_text(encoding, errors))
-
-    @overload
     def write_text(
         self,
         text: str,
-        encoding: str | None = ...,
-        errors: str = ...,
-        linesep: str | None = ...,
-        append: bool = ...,
-    ) -> None: ...
-
-    @overload
-    def write_text(
-        self,
-        text: builtins.bytes,
-        encoding: None = ...,
-        errors: str = ...,
-        linesep: str | None = ...,
-        append: bool = ...,
-    ) -> None: ...
-
-    def write_text(
-        self, text, encoding=None, errors='strict', linesep=os.linesep, append=False
-    ):
+        encoding: str | None = None,
+        errors: str = 'strict',
+        linesep: str | None = os.linesep,
+        append: bool = False,
+    ) -> None:
         r"""Write the given text to this file.
 
         The default behavior is to overwrite any existing file;
@@ -820,7 +759,7 @@ class Path(str):
 
         Parameters:
 
-          `text` - str/bytes - The text to be written.
+          `text` - str - The text to be written.
 
           `encoding` - str - The text encoding used.
 
@@ -855,29 +794,14 @@ class Path(str):
 
         --- Unicode
 
-        If `text` isn't Unicode, then apart from newline handling, the
-        bytes are written verbatim to the file.  The `encoding` and
-        `errors` arguments are not used and must be omitted.
-
-        If `text` is Unicode, it is first converted to :func:`bytes` using the
+        `text` is written using the
         specified `encoding` (or the default encoding if `encoding`
         isn't specified).  The `errors` argument applies only to this
         conversion.
         """
-        if isinstance(text, str):
-            if linesep is not None:
-                text = U_NEWLINE.sub(linesep, text)
-            bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
-        else:
-            warnings.warn(
-                "Writing bytes in write_text is deprecated",
-                DeprecationWarning,
-                stacklevel=1,
-            )
-            assert encoding is None
-            if linesep is not None:
-                text = B_NEWLINE.sub(linesep.encode(), text)
-            bytes = text
+        if linesep is not None:
+            text = U_NEWLINE.sub(linesep, text)
+        bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         self.write_bytes(bytes, append=append)
 
     def lines(self, encoding=None, errors=None, retain=True):
@@ -894,8 +818,6 @@ class Path(str):
                 but translate all newline
                 characters to ``\n``.  If ``False``, newline characters are
                 omitted.
-
-        .. seealso:: :meth:`text`
         """
         text = U_NEWLINE.sub('\n', self.read_text(encoding, errors))
         return text.splitlines(retain)
@@ -905,15 +827,14 @@ class Path(str):
         lines,
         encoding=None,
         errors='strict',
-        linesep=_default_linesep,
+        *,
         append=False,
     ):
         r"""Write the given lines of text to this file.
 
         By default this overwrites any existing file at this path.
 
-        This puts a platform-specific newline sequence on every line.
-        See `linesep` below.
+        Puts a platform-specific newline sequence on every line.
 
             `lines` - A list of strings.
 
@@ -923,33 +844,16 @@ class Path(str):
             `errors` - How to handle errors in Unicode encoding.  This
                 also applies only to Unicode strings.
 
-            linesep - (deprecated) The desired line-ending.  This line-ending is
-                applied to every line.  If a line already has any
-                standard line ending (``'\r'``, ``'\n'``, ``'\r\n'``,
-                ``u'\x85'``, ``u'\r\x85'``, ``u'\u2028'``), that will
-                be stripped off and this will be used instead.  The
-                default is os.linesep, which is platform-dependent
-                (``'\r\n'`` on Windows, ``'\n'`` on Unix, etc.).
-                Specify ``None`` to write the lines as-is, like
-                ``.writelines`` on a file object.
-
         Use the keyword argument ``append=True`` to append lines to the
         file.  The default is to overwrite the file.
         """
         mode = 'a' if append else 'w'
         with self.open(mode, encoding=encoding, errors=errors, newline='') as f:
-            f.writelines(self._replace_linesep(lines, linesep))
+            f.writelines(self._replace_linesep(lines))
 
     @staticmethod
-    def _replace_linesep(lines, linesep):
-        if linesep != _default_linesep:
-            warnings.warn("linesep is deprecated", DeprecationWarning, stacklevel=3)
-        else:
-            linesep = os.linesep
-        if linesep is None:
-            return lines
-
-        return (line + linesep for line in _strip_newlines(lines))
+    def _replace_linesep(lines):
+        return (line + os.linesep for line in _strip_newlines(lines))
 
     def read_md5(self):
         """Calculate the md5 hash for this file.
@@ -1009,25 +913,9 @@ class Path(str):
         """.. seealso:: :func:`os.path.exists`"""
         return self.module.exists(self)
 
-    def isdir(self):  # pragma: no cover
-        warnings.warn(
-            "isdir is deprecated; use is_dir",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.is_dir()
-
     def is_dir(self):
         """.. seealso:: :func:`os.path.isdir`"""
         return self.module.isdir(self)
-
-    def isfile(self):  # pragma: no cover
-        warnings.warn(
-            "isfile is deprecated; use is_file",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.is_file()
 
     def is_file(self):
         """.. seealso:: :func:`os.path.isfile`"""

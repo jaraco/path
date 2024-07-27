@@ -318,11 +318,6 @@ class TestReadWriteText:
         assert file.read_text(encoding='utf-8') == 'hello world'
         assert file.read_bytes() == b'hello world'
 
-    @pytest.mark.filterwarnings('ignore:Writing bytes in write_text')
-    def test_write_text_bytes(self, tmpdir):
-        file = path.Path(tmpdir) / 'filename'
-        file.write_text(b'hello world')
-
 
 class TestPerformance:
     @staticmethod
@@ -767,11 +762,9 @@ class TestScratchDir:
         with open(p, 'wb') as strm:
             strm.write(given.encode(encoding))
 
-        # test all 3 path read-fully functions, including
+        # test read-fully functions, including
         # path.lines() in unicode mode.
-        assert p.bytes() == given.encode(encoding)
-        with pytest.deprecated_call():
-            assert p.text(encoding) == clean
+        assert p.read_bytes() == given.encode(encoding)
         assert p.lines(encoding) == expectedLines
         assert p.lines(encoding, retain=False) == stripped
 
@@ -793,8 +786,7 @@ class TestScratchDir:
         expectedLinesNoHanging = expectedLines[:]
         expectedLinesNoHanging[-1] += '\n'
         assert p.bytes() == expectedBytes
-        with pytest.deprecated_call():
-            assert p.text(encoding) == 2 * cleanNoHanging
+        assert p.read_text(encoding) == 2 * cleanNoHanging
         assert p.lines(encoding) == 2 * expectedLinesNoHanging
         assert p.lines(encoding, retain=False) == 2 * stripped
 
@@ -812,34 +804,6 @@ class TestScratchDir:
         p.write_lines(givenLines, encoding, append=True)
         # Check the result.
         assert p.bytes() == expectedBytes
-
-        # Same test, using newline sequences that are different
-        # from the platform default.
-        def testLinesep(eol):
-            p.write_lines(givenLines, encoding, linesep=eol)
-            p.write_lines(givenLines, encoding, linesep=eol, append=True)
-            expected = 2 * cleanNoHanging.replace('\n', eol).encode(encoding)
-            assert p.bytes() == expected
-
-        with pytest.deprecated_call():
-            testLinesep('\n')
-            testLinesep('\r')
-            testLinesep('\r\n')
-            testLinesep('\x0d\x85')
-
-        # Again, but with linesep=None.
-        with pytest.deprecated_call():
-            p.write_lines(givenLines, encoding, linesep=None)
-            p.write_lines(givenLines, encoding, linesep=None, append=True)
-        # Check the result.
-        expectedBytes = 2 * given.encode(encoding)
-        assert p.bytes() == expectedBytes
-        with pytest.deprecated_call():
-            assert p.text(encoding) == 2 * clean
-        expectedResultLines = expectedLines[:]
-        expectedResultLines[-1] += expectedLines[0]
-        expectedResultLines += expectedLines[1:]
-        assert p.lines(encoding) == expectedResultLines
 
     def test_chunks(self, tmpdir):
         p = (TempDir() / 'test.txt').touch()
@@ -1004,10 +968,6 @@ class TestMergeTree:
         self.subdir_a.joinpath('subsub').mkdir()
         self.subdir_a.merge_tree(self.subdir_b)
         assert self.subdir_b.joinpath('subsub').is_dir()
-
-    def test_listdir(self):
-        with pytest.deprecated_call():
-            Path().listdir()
 
 
 class TestChdir:
