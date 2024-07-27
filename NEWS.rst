@@ -1,3 +1,13 @@
+v17.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed deprecated methods ``getcwd``, ``abspath``, ``ext``, ``listdir``, ``isdir``, ``isfile``, and ``text``.
+- Removed deprecated support for passing ``bytes`` to ``write_text`` and ``write_lines(linesep=)`` parameter.
+
+
 v16.16.0
 ========
 

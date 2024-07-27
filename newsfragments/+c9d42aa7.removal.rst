@@ -1,1 +1,0 @@
-Removed deprecated methods ``getcwd``, ``abspath``, ``ext``, ``listdir``, ``isdir``, ``isfile``, and ``text``.
