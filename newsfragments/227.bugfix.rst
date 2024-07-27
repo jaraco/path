@@ -1,1 +1,0 @@
-Add type hints for .with_name, .suffix, .with_stem.

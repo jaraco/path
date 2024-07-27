@@ -1,1 +1,0 @@
-Replaced 'open' overloads with 'functools.wraps(open)' for simple re-use.

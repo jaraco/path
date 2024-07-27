@@ -1,3 +1,19 @@
+v16.15.0
+========
+
+Features
+--------
+
+- Replaced 'open' overloads with 'functools.wraps(open)' for simple re-use. (#225)
+
+
+Bugfixes
+--------
+
+- Add type hints for .with_name, .suffix, .with_stem. (#227)
+- Add type hint for .absolute. (#228)
+
+
 v16.14.0
 ========
 
