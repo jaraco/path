@@ -35,6 +35,7 @@ import hashlib
 import importlib
 import itertools
 import os
+import pathlib
 import re
 import shutil
 import sys
@@ -1309,6 +1310,40 @@ class Path(str):
         """.. seealso:: :func:`os.renames`"""
         os.renames(self, new)
         return self._next_class(new)
+
+    def replace(self, target_or_old: Path | str, *args) -> Path:
+        """
+        Replace a path or substitute substrings.
+
+        Implements both pathlib.Path.replace and str.replace.
+
+        If only a target is supplied, rename this path to the target path,
+        overwriting if that path exists.
+
+        >>> dest = Path(getfixture('tmp_path'))
+        >>> orig = dest.joinpath('foo').touch()
+        >>> new = orig.replace(dest.joinpath('fee'))
+        >>> orig.exists()
+        False
+        >>> new.exists()
+        True
+
+        ..seealso:: :meth:`pathlib.Path.replace`
+
+        If a second parameter is supplied, perform a textual replacement.
+
+        >>> Path('foo').replace('o', 'e')
+        Path('fee')
+        >>> Path('foo').replace('o', 'l', 1)
+        Path('flo')
+
+        ..seealso:: :meth:`str.replace`
+        """
+        return self._next_class(
+            super().replace(target_or_old, *args)
+            if args
+            else pathlib.Path(self).replace(target_or_old)
+        )
 
     #
     # --- Create/delete operations on directories
