@@ -142,6 +142,11 @@ class TestBasics:
         assert isinstance(cwd, Path)
         assert cwd == os.getcwd()
 
+    def test_home(self):
+        home = Path.home()
+        assert isinstance(home, Path)
+        assert home == os.path.expanduser('~')
+
     def test_explicit_module(self):
         """
         The user may specify an explicit path module to use.

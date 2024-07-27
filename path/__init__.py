@@ -239,6 +239,10 @@ class Path(str):
         )
         return cls.cwd()
 
+    @classmethod
+    def home(cls) -> Path:
+        return cls(os.path.expanduser('~'))
+
     #
     # --- Operations on Path strings.
 
