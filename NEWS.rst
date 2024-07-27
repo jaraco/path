@@ -1,3 +1,13 @@
+v16.16.0
+========
+
+Features
+--------
+
+- Implement .replace. (#214)
+- Add .home classmethod. (#214)
+
+
 v16.15.0
 ========
 
