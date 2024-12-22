@@ -1,8 +1,10 @@
 import functools
+from typing import Any, Callable
 
 
 class ClassProperty(property):
-    def __get__(self, cls, owner):
+    def __get__(self, cls: Any, owner: type | None = None) -> Any:
+        assert self.fget is not None
         return self.fget.__get__(None, owner)()
 
 
@@ -12,10 +14,12 @@ class multimethod:
     instancemethod when invoked from the instance.
     """
 
-    def __init__(self, func):
+    func: Callable[..., Any]
+
+    def __init__(self, func: Callable[..., Any]):
         self.func = func
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: Any | None, owner: type | None) -> Any:
         """
         If called on an instance, pass the instance as the first
         argument.
