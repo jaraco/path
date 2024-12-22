@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import fnmatch
 import ntpath
-from typing import Any, overload
+from typing import TYPE_CHECKING, Any, Callable, overload
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 
 @overload
@@ -36,15 +39,18 @@ class Base:
 
 
 class Null(Base):
-    def __call__(self, path):
+    def __call__(self, path: str) -> Literal[True]:
         return True
 
 
 class Pattern(Base):
-    def __init__(self, pattern):
+    pattern: str
+    _pattern: str
+
+    def __init__(self, pattern: str):
         self.pattern = pattern
 
-    def get_pattern(self, normcase):
+    def get_pattern(self, normcase: Callable[[str], str]) -> str:
         try:
             return self._pattern
         except AttributeError:
@@ -52,7 +58,8 @@ class Pattern(Base):
         self._pattern = normcase(self.pattern)
         return self._pattern
 
-    def __call__(self, path):
+    # NOTE: 'path' should be annotated with Path, but cannot due to circular imports.
+    def __call__(self, path) -> bool:
         normcase = getattr(self, 'normcase', path.module.normcase)
         pattern = self.get_pattern(normcase)
         return fnmatch.fnmatchcase(normcase(path.name), pattern)
