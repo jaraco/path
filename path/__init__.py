@@ -1188,43 +1188,38 @@ class Path(str):
         """
         return os.lstat(self)
 
-    def __get_owner_windows(self) -> str:  # pragma: nocover
-        r"""
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
+    if sys.platform == "win32":
 
-        Return a name of the form ``DOMAIN\User Name``; may be a group.
+        def get_owner(self) -> str:  # pragma: nocover
+            r"""
+            Return the name of the owner of this file or directory. Follow
+            symbolic links.
 
-        .. seealso:: :attr:`owner`
-        """
-        desc = win32security.GetFileSecurity(
-            self, win32security.OWNER_SECURITY_INFORMATION
-        )
-        sid = desc.GetSecurityDescriptorOwner()
-        account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + '\\' + account
+            Return a name of the form ``DOMAIN\User Name``; may be a group.
 
-    def __get_owner_unix(self) -> str:  # pragma: nocover
-        """
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
+            .. seealso:: :attr:`owner`
+            """
+            if "win32security" not in globals():
+                raise NotImplementedError("Ownership not available on this platform.")
 
-        .. seealso:: :attr:`owner`
-        """
-        st = self.stat()
-        return pwd.getpwuid(st.st_uid).pw_name
+            desc = win32security.GetFileSecurity(
+                self, win32security.OWNER_SECURITY_INFORMATION
+            )
+            sid = desc.GetSecurityDescriptorOwner()
+            account, domain, typecode = win32security.LookupAccountSid(None, sid)
+            return domain + '\\' + account
 
-    def __get_owner_not_implemented(self) -> Never:  # pragma: nocover
-        raise NotImplementedError("Ownership not available on this platform.")
-
-    if sys.platform != "win32":
-        get_owner = __get_owner_unix
     else:
-        get_owner = (
-            __get_owner_windows
-            if "win32security" in globals()
-            else __get_owner_not_implemented
-        )
+
+        def get_owner(self) -> str:  # pragma: nocover
+            """
+            Return the name of the owner of this file or directory. Follow
+            symbolic links.
+
+            .. seealso:: :attr:`owner`
+            """
+            st = self.stat()
+            return pwd.getpwuid(st.st_uid).pw_name
 
     @property
     def owner(self) -> str:
