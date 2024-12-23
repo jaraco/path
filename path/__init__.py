@@ -487,15 +487,15 @@ class Path(str):
         ``dest.absolute()``.
         """
         origin = self.absolute()
-        dest = self._next_class(dest).absolute()
+        dest_path = self._next_class(dest).absolute()
 
         orig_list = origin.normcase().splitall()
         # Don't normcase dest!  We want to preserve the case.
-        dest_list = dest.splitall()
+        dest_list = dest_path.splitall()
 
         if orig_list[0] != self.module.normcase(dest_list[0]):
             # Can't get here from there.
-            return dest
+            return dest_path
 
         # Find the location where the two paths start to differ.
         i = 0
@@ -1475,8 +1475,8 @@ class Path(str):
 
             src.merge_tree(dst, copy_function=only_newer(shutil.copy2))
         """
-        dst = self._next_class(dst)
-        dst.makedirs_p()
+        dst_path = self._next_class(dst)
+        dst_path.makedirs_p()
 
         sources = list(self.iterdir())
         _ignored = ignore(self, [item.name for item in sources])
@@ -1485,7 +1485,7 @@ class Path(str):
             return item.name in _ignored
 
         for source in itertools.filterfalse(ignored, sources):
-            dest = dst / source.name
+            dest = dst_path / source.name
             if symlinks and source.islink():
                 target = source.readlink()
                 target.symlink(dest)
@@ -1499,7 +1499,7 @@ class Path(str):
             else:
                 copy_function(source, dest)
 
-        self.copystat(dst)
+        self.copystat(dst_path)
 
     #
     # --- Special stuff from os
