@@ -41,7 +41,6 @@ import shutil
 import sys
 import tempfile
 import warnings
-from numbers import Number
 from types import ModuleType, TracebackType
 
 with contextlib.suppress(ImportError):
@@ -89,8 +88,8 @@ U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 _default_linesep = object()
 
 
-def _make_timestamp_ns(value: Number | datetime.datetime) -> Number:
-    timestamp_s = value if isinstance(value, Number) else value.timestamp()
+def _make_timestamp_ns(value: float | datetime.datetime) -> int:
+    timestamp_s = value if isinstance(value, (float, int)) else value.timestamp()
     return int(timestamp_s * 10**9)
 
 
@@ -968,7 +967,7 @@ class Path(str):
         """.. seealso:: :attr:`atime`, :func:`os.path.getatime`"""
         return self.module.getatime(self)
 
-    def set_atime(self, value: Number | datetime.datetime):
+    def set_atime(self, value: float | datetime.datetime):
         mtime_ns = self.stat().st_atime_ns
         self.utime(ns=(_make_timestamp_ns(value), mtime_ns))
 
@@ -998,7 +997,7 @@ class Path(str):
         """.. seealso:: :attr:`mtime`, :func:`os.path.getmtime`"""
         return self.module.getmtime(self)
 
-    def set_mtime(self, value: Number | datetime.datetime) -> None:
+    def set_mtime(self, value: float | datetime.datetime) -> None:
         atime_ns = self.stat().st_atime_ns
         self.utime(ns=(atime_ns, _make_timestamp_ns(value)))
 
