@@ -1217,13 +1217,14 @@ class Path(str):
     def __get_owner_not_implemented(self) -> Never:  # pragma: nocover
         raise NotImplementedError("Ownership not available on this platform.")
 
-    get_owner = (
-        __get_owner_windows
-        if 'win32security' in globals()
-        else __get_owner_unix
-        if 'pwd' in globals()
-        else __get_owner_not_implemented
-    )
+    if sys.platform != "win32":
+        get_owner = __get_owner_unix
+    else:
+        get_owner = (
+            __get_owner_windows
+            if "win32security" in globals()
+            else __get_owner_not_implemented
+        )
 
     owner = property(
         get_owner,
@@ -1234,7 +1235,7 @@ class Path(str):
         .. seealso:: :meth:`get_owner`""",
     )
 
-    if 'grp' in globals():  # pragma: no cover
+    if sys.platform != "win32":  # pragma: no cover
 
         def group(self, *, follow_symlinks: bool = True) -> str:
             """
@@ -1243,16 +1244,12 @@ class Path(str):
             gid = self.stat(follow_symlinks=follow_symlinks).st_gid
             return grp.getgrgid(gid).gr_name
 
-    if hasattr(os, 'statvfs'):
-
         def statvfs(self) -> os.statvfs_result:
             """Perform a ``statvfs()`` system call on this path.
 
             .. seealso:: :func:`os.statvfs`
             """
             return os.statvfs(self)
-
-    if hasattr(os, 'pathconf'):
 
         def pathconf(self, name: str | int) -> int:
             """.. seealso:: :func:`os.pathconf`"""
@@ -1306,7 +1303,7 @@ class Path(str):
         os.chmod(self, mode)
         return self
 
-    if hasattr(os, 'chown'):
+    if sys.platform != "win32":
 
         def chown(self, uid: str | int = -1, gid: str | int = -1) -> Self:
             """
@@ -1515,8 +1512,7 @@ class Path(str):
     copy = shutil.copy
     copy2 = shutil.copy2
     copytree = shutil.copytree
-    if hasattr(shutil, 'move'):
-        move = shutil.move
+    move = shutil.move
     rmtree = shutil.rmtree
 
     def rmtree_p(self) -> Self:
@@ -1583,13 +1579,13 @@ class Path(str):
     #
     # --- Special stuff from os
 
-    if hasattr(os, 'chroot'):
+    if sys.platform != "win32":
 
         def chroot(self) -> None:  # pragma: nocover
             """.. seealso:: :func:`os.chroot`"""
             os.chroot(self)
 
-    if hasattr(os, 'startfile'):
+    if sys.platform == "win32":
 
         def startfile(self, operation: str | None = None) -> Self:  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
