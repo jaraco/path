@@ -41,7 +41,7 @@ import shutil
 import sys
 import tempfile
 import warnings
-from types import ModuleType, TracebackType
+from types import ModuleType
 
 with contextlib.suppress(ImportError):
     import win32security
@@ -231,12 +231,7 @@ class Path(str):
         os.chdir(self)
         return self
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
+    def __exit__(self, *_) -> None:
         os.chdir(self._old_dir)
 
     @classmethod
@@ -1797,12 +1792,7 @@ class TempDir(Path):
         # of the temporary directory.
         return self._next_class(self)
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
+    def __exit__(self, *_) -> None:
         self.rmtree()
 
 
