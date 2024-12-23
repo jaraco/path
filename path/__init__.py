@@ -84,6 +84,7 @@ if TYPE_CHECKING:
 
     _Match = str | Callable[[str], bool] | None
     _CopyFn = Callable[[str, str], object]
+    _IgnoreFn = Callable[[str, list[str]], Iterable[str]]
     _OnErrorCallback = Callable[[Callable[..., Any], str, ExcInfo], object]
     _OnExcCallback = Callable[[Callable[..., Any], str, BaseException], object]
 
@@ -174,13 +175,13 @@ class Path(str):
     the Path instance.
     """
 
-    module: Any = os.path
+    module: ModuleType = os.path
     """ The path module to use for path operations.
 
     .. seealso:: :mod:`os.path`
     """
 
-    def __new__(cls, other='.'):
+    def __new__(cls, other: Any = '.') -> Self:
         return super().__new__(cls, other)
 
     def __init__(self, other: Any = '.') -> None:
@@ -312,7 +313,7 @@ class Path(str):
         >>> Path('/home/guido/python.tar.gz').stem
         'python.tar'
         """
-        base, ext = self.module.splitext(self.name)
+        base, _ = self.module.splitext(self.name)
         return base
 
     def with_stem(self, stem: str) -> Self:
@@ -326,7 +327,7 @@ class Path(str):
     @property
     def suffix(self) -> Self:
         """The file extension, for example ``'.py'``."""
-        f, suffix = self.module.splitext(self)
+        _, suffix = self.module.splitext(self)
         return suffix
 
     def with_suffix(self, suffix: str) -> Self:
@@ -345,7 +346,6 @@ class Path(str):
         """
         if not suffix.startswith('.'):
             raise ValueError(f"Invalid suffix {suffix!r}")
-
         return self.stripext() + suffix
 
     @property
@@ -354,7 +354,7 @@ class Path(str):
 
         This is always empty on systems that don't use drive specifiers.
         """
-        drive, r = self.module.splitdrive(self)
+        drive, _ = self.module.splitdrive(self)
         return self._next_class(drive)
 
     @property
@@ -1310,10 +1310,10 @@ class Path(str):
             .. seealso:: :func:`os.chown`
             """
 
-            def resolve_uid(uid):
+            def resolve_uid(uid: str | int) -> int:
                 return uid if isinstance(uid, int) else pwd.getpwnam(uid).pw_uid
 
-            def resolve_gid(gid):
+            def resolve_gid(gid: str | int) -> int:
                 return gid if isinstance(gid, int) else grp.getgrnam(gid).gr_gid
 
             os.chown(self, resolve_uid(uid), resolve_gid(gid))
@@ -1525,7 +1525,7 @@ class Path(str):
         self,
         dst: str,
         symlinks: bool = False,
-        ignore: None | Callable[[str, list[str]], Iterable[str]] = None,
+        ignore: _IgnoreFn | None = None,
         copy_function: _CopyFn = shutil.copy2,
         ignore_dangling_symlinks: bool = False,
         dirs_exist_ok: bool = False,
@@ -1640,8 +1640,7 @@ class Path(str):
         symlinks: bool = False,
         *,
         copy_function: _CopyFn = shutil.copy2,
-        ignore: Callable[[Any, list[str]], list[str] | set[str]] = lambda dir,
-        contents: [],
+        ignore: _IgnoreFn = lambda dir, contents: [],
     ):
         """
         Copy entire contents of self to dst, overwriting existing
@@ -1660,9 +1659,9 @@ class Path(str):
         dst_path.makedirs_p()
 
         sources = list(self.iterdir())
-        _ignored = ignore(self, [item.name for item in sources])
+        _ignored = set(ignore(self, [item.name for item in sources]))
 
-        def ignored(item):
+        def ignored(item: Self) -> bool:
             return item.name in _ignored
 
         for source in itertools.filterfalse(ignored, sources):
@@ -1844,18 +1843,20 @@ class DirectoryNotEmpty(OSError):
             raise
 
 
-def only_newer(copy_func: Callable[[str, str], None]) -> Callable[[str, str], None]:
+def only_newer(copy_func: _CopyFn) -> _CopyFn:
     """
     Wrap a copy function (like shutil.copy2) to return
     the dst if it's newer than the source.
     """
 
     @functools.wraps(copy_func)
-    def wrapper(src, dst, *args, **kwargs):
-        is_newer_dst = dst.exists() and dst.getmtime() >= src.getmtime()
+    def wrapper(src: str, dst: str):
+        src_p = Path(src)
+        dst_p = Path(dst)
+        is_newer_dst = dst_p.exists() and dst_p.getmtime() >= src_p.getmtime()
         if is_newer_dst:
             return dst
-        return copy_func(src, dst, *args, **kwargs)
+        return copy_func(src, dst)
 
     return wrapper
 
