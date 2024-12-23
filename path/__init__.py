@@ -576,13 +576,13 @@ class Path(str):
         `errors` may also be an arbitrary callable taking a msg parameter.
         """
 
-        errors = Handlers._resolve(errors)
+        error_fn = Handlers._resolve(errors)
         match = matchers.load(match)
 
         try:
             childList = self.iterdir()
         except Exception as exc:
-            errors(f"Unable to list directory '{self}': {exc}")
+            error_fn(f"Unable to list directory '{self}': {exc}")
             return
 
         for child in childList:
@@ -593,11 +593,11 @@ class Path(str):
             try:
                 do_traverse = traverse()
             except Exception as exc:
-                errors(f"Unable to access '{child}': {exc}")
+                error_fn(f"Unable to access '{child}': {exc}")
                 continue
 
             if do_traverse:
-                yield from child.walk(errors=errors, match=match)
+                yield from child.walk(errors=error_fn, match=match)  # type: ignore[arg-type]
 
     def walkdirs(self, match: _Match = None, errors: str = 'strict') -> Iterator[Self]:
         """Iterator over subdirs, recursively."""
@@ -1807,17 +1807,26 @@ class TempDir(Path):
 
 
 class Handlers:
+    @staticmethod
     def strict(msg: str) -> Never:
         raise
 
+    @staticmethod
     def warn(msg: str) -> None:
         warnings.warn(msg, TreeWalkWarning, stacklevel=2)
 
+    @staticmethod
     def ignore(msg: str) -> None:
         pass
 
     @classmethod
     def _resolve(cls, param: str | Callable[[str], None]) -> Callable[[str], None]:
-        if not callable(param) and param not in vars(Handlers):
-            raise ValueError("invalid errors parameter")
-        return vars(cls).get(param, param)
+        msg = "invalid errors parameter"
+        if isinstance(param, str):
+            if param not in vars(cls):
+                raise ValueError(msg)
+            return {"strict": cls.strict, "warn": cls.warn, "ignore": cls.ignore}[param]
+        else:
+            if not callable(param):
+                raise ValueError(msg)
+            return param
