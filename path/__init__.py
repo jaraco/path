@@ -41,6 +41,13 @@ import shutil
 import sys
 import tempfile
 import warnings
+from io import (
+    BufferedRandom,
+    BufferedReader,
+    BufferedWriter,
+    FileIO,
+    TextIOWrapper,
+)
 from types import ModuleType
 
 with contextlib.suppress(ImportError):
@@ -56,6 +63,7 @@ from typing import (
     TYPE_CHECKING,
     IO,
     Any,
+    BinaryIO,
     Callable,
     Generator,
     Iterable,
@@ -64,9 +72,12 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import Never, Self
+    from typing_extensions import Literal, Never, Self
     from _typeshed import (
         OpenBinaryMode,
+        OpenBinaryModeReading,
+        OpenBinaryModeUpdating,
+        OpenBinaryModeWriting,
         OpenTextMode,
     )
 
@@ -661,7 +672,83 @@ class Path(str):
     #
     # --- Reading or writing an entire file at once.
 
-    @functools.wraps(open, assigned=())
+    @overload
+    def open(
+        self,
+        mode: OpenTextMode = ...,
+        buffering: int = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> TextIOWrapper: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: Literal[0],
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> FileIO: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeUpdating,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedRandom: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeWriting,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedWriter: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeReading,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedReader: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: int = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BinaryIO: ...
+    @overload
+    def open(
+        self,
+        mode: str,
+        buffering: int = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> IO[Any]: ...
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
 
@@ -687,7 +774,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[str]: ...
-
     @overload
     def chunks(
         self,
@@ -700,7 +786,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[builtins.bytes]: ...
-
     @overload
     def chunks(
         self,
@@ -713,7 +798,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[str | builtins.bytes]: ...
-
     def chunks(self, size, *args, **kwargs):
         """Returns a generator yielding chunks of the file, so it can
          be read piece by piece with a simple for loop.
