@@ -1764,7 +1764,13 @@ class ExtantFile(Path):
 
 
 class SpecialResolver:
+    path_class: type
+    wrapper: ModuleType
+
     class ResolverScope:
+        paths: SpecialResolver
+        scope: str
+
         def __init__(self, paths: SpecialResolver, scope: str) -> None:
             self.paths = paths
             self.scope = scope
@@ -1819,10 +1825,10 @@ class Multi:
     def detect(cls, input: str) -> _MultiPathType:
         if os.pathsep not in input:
             cls = cls._next_class
-        return cls(input)
+        return cls(input)  # type: ignore[return-value, call-arg]
 
     def __iter__(self) -> Iterator[Path]:
-        return iter(map(self._next_class, self.split(os.pathsep)))
+        return iter(map(self._next_class, self.split(os.pathsep)))  # type: ignore[attr-defined]
 
     @classes.ClassProperty
     @classmethod
@@ -1830,7 +1836,7 @@ class Multi:
         """
         Multi-subclasses should use the parent class
         """
-        return next(class_ for class_ in cls.__mro__ if not issubclass(class_, Multi))
+        return next(class_ for class_ in cls.__mro__ if not issubclass(class_, Multi))  # type: ignore[return-value]
 
 
 class _MultiPathType(Multi, Path):
