@@ -72,7 +72,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal, Never, Self
+    from typing_extensions import Literal, Never, Self, Union
     from _typeshed import (
         OpenBinaryMode,
         OpenBinaryModeReading,
@@ -82,7 +82,7 @@ if TYPE_CHECKING:
         ExcInfo,
     )
 
-    _Match = str | Callable[[str], bool] | None
+    _Match = Union[str, Callable[[str], bool], None]
     _CopyFn = Callable[[str, str], object]
     _IgnoreFn = Callable[[str, list[str]], Iterable[str]]
     _OnErrorCallback = Callable[[Callable[..., Any], str, ExcInfo], object]
