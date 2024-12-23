@@ -172,8 +172,10 @@ class Path(str):
     def __init__(self, other: Any = '.') -> None:
         if other is None:
             raise TypeError("Invalid initial value for path: None")
-        with contextlib.suppress(AttributeError):
-            self._validate()
+        self._validate()
+
+    def _validate(self) -> None:
+        pass
 
     @classmethod
     @functools.lru_cache
