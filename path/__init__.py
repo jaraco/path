@@ -1181,19 +1181,30 @@ class Path(str):
     #
     # --- Modifying operations on files and directories
 
+    @overload
     def utime(
         self,
         times: tuple[int, int] | tuple[float, float] | None = None,
         *,
-        ns: tuple[int, int] = ...,
         dir_fd: int | None = None,
         follow_symlinks: bool = True,
-    ) -> Self:
+    ) -> Self: ...
+    @overload
+    def utime(
+        self,
+        times: tuple[int, int] | tuple[float, float] | None = None,
+        *,
+        ns: tuple[int, int],
+        dir_fd: int | None = None,
+        follow_symlinks: bool = True,
+    ) -> Self: ...
+
+    def utime(self, *args, **kwargs) -> Self:
         """Set the access and modified times of this file.
 
         .. seealso:: :func:`os.utime`
         """
-        os.utime(self, times, ns=ns, dir_fd=dir_fd, follow_symlinks=follow_symlinks)
+        os.utime(self, *args, **kwargs)
         return self
 
     def chmod(self, mode: str | int) -> Self:
