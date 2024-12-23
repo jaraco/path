@@ -353,32 +353,28 @@ class Path(str):
         drive, r = self.module.splitdrive(self)
         return self._next_class(drive)
 
-    parent = property(
-        dirname,
-        None,
-        None,
-        """ This path's parent directory, as a new Path object.
+    @property
+    def parent(self) -> Self:
+        """This path's parent directory, as a new Path object.
 
         For example,
         ``Path('/usr/local/lib/libpython.so').parent ==
         Path('/usr/local/lib')``
 
         .. seealso:: :meth:`dirname`, :func:`os.path.dirname`
-        """,
-    )
+        """
+        return self.dirname()
 
-    name = property(
-        basename,
-        None,
-        None,
-        """ The name of this file or directory without the full path.
+    @property
+    def name(self) -> Self:
+        """The name of this file or directory without the full path.
 
         For example,
         ``Path('/usr/local/lib/libpython.so').name == 'libpython.so'``
 
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
-        """,
-    )
+        """
+        return self.basename()
 
     def with_name(self, name: str) -> Self:
         """Return a new path with the name changed.
@@ -1046,14 +1042,12 @@ class Path(str):
         """.. seealso:: :attr:`atime`, :func:`os.path.getatime`"""
         return self.module.getatime(self)
 
-    def set_atime(self, value: float | datetime.datetime):
+    def set_atime(self, value: float | datetime.datetime) -> None:
         mtime_ns = self.stat().st_atime_ns
         self.utime(ns=(_make_timestamp_ns(value), mtime_ns))
 
-    atime = property(
-        getatime,
-        set_atime,
-        None,
+    @property
+    def atime(self) -> float:
         """
         Last access time of the file.
 
@@ -1069,8 +1063,12 @@ class Path(str):
         200336400.0
 
         .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
-        """,
-    )
+        """
+        return self.getatime()
+
+    @atime.setter
+    def atime(self, value: float | datetime.datetime) -> None:
+        self.set_atime(value)
 
     def getmtime(self) -> float:
         """.. seealso:: :attr:`mtime`, :func:`os.path.getmtime`"""
@@ -1080,10 +1078,8 @@ class Path(str):
         atime_ns = self.stat().st_atime_ns
         self.utime(ns=(atime_ns, _make_timestamp_ns(value)))
 
-    mtime = property(
-        getmtime,
-        set_mtime,
-        None,
+    @property
+    def mtime(self) -> float:
         """
         Last modified time of the file.
 
@@ -1096,36 +1092,36 @@ class Path(str):
         200336400.0
 
         .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
-        """,
-    )
+        """
+        return self.getmtime()
+
+    @mtime.setter
+    def mtime(self, value: float | datetime.datetime) -> None:
+        self.set_mtime(value)
 
     def getctime(self) -> float:
         """.. seealso:: :attr:`ctime`, :func:`os.path.getctime`"""
         return self.module.getctime(self)
 
-    ctime = property(
-        getctime,
-        None,
-        None,
-        """ Creation time of the file.
+    @property
+    def ctime(self) -> float:
+        """Creation time of the file.
 
         .. seealso:: :meth:`getctime`, :func:`os.path.getctime`
-        """,
-    )
+        """
+        return self.getctime()
 
     def getsize(self) -> int:
         """.. seealso:: :attr:`size`, :func:`os.path.getsize`"""
         return self.module.getsize(self)
 
-    size = property(
-        getsize,
-        None,
-        None,
-        """ Size of the file, in bytes.
+    @property
+    def size(self) -> int:
+        """Size of the file, in bytes.
 
         .. seealso:: :meth:`getsize`, :func:`os.path.getsize`
-        """,
-    )
+        """
+        return self.getsize()
 
     @property
     def permissions(self) -> masks.Permissions:
@@ -1226,14 +1222,12 @@ class Path(str):
             else __get_owner_not_implemented
         )
 
-    owner = property(
-        get_owner,
-        None,
-        None,
-        """ Name of the owner of this file or directory.
+    @property
+    def owner(self) -> str:
+        """Name of the owner of this file or directory.
 
-        .. seealso:: :meth:`get_owner`""",
-    )
+        .. seealso:: :meth:`get_owner`"""
+        return self.get_owner()
 
     if sys.platform != "win32":  # pragma: no cover
 
