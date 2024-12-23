@@ -1404,7 +1404,7 @@ class Path(str):
         """Like :meth:`rmdir`, but does not raise an exception if the
         directory is not empty or does not exist."""
         suppressed = FileNotFoundError, FileExistsError, DirectoryNotEmpty
-        with contextlib.suppress(suppressed):
+        with contextlib.suppress(*suppressed):
             with DirectoryNotEmpty.translate():
                 self.rmdir()
         return self
