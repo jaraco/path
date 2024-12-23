@@ -79,15 +79,19 @@ if TYPE_CHECKING:
         OpenBinaryModeUpdating,
         OpenBinaryModeWriting,
         OpenTextMode,
+        ExcInfo,
     )
+
+    _Match = str | Callable[[str], bool] | None
+    _CopyFn = Callable[[str, str], object]
+    _OnErrorCallback = Callable[[Callable[..., Any], str, ExcInfo], object]
+    _OnExcCallback = Callable[[Callable[..., Any], str, BaseException], object]
+
 
 from . import classes, masks, matchers
 from .compat.py38 import removeprefix, removesuffix
 
 __all__ = ['Path', 'TempDir']
-
-# Type for the match argument for several methods
-_Match = str | Callable[[str], bool] | None
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
@@ -1496,18 +1500,126 @@ class Path(str):
         p = self.readlink()
         return p if p.isabs() else (self.parent / p).absolute()
 
-    # High-level functions from shutil
-    # These functions will be bound to the instance such that
-    # Path(name).copy(target) will invoke shutil.copy(name, target)
+    # High-level functions from shutil.
 
-    copyfile = shutil.copyfile
-    copymode = shutil.copymode
-    copystat = shutil.copystat
-    copy = shutil.copy
-    copy2 = shutil.copy2
-    copytree = shutil.copytree
-    move = shutil.move
-    rmtree = shutil.rmtree
+    def copyfile(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(
+            shutil.copyfile(self, dst, follow_symlinks=follow_symlinks)
+        )
+
+    def copymode(self, dst: str, *, follow_symlinks: bool = True) -> None:
+        shutil.copymode(self, dst, follow_symlinks=follow_symlinks)
+
+    def copystat(self, dst: str, *, follow_symlinks: bool = True) -> None:
+        shutil.copystat(self, dst, follow_symlinks=follow_symlinks)
+
+    def copy(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(shutil.copy(self, dst, follow_symlinks=follow_symlinks))
+
+    def copy2(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(
+            shutil.copy2(self, dst, follow_symlinks=follow_symlinks)
+        )
+
+    def copytree(
+        self,
+        dst: str,
+        symlinks: bool = False,
+        ignore: None | Callable[[str, list[str]], Iterable[str]] = None,
+        copy_function: _CopyFn = shutil.copy2,
+        ignore_dangling_symlinks: bool = False,
+        dirs_exist_ok: bool = False,
+    ) -> Self:
+        return self._next_class(
+            shutil.copytree(
+                self,
+                dst,
+                symlinks=symlinks,
+                ignore=ignore,
+                copy_function=copy_function,
+                ignore_dangling_symlinks=ignore_dangling_symlinks,
+                dirs_exist_ok=dirs_exist_ok,
+            )
+        )
+
+    def move(self, dst: str, copy_function: _CopyFn = shutil.copy2) -> Self:
+        retval = shutil.move(self, dst, copy_function=copy_function)
+        # shutil.move may return None if the src and dst are the same
+        return self._next_class(retval or dst)
+
+    if sys.version_info >= (3, 12):
+
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool,
+            onerror: _OnErrorCallback,
+            *,
+            onexc: None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool = ...,
+            *,
+            onerror: _OnErrorCallback,
+            onexc: None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool = ...,
+            *,
+            onexc: _OnExcCallback | None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+
+    elif sys.version_info >= (3, 11):
+        # NOTE: Strictly speaking, an overload is not needed - this could
+        #       be expressed in a single annotation. However, if overloads
+        #       are used there must be a minimum of two, so this was split
+        #       into two so that the body of rmtree need not be re-defined
+        #       for each version.
+        @overload
+        def rmtree(
+            self,
+            onerror: _OnErrorCallback | None = None,
+            *,
+            dir_fd: int | None = None,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool,
+            onerror: _OnErrorCallback | None = ...,
+            *,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+
+    else:
+        # NOTE: See note about overloads above.
+        @overload
+        def rmtree(self, onerror: _OnErrorCallback | None = ...) -> None: ...
+        @overload
+        def rmtree(
+            self, ignore_errors: bool, onerror: _OnErrorCallback | None = ...
+        ) -> None: ...
+
+    def rmtree(self, *args, **kwargs):
+        shutil.rmtree(self, *args, **kwargs)
+
+    # Copy the docstrings from shutil to these methods.
+
+    copyfile.__doc__ = shutil.copyfile.__doc__
+    copymode.__doc__ = shutil.copymode.__doc__
+    copystat.__doc__ = shutil.copystat.__doc__
+    copy.__doc__ = shutil.copy.__doc__
+    copy2.__doc__ = shutil.copy2.__doc__
+    copytree.__doc__ = shutil.copytree.__doc__
+    move.__doc__ = shutil.move.__doc__
+    rmtree.__doc__ = shutil.rmtree.__doc__
 
     def rmtree_p(self) -> Self:
         """Like :meth:`rmtree`, but does not raise an exception if the
@@ -1527,7 +1639,7 @@ class Path(str):
         dst: str,
         symlinks: bool = False,
         *,
-        copy_function: Callable[[str, str], None] = shutil.copy2,
+        copy_function: _CopyFn = shutil.copy2,
         ignore: Callable[[Any, list[str]], list[str] | set[str]] = lambda dir,
         contents: [],
     ):
