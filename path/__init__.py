@@ -1692,10 +1692,34 @@ class Path(str):
             os.chroot(self)
 
     if sys.platform == "win32":
+        if sys.version_info >= (3, 10):
 
-        def startfile(self, operation: str | None = None) -> Self:  # pragma: nocover
+            @overload
+            def startfile(
+                self,
+                arguments: str = ...,
+                cwd: str | None = ...,
+                show_cmd: int = ...,
+            ) -> Self: ...
+            @overload
+            def startfile(
+                self,
+                operation: str,
+                arguments: str = ...,
+                cwd: str | None = ...,
+                show_cmd: int = ...,
+            ) -> Self: ...
+
+        else:
+
+            @overload
+            def startfile(self) -> Self: ...
+            @overload
+            def startfile(self, operation: str) -> Self: ...
+
+        def startfile(self, *args, **kwargs) -> Self:  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
-            os.startfile(self, operation=operation)
+            os.startfile(self, *args, **kwargs)
             return self
 
     # in-place re-writing, courtesy of Martijn Pieters
