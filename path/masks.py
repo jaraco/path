@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import functools
 import itertools
 import operator
 import re
 
-from typing import Any, Callable
+from typing import Any, Callable, Iterable, Iterator
 
 
 # from jaraco.functools
@@ -13,7 +15,7 @@ def compose(*funcs: Callable[..., Any]) -> Callable[..., Any]:
 
 
 # from jaraco.structures.binary
-def gen_bit_values(number):
+def gen_bit_values(number: int) -> Iterator[int]:
     """
     Return a zero or one for each bit of a numeric value up to the most
     significant 1 bit, beginning with the least significant bit.
@@ -26,7 +28,12 @@ def gen_bit_values(number):
 
 
 # from more_itertools
-def padded(iterable, fillvalue=None, n=None, next_multiple=False):
+def padded(
+    iterable: Iterable[Any],
+    fillvalue: Any | None = None,
+    n: int | None = None,
+    next_multiple: bool = False,
+) -> Iterator[Any]:
     """Yield the elements from *iterable*, followed by *fillvalue*, such that
     at least *n* items are emitted.
 
@@ -148,14 +155,14 @@ class Permissions(int):
     """
 
     @property
-    def symbolic(self):
+    def symbolic(self) -> str:
         return ''.join(
             ['-', val][bit] for val, bit in zip(itertools.cycle('rwx'), self.bits)
         )
 
     @property
-    def bits(self):
+    def bits(self) -> Iterator[int]:
         return reversed(tuple(padded(gen_bit_values(self), 0, n=9)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.symbolic
