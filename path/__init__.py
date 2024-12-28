@@ -92,7 +92,7 @@ if TYPE_CHECKING:
 from . import classes, masks, matchers
 from .compat.py38 import removeprefix, removesuffix
 
-__all__ = ['Path', 'TempDir']
+__all__ = ['Path', 'TempDir', 'Traversal']
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
