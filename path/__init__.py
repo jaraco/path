@@ -41,10 +41,17 @@ import shutil
 import sys
 import tempfile
 import warnings
-from numbers import Number
+from io import (
+    BufferedRandom,
+    BufferedReader,
+    BufferedWriter,
+    FileIO,
+    TextIOWrapper,
+)
+from types import ModuleType
 
 with contextlib.suppress(ImportError):
-    import win32security
+    import win32security  # type: ignore[import-not-found]
 
 with contextlib.suppress(ImportError):
     import pwd
@@ -54,22 +61,38 @@ with contextlib.suppress(ImportError):
 
 from typing import (
     TYPE_CHECKING,
+    IO,
+    Any,
+    BinaryIO,
     Callable,
+    Generator,
+    Iterable,
     Iterator,
     overload,
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import Literal, Never, Self, Union
     from _typeshed import (
         OpenBinaryMode,
+        OpenBinaryModeReading,
+        OpenBinaryModeUpdating,
+        OpenBinaryModeWriting,
         OpenTextMode,
+        ExcInfo,
     )
+
+    _Match = Union[str, Callable[[str], bool], None]
+    _CopyFn = Callable[[str, str], object]
+    _IgnoreFn = Callable[[str, list[str]], Iterable[str]]
+    _OnErrorCallback = Callable[[Callable[..., Any], str, ExcInfo], object]
+    _OnExcCallback = Callable[[Callable[..., Any], str, BaseException], object]
+
 
 from . import classes, masks, matchers
 from .compat.py38 import removeprefix, removesuffix
 
 __all__ = ['Path', 'TempDir']
-
 
 LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
@@ -81,8 +104,8 @@ U_NL_END = re.compile(U_NEWLINE.pattern + '$')
 _default_linesep = object()
 
 
-def _make_timestamp_ns(value: Number | datetime.datetime) -> Number:
-    timestamp_s = value if isinstance(value, Number) else value.timestamp()
+def _make_timestamp_ns(value: float | datetime.datetime) -> int:
+    timestamp_s = value if isinstance(value, (float, int)) else value.timestamp()
     return int(timestamp_s * 10**9)
 
 
@@ -111,10 +134,12 @@ class Traversal:
     False
     """
 
-    def __init__(self, follow):
+    def __init__(self, follow: Callable[[Path], bool]):
         self.follow = follow
 
-    def __call__(self, walker):
+    def __call__(
+        self, walker: Generator[Path, Callable[[], bool] | None, None]
+    ) -> Iterator[Path]:
         traverse = None
         while True:
             try:
@@ -126,7 +151,7 @@ class Traversal:
             traverse = functools.partial(self.follow, item)
 
 
-def _strip_newlines(lines):
+def _strip_newlines(lines: Iterable[str]) -> Iterator[str]:
     r"""
     >>> list(_strip_newlines(['Hello World\r\n', 'foo']))
     ['Hello World', 'foo']
@@ -150,24 +175,26 @@ class Path(str):
     the Path instance.
     """
 
-    module = os.path
+    module: ModuleType = os.path
     """ The path module to use for path operations.
 
     .. seealso:: :mod:`os.path`
     """
 
-    def __new__(cls, other='.'):
+    def __new__(cls, other: Any = '.') -> Self:
         return super().__new__(cls, other)
 
-    def __init__(self, other='.'):
+    def __init__(self, other: Any = '.') -> None:
         if other is None:
             raise TypeError("Invalid initial value for path: None")
-        with contextlib.suppress(AttributeError):
-            self._validate()
+        self._validate()
+
+    def _validate(self) -> None:
+        pass
 
     @classmethod
     @functools.lru_cache
-    def using_module(cls, module):
+    def using_module(cls, module: ModuleType) -> type[Self]:
         subclass_name = cls.__name__ + '_' + module.__name__
         bases = (cls,)
         ns = {'module': module}
@@ -175,7 +202,7 @@ class Path(str):
 
     @classes.ClassProperty
     @classmethod
-    def _next_class(cls):
+    def _next_class(cls) -> type[Self]:
         """
         What class should be used to construct new instances from this class
         """
@@ -183,18 +210,18 @@ class Path(str):
 
     # --- Special Python methods.
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{type(self).__name__}({super().__repr__()})'
 
     # Adding a Path and a string yields a Path.
-    def __add__(self, more):
+    def __add__(self, more: str) -> Self:
         return self._next_class(super().__add__(more))
 
-    def __radd__(self, other):
+    def __radd__(self, other: str) -> Self:
         return self._next_class(other.__add__(self))
 
     # The / operator joins Paths.
-    def __truediv__(self, rel):
+    def __truediv__(self, rel: str) -> Self:
         """fp.__truediv__(rel) == fp / rel == fp.joinpath(rel)
 
         Join two path components, adding a separator character if
@@ -205,7 +232,7 @@ class Path(str):
         return self._next_class(self.module.join(self, rel))
 
     # The / operator joins Paths the other way around
-    def __rtruediv__(self, rel):
+    def __rtruediv__(self, rel: str) -> Self:
         """fp.__rtruediv__(rel) == rel / fp
 
         Join two path components, adding a separator character if
@@ -215,12 +242,12 @@ class Path(str):
         """
         return self._next_class(self.module.join(rel, self))
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self._old_dir = self.cwd()
         os.chdir(self)
         return self
 
-    def __exit__(self, *_):
+    def __exit__(self, *_) -> None:
         os.chdir(self._old_dir)
 
     @classmethod
@@ -238,39 +265,39 @@ class Path(str):
     #
     # --- Operations on Path strings.
 
-    def absolute(self):
+    def absolute(self) -> Self:
         """.. seealso:: :func:`os.path.abspath`"""
         return self._next_class(self.module.abspath(self))
 
-    def normcase(self):
+    def normcase(self) -> Self:
         """.. seealso:: :func:`os.path.normcase`"""
         return self._next_class(self.module.normcase(self))
 
-    def normpath(self):
+    def normpath(self) -> Self:
         """.. seealso:: :func:`os.path.normpath`"""
         return self._next_class(self.module.normpath(self))
 
-    def realpath(self):
+    def realpath(self) -> Self:
         """.. seealso:: :func:`os.path.realpath`"""
         return self._next_class(self.module.realpath(self))
 
-    def expanduser(self):
+    def expanduser(self) -> Self:
         """.. seealso:: :func:`os.path.expanduser`"""
         return self._next_class(self.module.expanduser(self))
 
-    def expandvars(self):
+    def expandvars(self) -> Self:
         """.. seealso:: :func:`os.path.expandvars`"""
         return self._next_class(self.module.expandvars(self))
 
-    def dirname(self):
+    def dirname(self) -> Self:
         """.. seealso:: :attr:`parent`, :func:`os.path.dirname`"""
         return self._next_class(self.module.dirname(self))
 
-    def basename(self):
+    def basename(self) -> Self:
         """.. seealso:: :attr:`name`, :func:`os.path.basename`"""
         return self._next_class(self.module.basename(self))
 
-    def expand(self):
+    def expand(self) -> Self:
         """Clean up a filename by calling :meth:`expandvars()`,
         :meth:`expanduser()`, and :meth:`normpath()` on it.
 
@@ -280,16 +307,16 @@ class Path(str):
         return self.expandvars().expanduser().normpath()
 
     @property
-    def stem(self):
+    def stem(self) -> str:
         """The same as :meth:`name`, but with one file extension stripped off.
 
         >>> Path('/home/guido/python.tar.gz').stem
         'python.tar'
         """
-        base, ext = self.module.splitext(self.name)
+        base, _ = self.module.splitext(self.name)
         return base
 
-    def with_stem(self, stem):
+    def with_stem(self, stem: str) -> Self:
         """Return a new path with the stem changed.
 
         >>> Path('/home/guido/python.tar.gz').with_stem("foo")
@@ -298,12 +325,12 @@ class Path(str):
         return self.with_name(stem + self.suffix)
 
     @property
-    def suffix(self):
+    def suffix(self) -> Self:
         """The file extension, for example ``'.py'``."""
-        f, suffix = self.module.splitext(self)
+        _, suffix = self.module.splitext(self)
         return suffix
 
-    def with_suffix(self, suffix):
+    def with_suffix(self, suffix: str) -> Self:
         """Return a new path with the file suffix changed (or added, if none)
 
         >>> Path('/home/guido/python.tar.gz').with_suffix(".foo")
@@ -319,46 +346,41 @@ class Path(str):
         """
         if not suffix.startswith('.'):
             raise ValueError(f"Invalid suffix {suffix!r}")
-
         return self.stripext() + suffix
 
     @property
-    def drive(self):
+    def drive(self) -> Self:
         """The drive specifier, for example ``'C:'``.
 
         This is always empty on systems that don't use drive specifiers.
         """
-        drive, r = self.module.splitdrive(self)
+        drive, _ = self.module.splitdrive(self)
         return self._next_class(drive)
 
-    parent = property(
-        dirname,
-        None,
-        None,
-        """ This path's parent directory, as a new Path object.
+    @property
+    def parent(self) -> Self:
+        """This path's parent directory, as a new Path object.
 
         For example,
         ``Path('/usr/local/lib/libpython.so').parent ==
         Path('/usr/local/lib')``
 
         .. seealso:: :meth:`dirname`, :func:`os.path.dirname`
-        """,
-    )
+        """
+        return self.dirname()
 
-    name = property(
-        basename,
-        None,
-        None,
-        """ The name of this file or directory without the full path.
+    @property
+    def name(self) -> Self:
+        """The name of this file or directory without the full path.
 
         For example,
         ``Path('/usr/local/lib/libpython.so').name == 'libpython.so'``
 
         .. seealso:: :meth:`basename`, :func:`os.path.basename`
-        """,
-    )
+        """
+        return self.basename()
 
-    def with_name(self, name):
+    def with_name(self, name: str) -> Self:
         """Return a new path with the name changed.
 
         >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
@@ -366,7 +388,7 @@ class Path(str):
         """
         return self._next_class(removesuffix(self, self.name) + name)
 
-    def splitpath(self):
+    def splitpath(self) -> tuple[Self, str]:
         """Return two-tuple of ``.parent``, ``.name``.
 
         .. seealso:: :attr:`parent`, :attr:`name`, :func:`os.path.split`
@@ -374,7 +396,7 @@ class Path(str):
         parent, child = self.module.split(self)
         return self._next_class(parent), child
 
-    def splitdrive(self):
+    def splitdrive(self) -> tuple[Self, Self]:
         """Return two-tuple of ``.drive`` and rest without drive.
 
         Split the drive specifier from this path.  If there is
@@ -386,7 +408,7 @@ class Path(str):
         drive, rel = self.module.splitdrive(self)
         return self._next_class(drive), self._next_class(rel)
 
-    def splitext(self):
+    def splitext(self) -> tuple[Self, str]:
         """Return two-tuple of ``.stripext()`` and ``.ext``.
 
         Split the filename extension from this path and return
@@ -401,7 +423,7 @@ class Path(str):
         filename, ext = self.module.splitext(self)
         return self._next_class(filename), ext
 
-    def stripext(self):
+    def stripext(self) -> Self:
         """Remove one file extension from the path.
 
         For example, ``Path('/home/guido/python.tar.gz').stripext()``
@@ -410,7 +432,7 @@ class Path(str):
         return self.splitext()[0]
 
     @classes.multimethod
-    def joinpath(cls, first, *others):
+    def joinpath(cls, first: str, *others: str) -> Self:
         """
         Join first to zero or more :class:`Path` components,
         adding a separator character (:samp:`{first}.module.sep`)
@@ -421,7 +443,7 @@ class Path(str):
         """
         return cls._next_class(cls.module.join(first, *others))
 
-    def splitall(self):
+    def splitall(self) -> list[Self | str]:
         r"""Return a list of the path components in this path.
 
         The first item in the list will be a Path.  Its value will be
@@ -436,17 +458,17 @@ class Path(str):
         """
         return list(self._parts())
 
-    def parts(self):
+    def parts(self) -> tuple[Self | str, ...]:
         """
         >>> Path('/foo/bar/baz').parts()
         (Path('/'), 'foo', 'bar', 'baz')
         """
         return tuple(self._parts())
 
-    def _parts(self):
+    def _parts(self) -> Iterator[Self | str]:
         return reversed(tuple(self._parts_iter()))
 
-    def _parts_iter(self):
+    def _parts_iter(self) -> Iterator[Self | str]:
         loc = self
         while loc != os.curdir and loc != os.pardir:
             prev = loc
@@ -456,14 +478,14 @@ class Path(str):
             yield child
         yield loc
 
-    def relpath(self, start='.'):
+    def relpath(self, start: str = '.') -> Self:
         """Return this path as a relative path,
         based from `start`, which defaults to the current working directory.
         """
         cwd = self._next_class(start)
         return cwd.relpathto(self)
 
-    def relpathto(self, dest):
+    def relpathto(self, dest: str) -> Self:
         """Return a relative path from `self` to `dest`.
 
         If there is no relative path from `self` to `dest`, for example if
@@ -471,15 +493,15 @@ class Path(str):
         ``dest.absolute()``.
         """
         origin = self.absolute()
-        dest = self._next_class(dest).absolute()
+        dest_path = self._next_class(dest).absolute()
 
         orig_list = origin.normcase().splitall()
         # Don't normcase dest!  We want to preserve the case.
-        dest_list = dest.splitall()
+        dest_list = dest_path.splitall()
 
         if orig_list[0] != self.module.normcase(dest_list[0]):
             # Can't get here from there.
-            return dest
+            return dest_path
 
         # Find the location where the two paths start to differ.
         i = 0
@@ -503,7 +525,7 @@ class Path(str):
 
     # --- Listing, searching, walking, and matching
 
-    def iterdir(self, match=None):
+    def iterdir(self, match: _Match = None) -> Iterator[Self]:
         """Yields items in this directory.
 
         Use :meth:`files` or :meth:`dirs` instead if you want a listing
@@ -519,7 +541,7 @@ class Path(str):
         match = matchers.load(match)
         return filter(match, (self / child for child in os.listdir(self)))
 
-    def dirs(self, *args, **kwargs):
+    def dirs(self, match: _Match = None) -> list[Self]:
         """List of this directory's subdirectories.
 
         The elements of the list are Path objects.
@@ -528,9 +550,9 @@ class Path(str):
 
         Accepts parameters to :meth:`iterdir`.
         """
-        return [p for p in self.iterdir(*args, **kwargs) if p.is_dir()]
+        return [p for p in self.iterdir(match) if p.is_dir()]
 
-    def files(self, *args, **kwargs):
+    def files(self, match: _Match = None) -> list[Self]:
         """List of the files in self.
 
         The elements of the list are Path objects.
@@ -539,9 +561,11 @@ class Path(str):
         Accepts parameters to :meth:`iterdir`.
         """
 
-        return [p for p in self.iterdir(*args, **kwargs) if p.is_file()]
+        return [p for p in self.iterdir(match) if p.is_file()]
 
-    def walk(self, match=None, errors='strict'):
+    def walk(
+        self, match: _Match = None, errors: str = 'strict'
+    ) -> Generator[Self, Callable[[], bool] | None, None]:
         """Iterator over files and subdirs, recursively.
 
         The iterator yields Path objects naming each child item of
@@ -558,13 +582,13 @@ class Path(str):
         `errors` may also be an arbitrary callable taking a msg parameter.
         """
 
-        errors = Handlers._resolve(errors)
+        error_fn = Handlers._resolve(errors)
         match = matchers.load(match)
 
         try:
             childList = self.iterdir()
         except Exception as exc:
-            errors(f"Unable to list directory '{self}': {exc}")
+            error_fn(f"Unable to list directory '{self}': {exc}")
             return
 
         for child in childList:
@@ -575,21 +599,23 @@ class Path(str):
             try:
                 do_traverse = traverse()
             except Exception as exc:
-                errors(f"Unable to access '{child}': {exc}")
+                error_fn(f"Unable to access '{child}': {exc}")
                 continue
 
             if do_traverse:
-                yield from child.walk(errors=errors, match=match)
+                yield from child.walk(errors=error_fn, match=match)  # type: ignore[arg-type]
 
-    def walkdirs(self, *args, **kwargs):
+    def walkdirs(self, match: _Match = None, errors: str = 'strict') -> Iterator[Self]:
         """Iterator over subdirs, recursively."""
-        return (item for item in self.walk(*args, **kwargs) if item.is_dir())
+        return (item for item in self.walk(match, errors) if item.is_dir())
 
-    def walkfiles(self, *args, **kwargs):
+    def walkfiles(self, match: _Match = None, errors: str = 'strict') -> Iterator[Self]:
         """Iterator over files, recursively."""
-        return (item for item in self.walk(*args, **kwargs) if item.is_file())
+        return (item for item in self.walk(match, errors) if item.is_file())
 
-    def fnmatch(self, pattern, normcase=None):
+    def fnmatch(
+        self, pattern: str, normcase: Callable[[str], str] | None = None
+    ) -> bool:
         """Return ``True`` if `self.name` matches the given `pattern`.
 
         `pattern` - A filename pattern with wildcards,
@@ -608,7 +634,7 @@ class Path(str):
         pattern = normcase(pattern)
         return fnmatch.fnmatchcase(name, pattern)
 
-    def glob(self, pattern):
+    def glob(self, pattern: str) -> list[Self]:
         """Return a list of Path objects that match the pattern.
 
         `pattern` - a path relative to this directory, with wildcards.
@@ -625,7 +651,7 @@ class Path(str):
         cls = self._next_class
         return [cls(s) for s in glob.glob(self / pattern)]
 
-    def iglob(self, pattern):
+    def iglob(self, pattern: str) -> Iterator[Self]:
         """Return an iterator of Path objects that match the pattern.
 
         `pattern` - a path relative to this directory, with wildcards.
@@ -646,7 +672,83 @@ class Path(str):
     #
     # --- Reading or writing an entire file at once.
 
-    @functools.wraps(open, assigned=())
+    @overload
+    def open(
+        self,
+        mode: OpenTextMode = ...,
+        buffering: int = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> TextIOWrapper: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: Literal[0],
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> FileIO: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeUpdating,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedRandom: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeWriting,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedWriter: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeReading,
+        buffering: Literal[-1, 1] = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BufferedReader: ...
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: int = ...,
+        encoding: None = ...,
+        errors: None = ...,
+        newline: None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> BinaryIO: ...
+    @overload
+    def open(
+        self,
+        mode: str,
+        buffering: int = ...,
+        encoding: str | None = ...,
+        errors: str | None = ...,
+        newline: str | None = ...,
+        closefd: bool = True,
+        opener: Callable[[str, int], int] | None = ...,
+    ) -> IO[Any]: ...
     def open(self, *args, **kwargs):
         """Open this file and return a corresponding file object.
 
@@ -655,7 +757,7 @@ class Path(str):
         """
         return open(self, *args, **kwargs)
 
-    def bytes(self):
+    def bytes(self) -> builtins.bytes:
         """Open this file, read all bytes, return them as a string."""
         with self.open('rb') as f:
             return f.read()
@@ -672,7 +774,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[str]: ...
-
     @overload
     def chunks(
         self,
@@ -685,7 +786,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[builtins.bytes]: ...
-
     @overload
     def chunks(
         self,
@@ -698,7 +798,6 @@ class Path(str):
         closefd: bool = ...,
         opener: Callable[[str, int], int] | None = ...,
     ) -> Iterator[str | builtins.bytes]: ...
-
     def chunks(self, size, *args, **kwargs):
         """Returns a generator yielding chunks of the file, so it can
          be read piece by piece with a simple for loop.
@@ -716,7 +815,7 @@ class Path(str):
         with self.open(*args, **kwargs) as f:
             yield from iter(lambda: f.read(size) or None, None)
 
-    def write_bytes(self, bytes, append=False):
+    def write_bytes(self, bytes: builtins.bytes, append: bool = False) -> None:
         """Open this file and write the given bytes to it.
 
         Default behavior is to overwrite any existing file.
@@ -725,7 +824,7 @@ class Path(str):
         with self.open('ab' if append else 'wb') as f:
             f.write(bytes)
 
-    def read_text(self, encoding=None, errors=None):
+    def read_text(self, encoding: str | None = None, errors: str | None = None) -> str:
         r"""Open this file, read it in, return the content as a string.
 
         Optional parameters are passed to :meth:`open`.
@@ -735,7 +834,7 @@ class Path(str):
         with self.open(encoding=encoding, errors=errors) as f:
             return f.read()
 
-    def read_bytes(self):
+    def read_bytes(self) -> builtins.bytes:
         r"""Return the contents of this file as bytes."""
         with self.open(mode='rb') as f:
             return f.read()
@@ -804,7 +903,12 @@ class Path(str):
         bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         self.write_bytes(bytes, append=append)
 
-    def lines(self, encoding=None, errors=None, retain=True):
+    def lines(
+        self,
+        encoding: str | None = None,
+        errors: str | None = None,
+        retain: bool = True,
+    ) -> list[str]:
         r"""Open this file, read all lines, return them in a list.
 
         Optional arguments:
@@ -824,11 +928,11 @@ class Path(str):
 
     def write_lines(
         self,
-        lines,
-        encoding=None,
-        errors='strict',
+        lines: list[str],
+        encoding: str | None = None,
+        errors: str = 'strict',
         *,
-        append=False,
+        append: bool = False,
     ):
         r"""Write the given lines of text to this file.
 
@@ -852,10 +956,10 @@ class Path(str):
             f.writelines(self._replace_linesep(lines))
 
     @staticmethod
-    def _replace_linesep(lines):
+    def _replace_linesep(lines: Iterable[str]) -> Iterator[str]:
         return (line + os.linesep for line in _strip_newlines(lines))
 
-    def read_md5(self):
+    def read_md5(self) -> builtins.bytes:
         """Calculate the md5 hash for this file.
 
         This reads through the entire file.
@@ -864,7 +968,7 @@ class Path(str):
         """
         return self.read_hash('md5')
 
-    def _hash(self, hash_name):
+    def _hash(self, hash_name: str) -> hashlib._Hash:
         """Returns a hash object for the file at the current path.
 
         `hash_name` should be a hash algo name (such as ``'md5'``
@@ -875,7 +979,7 @@ class Path(str):
             m.update(chunk)
         return m
 
-    def read_hash(self, hash_name):
+    def read_hash(self, hash_name) -> builtins.bytes:
         """Calculate given hash for this file.
 
         List of supported hashes can be obtained from :mod:`hashlib` package.
@@ -885,7 +989,7 @@ class Path(str):
         """
         return self._hash(hash_name).digest()
 
-    def read_hexhash(self, hash_name):
+    def read_hexhash(self, hash_name) -> str:
         """Calculate given hash for this file, returning hexdigest.
 
         List of supported hashes can be obtained from :mod:`hashlib` package.
@@ -900,7 +1004,7 @@ class Path(str):
     # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
     # bound. Playing it safe and wrapping them all in method calls.
 
-    def isabs(self):
+    def isabs(self) -> bool:
         """
         >>> Path('.').isabs()
         False
@@ -909,23 +1013,23 @@ class Path(str):
         """
         return self.module.isabs(self)
 
-    def exists(self):
+    def exists(self) -> bool:
         """.. seealso:: :func:`os.path.exists`"""
         return self.module.exists(self)
 
-    def is_dir(self):
+    def is_dir(self) -> bool:
         """.. seealso:: :func:`os.path.isdir`"""
         return self.module.isdir(self)
 
-    def is_file(self):
+    def is_file(self) -> bool:
         """.. seealso:: :func:`os.path.isfile`"""
         return self.module.isfile(self)
 
-    def islink(self):
+    def islink(self) -> bool:
         """.. seealso:: :func:`os.path.islink`"""
         return self.module.islink(self)
 
-    def ismount(self):
+    def ismount(self) -> bool:
         """
         >>> Path('.').ismount()
         False
@@ -934,22 +1038,20 @@ class Path(str):
         """
         return self.module.ismount(self)
 
-    def samefile(self, other):
+    def samefile(self, other: str) -> bool:
         """.. seealso:: :func:`os.path.samefile`"""
         return self.module.samefile(self, other)
 
-    def getatime(self):
+    def getatime(self) -> float:
         """.. seealso:: :attr:`atime`, :func:`os.path.getatime`"""
         return self.module.getatime(self)
 
-    def set_atime(self, value):
+    def set_atime(self, value: float | datetime.datetime) -> None:
         mtime_ns = self.stat().st_atime_ns
         self.utime(ns=(_make_timestamp_ns(value), mtime_ns))
 
-    atime = property(
-        getatime,
-        set_atime,
-        None,
+    @property
+    def atime(self) -> float:
         """
         Last access time of the file.
 
@@ -965,21 +1067,23 @@ class Path(str):
         200336400.0
 
         .. seealso:: :meth:`getatime`, :func:`os.path.getatime`
-        """,
-    )
+        """
+        return self.getatime()
 
-    def getmtime(self):
+    @atime.setter
+    def atime(self, value: float | datetime.datetime) -> None:
+        self.set_atime(value)
+
+    def getmtime(self) -> float:
         """.. seealso:: :attr:`mtime`, :func:`os.path.getmtime`"""
         return self.module.getmtime(self)
 
-    def set_mtime(self, value):
+    def set_mtime(self, value: float | datetime.datetime) -> None:
         atime_ns = self.stat().st_atime_ns
         self.utime(ns=(atime_ns, _make_timestamp_ns(value)))
 
-    mtime = property(
-        getmtime,
-        set_mtime,
-        None,
+    @property
+    def mtime(self) -> float:
         """
         Last modified time of the file.
 
@@ -992,36 +1096,36 @@ class Path(str):
         200336400.0
 
         .. seealso:: :meth:`getmtime`, :func:`os.path.getmtime`
-        """,
-    )
+        """
+        return self.getmtime()
 
-    def getctime(self):
+    @mtime.setter
+    def mtime(self, value: float | datetime.datetime) -> None:
+        self.set_mtime(value)
+
+    def getctime(self) -> float:
         """.. seealso:: :attr:`ctime`, :func:`os.path.getctime`"""
         return self.module.getctime(self)
 
-    ctime = property(
-        getctime,
-        None,
-        None,
-        """ Creation time of the file.
+    @property
+    def ctime(self) -> float:
+        """Creation time of the file.
 
         .. seealso:: :meth:`getctime`, :func:`os.path.getctime`
-        """,
-    )
+        """
+        return self.getctime()
 
-    def getsize(self):
+    def getsize(self) -> int:
         """.. seealso:: :attr:`size`, :func:`os.path.getsize`"""
         return self.module.getsize(self)
 
-    size = property(
-        getsize,
-        None,
-        None,
-        """ Size of the file, in bytes.
+    @property
+    def size(self) -> int:
+        """Size of the file, in bytes.
 
         .. seealso:: :meth:`getsize`, :func:`os.path.getsize`
-        """,
-    )
+        """
+        return self.getsize()
 
     @property
     def permissions(self) -> masks.Permissions:
@@ -1038,7 +1142,14 @@ class Path(str):
         """
         return masks.Permissions(self.stat().st_mode)
 
-    def access(self, *args, **kwargs):
+    def access(
+        self,
+        mode: int,
+        *,
+        dir_fd: int | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = True,
+    ) -> bool:
         """
         Return does the real user have access to this path.
 
@@ -1047,9 +1158,15 @@ class Path(str):
 
         .. seealso:: :func:`os.access`
         """
-        return os.access(self, *args, **kwargs)
+        return os.access(
+            self,
+            mode,
+            dir_fd=dir_fd,
+            effective_ids=effective_ids,
+            follow_symlinks=follow_symlinks,
+        )
 
-    def stat(self, *, follow_symlinks=True):
+    def stat(self, *, follow_symlinks: bool = True) -> os.stat_result:
         """
         Perform a ``stat()`` system call on this path.
 
@@ -1060,7 +1177,7 @@ class Path(str):
         """
         return os.stat(self, follow_symlinks=follow_symlinks)
 
-    def lstat(self):
+    def lstat(self) -> os.stat_result:
         """
         Like :meth:`stat`, but do not follow symbolic links.
 
@@ -1071,80 +1188,88 @@ class Path(str):
         """
         return os.lstat(self)
 
-    def __get_owner_windows(self):  # pragma: nocover
-        r"""
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
+    if sys.platform == "win32":
 
-        Return a name of the form ``DOMAIN\User Name``; may be a group.
+        def get_owner(self) -> str:  # pragma: nocover
+            r"""
+            Return the name of the owner of this file or directory. Follow
+            symbolic links.
 
-        .. seealso:: :attr:`owner`
-        """
-        desc = win32security.GetFileSecurity(
-            self, win32security.OWNER_SECURITY_INFORMATION
-        )
-        sid = desc.GetSecurityDescriptorOwner()
-        account, domain, typecode = win32security.LookupAccountSid(None, sid)
-        return domain + '\\' + account
+            Return a name of the form ``DOMAIN\User Name``; may be a group.
 
-    def __get_owner_unix(self):  # pragma: nocover
-        """
-        Return the name of the owner of this file or directory. Follow
-        symbolic links.
+            .. seealso:: :attr:`owner`
+            """
+            if "win32security" not in globals():
+                raise NotImplementedError("Ownership not available on this platform.")
 
-        .. seealso:: :attr:`owner`
-        """
-        st = self.stat()
-        return pwd.getpwuid(st.st_uid).pw_name
+            desc = win32security.GetFileSecurity(
+                self, win32security.OWNER_SECURITY_INFORMATION
+            )
+            sid = desc.GetSecurityDescriptorOwner()
+            account, domain, typecode = win32security.LookupAccountSid(None, sid)
+            return domain + '\\' + account
 
-    def __get_owner_not_implemented(self):  # pragma: nocover
-        raise NotImplementedError("Ownership not available on this platform.")
+    else:
 
-    get_owner = (
-        __get_owner_windows
-        if 'win32security' in globals()
-        else __get_owner_unix
-        if 'pwd' in globals()
-        else __get_owner_not_implemented
-    )
+        def get_owner(self) -> str:  # pragma: nocover
+            """
+            Return the name of the owner of this file or directory. Follow
+            symbolic links.
 
-    owner = property(
-        get_owner,
-        None,
-        None,
-        """ Name of the owner of this file or directory.
+            .. seealso:: :attr:`owner`
+            """
+            st = self.stat()
+            return pwd.getpwuid(st.st_uid).pw_name
 
-        .. seealso:: :meth:`get_owner`""",
-    )
+    @property
+    def owner(self) -> str:
+        """Name of the owner of this file or directory.
 
-    if 'grp' in globals():  # pragma: no cover
+        .. seealso:: :meth:`get_owner`"""
+        return self.get_owner()
 
-        def group(self, *, follow_symlinks=True):
+    if sys.platform != "win32":  # pragma: no cover
+
+        def group(self, *, follow_symlinks: bool = True) -> str:
             """
             Return the group name of the file gid.
             """
             gid = self.stat(follow_symlinks=follow_symlinks).st_gid
             return grp.getgrgid(gid).gr_name
 
-    if hasattr(os, 'statvfs'):
-
-        def statvfs(self):
+        def statvfs(self) -> os.statvfs_result:
             """Perform a ``statvfs()`` system call on this path.
 
             .. seealso:: :func:`os.statvfs`
             """
             return os.statvfs(self)
 
-    if hasattr(os, 'pathconf'):
-
-        def pathconf(self, name):
+        def pathconf(self, name: str | int) -> int:
             """.. seealso:: :func:`os.pathconf`"""
             return os.pathconf(self, name)
 
     #
     # --- Modifying operations on files and directories
 
-    def utime(self, *args, **kwargs):
+    @overload
+    def utime(
+        self,
+        times: tuple[int, int] | tuple[float, float] | None = None,
+        *,
+        dir_fd: int | None = None,
+        follow_symlinks: bool = True,
+    ) -> Self: ...
+    @overload
+    def utime(
+        self,
+        times: tuple[int, int] | tuple[float, float] | None = None,
+        *,
+        ns: tuple[int, int],
+        dir_fd: int | None = None,
+        follow_symlinks: bool = True,
+    ) -> Self: ...
+
+    def utime(self, *args, **kwargs) -> Self:
         """Set the access and modified times of this file.
 
         .. seealso:: :func:`os.utime`
@@ -1152,7 +1277,7 @@ class Path(str):
         os.utime(self, *args, **kwargs)
         return self
 
-    def chmod(self, mode):
+    def chmod(self, mode: str | int) -> Self:
         """
         Set the mode. May be the new mode (os.chmod behavior) or a `symbolic
         mode <http://en.wikipedia.org/wiki/Chmod#Symbolic_modes>`_.
@@ -1171,35 +1296,35 @@ class Path(str):
         os.chmod(self, mode)
         return self
 
-    if hasattr(os, 'chown'):
+    if sys.platform != "win32":
 
-        def chown(self, uid=-1, gid=-1):
+        def chown(self, uid: str | int = -1, gid: str | int = -1) -> Self:
             """
             Change the owner and group by names or numbers.
 
             .. seealso:: :func:`os.chown`
             """
 
-            def resolve_uid(uid):
+            def resolve_uid(uid: str | int) -> int:
                 return uid if isinstance(uid, int) else pwd.getpwnam(uid).pw_uid
 
-            def resolve_gid(gid):
+            def resolve_gid(gid: str | int) -> int:
                 return gid if isinstance(gid, int) else grp.getgrnam(gid).gr_gid
 
             os.chown(self, resolve_uid(uid), resolve_gid(gid))
             return self
 
-    def rename(self, new):
+    def rename(self, new: str) -> Self:
         """.. seealso:: :func:`os.rename`"""
         os.rename(self, new)
         return self._next_class(new)
 
-    def renames(self, new):
+    def renames(self, new: str) -> Self:
         """.. seealso:: :func:`os.renames`"""
         os.renames(self, new)
         return self._next_class(new)
 
-    def replace(self, target_or_old: Path | str, *args) -> Path:
+    def replace(self, target_or_old: str, *args) -> Self:
         """
         Replace a path or substitute substrings.
 
@@ -1236,50 +1361,50 @@ class Path(str):
     #
     # --- Create/delete operations on directories
 
-    def mkdir(self, mode=0o777):
+    def mkdir(self, mode: int = 0o777) -> Self:
         """.. seealso:: :func:`os.mkdir`"""
         os.mkdir(self, mode)
         return self
 
-    def mkdir_p(self, mode=0o777):
+    def mkdir_p(self, mode: int = 0o777) -> Self:
         """Like :meth:`mkdir`, but does not raise an exception if the
         directory already exists."""
         with contextlib.suppress(FileExistsError):
             self.mkdir(mode)
         return self
 
-    def makedirs(self, mode=0o777):
+    def makedirs(self, mode: int = 0o777) -> Self:
         """.. seealso:: :func:`os.makedirs`"""
         os.makedirs(self, mode)
         return self
 
-    def makedirs_p(self, mode=0o777):
+    def makedirs_p(self, mode: int = 0o777) -> Self:
         """Like :meth:`makedirs`, but does not raise an exception if the
         directory already exists."""
         with contextlib.suppress(FileExistsError):
             self.makedirs(mode)
         return self
 
-    def rmdir(self):
+    def rmdir(self) -> Self:
         """.. seealso:: :func:`os.rmdir`"""
         os.rmdir(self)
         return self
 
-    def rmdir_p(self):
+    def rmdir_p(self) -> Self:
         """Like :meth:`rmdir`, but does not raise an exception if the
         directory is not empty or does not exist."""
         suppressed = FileNotFoundError, FileExistsError, DirectoryNotEmpty
-        with contextlib.suppress(suppressed):
+        with contextlib.suppress(*suppressed):
             with DirectoryNotEmpty.translate():
                 self.rmdir()
         return self
 
-    def removedirs(self):
+    def removedirs(self) -> Self:
         """.. seealso:: :func:`os.removedirs`"""
         os.removedirs(self)
         return self
 
-    def removedirs_p(self):
+    def removedirs_p(self) -> Self:
         """Like :meth:`removedirs`, but does not raise an exception if the
         directory is not empty or does not exist."""
         with contextlib.suppress(FileExistsError, DirectoryNotEmpty):
@@ -1289,7 +1414,7 @@ class Path(str):
 
     # --- Modifying operations on files
 
-    def touch(self):
+    def touch(self) -> Self:
         """Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
@@ -1297,12 +1422,12 @@ class Path(str):
         os.utime(self, None)
         return self
 
-    def remove(self):
+    def remove(self) -> Self:
         """.. seealso:: :func:`os.remove`"""
         os.remove(self)
         return self
 
-    def remove_p(self):
+    def remove_p(self) -> Self:
         """Like :meth:`remove`, but does not raise an exception if the
         file does not exist."""
         with contextlib.suppress(FileNotFoundError):
@@ -1322,7 +1447,7 @@ class Path(str):
         """
         os.link(target, self)
 
-    def link(self, newpath):
+    def link(self, newpath: str) -> Self:
         """Create a hard link at `newpath`, pointing to this file.
 
         .. seealso:: :func:`os.link`
@@ -1338,7 +1463,7 @@ class Path(str):
         """
         os.symlink(target, self, target_is_directory)
 
-    def symlink(self, newlink=None):
+    def symlink(self, newlink: str | None = None) -> Self:
         """Create a symbolic link at `newlink`, pointing here.
 
         If newlink is not supplied, the symbolic link will assume
@@ -1351,7 +1476,7 @@ class Path(str):
         os.symlink(self, newlink)
         return self._next_class(newlink)
 
-    def readlink(self):
+    def readlink(self) -> Self:
         """Return the path to which this symbolic link points.
 
         The result may be an absolute or a relative path.
@@ -1360,7 +1485,7 @@ class Path(str):
         """
         return self._next_class(removeprefix(os.readlink(self), '\\\\?\\'))
 
-    def readlinkabs(self):
+    def readlinkabs(self) -> Self:
         """Return the path to which this symbolic link points.
 
         The result is always an absolute path.
@@ -1370,28 +1495,135 @@ class Path(str):
         p = self.readlink()
         return p if p.isabs() else (self.parent / p).absolute()
 
-    # High-level functions from shutil
-    # These functions will be bound to the instance such that
-    # Path(name).copy(target) will invoke shutil.copy(name, target)
+    # High-level functions from shutil.
 
-    copyfile = shutil.copyfile
-    copymode = shutil.copymode
-    copystat = shutil.copystat
-    copy = shutil.copy
-    copy2 = shutil.copy2
-    copytree = shutil.copytree
-    if hasattr(shutil, 'move'):
-        move = shutil.move
-    rmtree = shutil.rmtree
+    def copyfile(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(
+            shutil.copyfile(self, dst, follow_symlinks=follow_symlinks)
+        )
 
-    def rmtree_p(self):
+    def copymode(self, dst: str, *, follow_symlinks: bool = True) -> None:
+        shutil.copymode(self, dst, follow_symlinks=follow_symlinks)
+
+    def copystat(self, dst: str, *, follow_symlinks: bool = True) -> None:
+        shutil.copystat(self, dst, follow_symlinks=follow_symlinks)
+
+    def copy(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(shutil.copy(self, dst, follow_symlinks=follow_symlinks))
+
+    def copy2(self, dst: str, *, follow_symlinks: bool = True) -> Self:
+        return self._next_class(
+            shutil.copy2(self, dst, follow_symlinks=follow_symlinks)
+        )
+
+    def copytree(
+        self,
+        dst: str,
+        symlinks: bool = False,
+        ignore: _IgnoreFn | None = None,
+        copy_function: _CopyFn = shutil.copy2,
+        ignore_dangling_symlinks: bool = False,
+        dirs_exist_ok: bool = False,
+    ) -> Self:
+        return self._next_class(
+            shutil.copytree(
+                self,
+                dst,
+                symlinks=symlinks,
+                ignore=ignore,
+                copy_function=copy_function,
+                ignore_dangling_symlinks=ignore_dangling_symlinks,
+                dirs_exist_ok=dirs_exist_ok,
+            )
+        )
+
+    def move(self, dst: str, copy_function: _CopyFn = shutil.copy2) -> Self:
+        retval = shutil.move(self, dst, copy_function=copy_function)
+        # shutil.move may return None if the src and dst are the same
+        return self._next_class(retval or dst)
+
+    if sys.version_info >= (3, 12):
+
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool,
+            onerror: _OnErrorCallback,
+            *,
+            onexc: None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool = ...,
+            *,
+            onerror: _OnErrorCallback,
+            onexc: None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool = ...,
+            *,
+            onexc: _OnExcCallback | None = ...,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+
+    elif sys.version_info >= (3, 11):
+        # NOTE: Strictly speaking, an overload is not needed - this could
+        #       be expressed in a single annotation. However, if overloads
+        #       are used there must be a minimum of two, so this was split
+        #       into two so that the body of rmtree need not be re-defined
+        #       for each version.
+        @overload
+        def rmtree(
+            self,
+            onerror: _OnErrorCallback | None = None,
+            *,
+            dir_fd: int | None = None,
+        ) -> None: ...
+        @overload
+        def rmtree(
+            self,
+            ignore_errors: bool,
+            onerror: _OnErrorCallback | None = ...,
+            *,
+            dir_fd: int | None = ...,
+        ) -> None: ...
+
+    else:
+        # NOTE: See note about overloads above.
+        @overload
+        def rmtree(self, onerror: _OnErrorCallback | None = ...) -> None: ...
+        @overload
+        def rmtree(
+            self, ignore_errors: bool, onerror: _OnErrorCallback | None = ...
+        ) -> None: ...
+
+    def rmtree(self, *args, **kwargs):
+        shutil.rmtree(self, *args, **kwargs)
+
+    # Copy the docstrings from shutil to these methods.
+
+    copyfile.__doc__ = shutil.copyfile.__doc__
+    copymode.__doc__ = shutil.copymode.__doc__
+    copystat.__doc__ = shutil.copystat.__doc__
+    copy.__doc__ = shutil.copy.__doc__
+    copy2.__doc__ = shutil.copy2.__doc__
+    copytree.__doc__ = shutil.copytree.__doc__
+    move.__doc__ = shutil.move.__doc__
+    rmtree.__doc__ = shutil.rmtree.__doc__
+
+    def rmtree_p(self) -> Self:
         """Like :meth:`rmtree`, but does not raise an exception if the
         directory does not exist."""
         with contextlib.suppress(FileNotFoundError):
             self.rmtree()
         return self
 
-    def chdir(self):
+    def chdir(self) -> None:
         """.. seealso:: :func:`os.chdir`"""
         os.chdir(self)
 
@@ -1399,11 +1631,11 @@ class Path(str):
 
     def merge_tree(
         self,
-        dst,
-        symlinks=False,
+        dst: str,
+        symlinks: bool = False,
         *,
-        copy_function=shutil.copy2,
-        ignore=lambda dir, contents: [],
+        copy_function: _CopyFn = shutil.copy2,
+        ignore: _IgnoreFn = lambda dir, contents: [],
     ):
         """
         Copy entire contents of self to dst, overwriting existing
@@ -1418,17 +1650,17 @@ class Path(str):
 
             src.merge_tree(dst, copy_function=only_newer(shutil.copy2))
         """
-        dst = self._next_class(dst)
-        dst.makedirs_p()
+        dst_path = self._next_class(dst)
+        dst_path.makedirs_p()
 
         sources = list(self.iterdir())
-        _ignored = ignore(self, [item.name for item in sources])
+        _ignored = set(ignore(self, [item.name for item in sources]))
 
-        def ignored(item):
+        def ignored(item: Self) -> bool:
             return item.name in _ignored
 
         for source in itertools.filterfalse(ignored, sources):
-            dest = dst / source.name
+            dest = dst_path / source.name
             if symlinks and source.islink():
                 target = source.readlink()
                 target.symlink(dest)
@@ -1442,20 +1674,44 @@ class Path(str):
             else:
                 copy_function(source, dest)
 
-        self.copystat(dst)
+        self.copystat(dst_path)
 
     #
     # --- Special stuff from os
 
-    if hasattr(os, 'chroot'):
+    if sys.platform != "win32":
 
-        def chroot(self):  # pragma: nocover
+        def chroot(self) -> None:  # pragma: nocover
             """.. seealso:: :func:`os.chroot`"""
             os.chroot(self)
 
-    if hasattr(os, 'startfile'):
+    if sys.platform == "win32":
+        if sys.version_info >= (3, 10):
 
-        def startfile(self, *args, **kwargs):  # pragma: nocover
+            @overload
+            def startfile(
+                self,
+                arguments: str = ...,
+                cwd: str | None = ...,
+                show_cmd: int = ...,
+            ) -> Self: ...
+            @overload
+            def startfile(
+                self,
+                operation: str,
+                arguments: str = ...,
+                cwd: str | None = ...,
+                show_cmd: int = ...,
+            ) -> Self: ...
+
+        else:
+
+            @overload
+            def startfile(self) -> Self: ...
+            @overload
+            def startfile(self, operation: str) -> Self: ...
+
+        def startfile(self, *args, **kwargs) -> Self:  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
             os.startfile(self, *args, **kwargs)
             return self
@@ -1465,13 +1721,13 @@ class Path(str):
     @contextlib.contextmanager
     def in_place(
         self,
-        mode='r',
-        buffering=-1,
-        encoding=None,
-        errors=None,
-        newline=None,
-        backup_extension=None,
-    ):
+        mode: str = 'r',
+        buffering: int = -1,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+        backup_extension: str | None = None,
+    ) -> Iterator[tuple[IO[Any], IO[Any]]]:
         """
         A context in which a file may be re-written in-place with
         new content.
@@ -1546,7 +1802,7 @@ class Path(str):
 
     @classes.ClassProperty
     @classmethod
-    def special(cls):
+    def special(cls) -> Callable[[str | None], SpecialResolver]:
         """
         Return a SpecialResolver object suitable referencing a suitable
         directory for the relevant platform for the given
@@ -1573,7 +1829,7 @@ class Path(str):
 class DirectoryNotEmpty(OSError):
     @staticmethod
     @contextlib.contextmanager
-    def translate():
+    def translate() -> Iterator[None]:
         try:
             yield
         except OSError as exc:
@@ -1582,18 +1838,20 @@ class DirectoryNotEmpty(OSError):
             raise
 
 
-def only_newer(copy_func):
+def only_newer(copy_func: _CopyFn) -> _CopyFn:
     """
     Wrap a copy function (like shutil.copy2) to return
     the dst if it's newer than the source.
     """
 
     @functools.wraps(copy_func)
-    def wrapper(src, dst, *args, **kwargs):
-        is_newer_dst = dst.exists() and dst.getmtime() >= src.getmtime()
+    def wrapper(src: str, dst: str):
+        src_p = Path(src)
+        dst_p = Path(dst)
+        is_newer_dst = dst_p.exists() and dst_p.getmtime() >= src_p.getmtime()
         if is_newer_dst:
             return dst
-        return copy_func(src, dst, *args, **kwargs)
+        return copy_func(src, dst)
 
     return wrapper
 
@@ -1607,7 +1865,7 @@ class ExtantPath(Path):
     OSError: does-not-exist does not exist.
     """
 
-    def _validate(self):
+    def _validate(self) -> None:
         if not self.exists():
             raise OSError(f"{self} does not exist.")
 
@@ -1622,31 +1880,49 @@ class ExtantFile(Path):
     FileNotFoundError: does-not-exist does not exist as a file.
     """
 
-    def _validate(self):
+    def _validate(self) -> None:
         if not self.is_file():
             raise FileNotFoundError(f"{self} does not exist as a file.")
 
 
 class SpecialResolver:
+    path_class: type
+    wrapper: ModuleType
+
     class ResolverScope:
-        def __init__(self, paths, scope):
+        paths: SpecialResolver
+        scope: str
+
+        def __init__(self, paths: SpecialResolver, scope: str) -> None:
             self.paths = paths
             self.scope = scope
 
-        def __getattr__(self, class_):
+        def __getattr__(self, class_: str) -> _MultiPathType:
             return self.paths.get_dir(self.scope, class_)
 
-    def __init__(self, path_class, *args, **kwargs):
+    def __init__(
+        self,
+        path_class: type,
+        appname: str | None = None,
+        appauthor: str | None = None,
+        version: str | None = None,
+        roaming: bool = False,
+        multipath: bool = False,
+    ):
         appdirs = importlib.import_module('appdirs')
-
-        vars(self).update(
-            path_class=path_class, wrapper=appdirs.AppDirs(*args, **kwargs)
+        self.path_class = path_class
+        self.wrapper = appdirs.AppDirs(
+            appname=appname,
+            appauthor=appauthor,
+            version=version,
+            roaming=roaming,
+            multipath=multipath,
         )
 
-    def __getattr__(self, scope):
+    def __getattr__(self, scope: str) -> ResolverScope:
         return self.ResolverScope(self, scope)
 
-    def get_dir(self, scope, class_):
+    def get_dir(self, scope: str, class_: str) -> _MultiPathType:
         """
         Return the callable function from appdirs, but with the
         result wrapped in self.path_class
@@ -1663,26 +1939,30 @@ class Multi:
     """
 
     @classmethod
-    def for_class(cls, path_cls):
+    def for_class(cls, path_cls: type) -> type[_MultiPathType]:
         name = 'Multi' + path_cls.__name__
         return type(name, (cls, path_cls), {})
 
     @classmethod
-    def detect(cls, input):
+    def detect(cls, input: str) -> _MultiPathType:
         if os.pathsep not in input:
             cls = cls._next_class
-        return cls(input)
+        return cls(input)  # type: ignore[return-value, call-arg]
 
-    def __iter__(self):
-        return iter(map(self._next_class, self.split(os.pathsep)))
+    def __iter__(self) -> Iterator[Path]:
+        return iter(map(self._next_class, self.split(os.pathsep)))  # type: ignore[attr-defined]
 
     @classes.ClassProperty
     @classmethod
-    def _next_class(cls):
+    def _next_class(cls) -> type[Path]:
         """
         Multi-subclasses should use the parent class
         """
-        return next(class_ for class_ in cls.__mro__ if not issubclass(class_, Multi))
+        return next(class_ for class_ in cls.__mro__ if not issubclass(class_, Multi))  # type: ignore[return-value]
+
+
+class _MultiPathType(Multi, Path):
+    pass
 
 
 class TempDir(Path):
@@ -1707,39 +1987,48 @@ class TempDir(Path):
 
     @classes.ClassProperty
     @classmethod
-    def _next_class(cls):
+    def _next_class(cls) -> type[Path]:
         return Path
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> Self:
         dirname = tempfile.mkdtemp(*args, **kwargs)
         return super().__new__(cls, dirname)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self) -> None:
         pass
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         # TempDir should return a Path version of itself and not itself
         # so that a second context manager does not create a second
         # temporary directory, but rather changes CWD to the location
         # of the temporary directory.
         return self._next_class(self)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, *_) -> None:
         self.rmtree()
 
 
 class Handlers:
-    def strict(msg):
+    @staticmethod
+    def strict(msg: str) -> Never:
         raise
 
-    def warn(msg):
+    @staticmethod
+    def warn(msg: str) -> None:
         warnings.warn(msg, TreeWalkWarning, stacklevel=2)
 
-    def ignore(msg):
+    @staticmethod
+    def ignore(msg: str) -> None:
         pass
 
     @classmethod
-    def _resolve(cls, param):
-        if not callable(param) and param not in vars(Handlers):
-            raise ValueError("invalid errors parameter")
-        return vars(cls).get(param, param)
+    def _resolve(cls, param: str | Callable[[str], None]) -> Callable[[str], None]:
+        msg = "invalid errors parameter"
+        if isinstance(param, str):
+            if param not in vars(cls):
+                raise ValueError(msg)
+            return {"strict": cls.strict, "warn": cls.warn, "ignore": cls.ignore}[param]
+        else:
+            if not callable(param):
+                raise ValueError(msg)
+            return param

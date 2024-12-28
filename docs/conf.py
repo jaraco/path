@@ -49,6 +49,13 @@ nitpick_ignore = [
     ('py:class', 'OpenBinaryModeUpdating'),
     ('py:class', 'OpenBinaryModeWriting'),
     ('py:class', 'OpenTextMode'),
+    ('py:class', '_IgnoreFn'),
+    ('py:class', '_CopyFn'),
+    ('py:class', '_Match'),
+    ('py:class', '_OnErrorCallback'),
+    ('py:class', '_OnExcCallback'),
+    ('py:class', 'os.statvfs_result'),
+    ('py:class', 'ModuleType'),
 ]
 
 # Include Python intersphinx mapping to prevent failures
