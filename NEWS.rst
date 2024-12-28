@@ -1,3 +1,12 @@
+v17.1.0
+=======
+
+Features
+--------
+
+- Fully inlined the type annotations. Big thanks to SethMMorton. (#235)
+
+
 v17.0.0
 =======
 
