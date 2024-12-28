@@ -1,0 +1,1 @@
+Fully inlined the type annotations. Big thanks to SethMMorton.
