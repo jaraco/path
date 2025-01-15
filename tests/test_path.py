@@ -25,6 +25,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import textwrap
 import time
 import types
@@ -1062,6 +1063,30 @@ class TestTempDir:
                 raise KeyboardInterrupt()
 
         assert not d.exists()
+
+    def test_constructor_dir_argument(self):
+        """
+        It should be possible to provide a dir argument to the constructor
+        """
+        base = tempfile.mkdtemp()
+        with TempDir(dir=base) as d:
+            assert str(d).startswith(base)
+
+    def test_constructor_prefix_argument(self):
+        """
+        It should be possible to provide a prefix argument to the constructor
+        """
+        prefix = 'test_prefix'
+        with TempDir(prefix=prefix) as d:
+            assert d.name.startswith(prefix)
+
+    def test_constructor_suffix_argument(self):
+        """
+        It should be possible to provide a suffix argument to the constructor
+        """
+        suffix = 'test_suffix'
+        with TempDir(suffix=suffix) as d:
+            assert str(d).endswith(suffix)
 
 
 class TestUnicode:
