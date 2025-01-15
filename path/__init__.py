@@ -1994,7 +1994,7 @@ class TempDir(Path):
         dirname = tempfile.mkdtemp(*args, **kwargs)
         return super().__new__(cls, dirname)
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         pass
 
     def __enter__(self) -> Self:
