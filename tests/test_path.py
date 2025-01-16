@@ -25,7 +25,6 @@ import shutil
 import stat
 import subprocess
 import sys
-import tempfile
 import textwrap
 import time
 import types
@@ -1064,13 +1063,12 @@ class TestTempDir:
 
         assert not d.exists()
 
-    def test_constructor_dir_argument(self):
+    def test_constructor_dir_argument(self, tmpdir):
         """
         It should be possible to provide a dir argument to the constructor
         """
-        base = tempfile.mkdtemp()
-        with TempDir(dir=base) as d:
-            assert str(d).startswith(base)
+        with TempDir(dir=tmpdir) as d:
+            assert str(d).startswith(str(tmpdir))
 
     def test_constructor_prefix_argument(self):
         """
