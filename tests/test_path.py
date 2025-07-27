@@ -1063,6 +1063,29 @@ class TestTempDir:
 
         assert not d.exists()
 
+    def test_constructor_dir_argument(self, tmpdir):
+        """
+        It should be possible to provide a dir argument to the constructor
+        """
+        with TempDir(dir=tmpdir) as d:
+            assert str(d).startswith(str(tmpdir))
+
+    def test_constructor_prefix_argument(self):
+        """
+        It should be possible to provide a prefix argument to the constructor
+        """
+        prefix = 'test_prefix'
+        with TempDir(prefix=prefix) as d:
+            assert d.name.startswith(prefix)
+
+    def test_constructor_suffix_argument(self):
+        """
+        It should be possible to provide a suffix argument to the constructor
+        """
+        suffix = 'test_suffix'
+        with TempDir(suffix=suffix) as d:
+            assert str(d).endswith(suffix)
+
 
 class TestUnicode:
     @pytest.fixture(autouse=True)
