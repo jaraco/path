@@ -51,7 +51,7 @@ from io import (
 from types import ModuleType
 
 with contextlib.suppress(ImportError):
-    import win32security  # type: ignore[import-not-found]
+    import win32security
 
 with contextlib.suppress(ImportError):
     import pwd

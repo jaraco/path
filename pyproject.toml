@@ -46,6 +46,7 @@ test = [
 	"more_itertools",
 	# required for checkdocs on README.rst
 	"pygments",
+	"types-pywin32",
 ]
 
 doc = [
