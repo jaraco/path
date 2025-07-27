@@ -1206,7 +1206,7 @@ class Path(str):
                 self, win32security.OWNER_SECURITY_INFORMATION
             )
             sid = desc.GetSecurityDescriptorOwner()
-            account, domain, typecode = win32security.LookupAccountSid(None, sid)
+            account, domain, typecode = win32security.LookupAccountSid(None, sid)  # type: ignore[arg-type]
             return domain + '\\' + account
 
     else:
