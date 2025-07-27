@@ -59,28 +59,28 @@ with contextlib.suppress(ImportError):
 with contextlib.suppress(ImportError):
     import grp
 
+from collections.abc import Generator, Iterable, Iterator
 from typing import (
-    TYPE_CHECKING,
     IO,
+    TYPE_CHECKING,
     Any,
     BinaryIO,
     Callable,
-    Generator,
-    Iterable,
-    Iterator,
     overload,
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal, Never, Self, Union
+    from typing import Union
+
     from _typeshed import (
+        ExcInfo,
         OpenBinaryMode,
         OpenBinaryModeReading,
         OpenBinaryModeUpdating,
         OpenBinaryModeWriting,
         OpenTextMode,
-        ExcInfo,
     )
+    from typing_extensions import Literal, Never, Self
 
     _Match = Union[str, Callable[[str], bool], None]
     _CopyFn = Callable[[str, str], object]
