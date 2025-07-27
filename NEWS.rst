@@ -1,3 +1,12 @@
+v17.1.1
+=======
+
+Bugfixes
+--------
+
+- Fixed TempDir constructor arguments. (#236)
+
+
 v17.1.0
 =======
 
