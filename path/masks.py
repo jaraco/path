@@ -4,8 +4,8 @@ import functools
 import itertools
 import operator
 import re
-
-from typing import Any, Callable, Iterable, Iterator
+from collections.abc import Iterable, Iterator
+from typing import Any, Callable
 
 
 # from jaraco.functools
