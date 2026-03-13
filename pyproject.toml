@@ -49,7 +49,7 @@ doc = [
 ]
 
 check = [
-	"pytest-checkdocs >= 2.4",
+	"pytest-checkdocs >= 2.14",
 	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 ]
 
