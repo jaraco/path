@@ -251,7 +251,7 @@ class Path(str):
         os.chdir(self._old_dir)
 
     @classmethod
-    def cwd(cls):
+    def cwd(cls) -> 'Path':
         """Return the current working directory as a path object.
 
         .. seealso:: :func:`os.getcwd`
