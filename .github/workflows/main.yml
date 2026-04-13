@@ -34,31 +34,31 @@ jobs:
       # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
-        - "3.9"
+        - "3.10"
         - "3.13"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
         include:
-        - python: "3.10"
-          platform: ubuntu-latest
         - python: "3.11"
           platform: ubuntu-latest
         - python: "3.12"
           platform: ubuntu-latest
         - python: "3.14"
           platform: ubuntu-latest
+        - python: "3.15"
+          platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' }}
+    continue-on-error: ${{ matrix.python == '3.15' }}
     steps:
       - uses: actions/checkout@v4
       - name: Install build dependencies
         # Install dependencies for building packages on pre-release Pythons
         # jaraco/skeleton#161
-        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        if: matrix.python == '3.15' && matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y libxml2-dev libxslt-dev
