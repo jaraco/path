@@ -806,7 +806,7 @@ class Path(str):
 
         :example:
 
-            >>> hash = hashlib.md5()
+            >>> hash = hashlib.sha256()
             >>> for chunk in Path("NEWS.rst").chunks(8192, mode='rb'):
             ...     hash.update(chunk)
 
