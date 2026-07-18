@@ -98,8 +98,9 @@ LINESEPS = ['\r\n', '\r', '\n']
 U_LINESEPS = LINESEPS + ['\u0085', '\u2028', '\u2029']
 B_NEWLINE = re.compile('|'.join(LINESEPS).encode())
 U_NEWLINE = re.compile('|'.join(U_LINESEPS))
-B_NL_END = re.compile(B_NEWLINE.pattern + b'$')
-U_NL_END = re.compile(U_NEWLINE.pattern + '$')
+# Group the alternation so $ anchors the whole newline, not only the last alt.
+B_NL_END = re.compile(b'(?:' + B_NEWLINE.pattern + b')$')
+U_NL_END = re.compile('(?:' + U_NEWLINE.pattern + ')$')
 
 _default_linesep = object()
 
@@ -155,6 +156,8 @@ def _strip_newlines(lines: Iterable[str]) -> Iterator[str]:
     r"""
     >>> list(_strip_newlines(['Hello World\r\n', 'foo']))
     ['Hello World', 'foo']
+    >>> list(_strip_newlines(['Hello\nWorld\n', 'foo']))
+    ['Hello\nWorld', 'foo']
     """
     return (U_NL_END.sub('', line) for line in lines)
 

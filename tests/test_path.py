@@ -318,6 +318,13 @@ class TestReadWriteText:
         assert file.read_text(encoding='utf-8') == 'hello world'
         assert file.read_bytes() == b'hello world'
 
+    def test_write_lines_preserves_embedded_newlines(self, tmpdir):
+        file = path.Path(tmpdir) / 'filename'
+        file.write_lines(['Hello\nWorld', 'foo\r\nbar\n'], encoding='utf-8')
+        assert file.read_bytes() == (
+            f'Hello\nWorld{os.linesep}foo\r\nbar{os.linesep}'.encode()
+        )
+
 
 class TestPerformance:
     @staticmethod
