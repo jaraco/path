@@ -318,6 +318,15 @@ class TestReadWriteText:
         assert file.read_text(encoding='utf-8') == 'hello world'
         assert file.read_bytes() == b'hello world'
 
+    def test_write_text_linesep_is_literal(self, tmpdir):
+        file = path.Path(tmpdir) / 'filename'
+        file.write_text('a\nb\rc\r\nd', encoding='utf-8', linesep='\\1')
+        assert file.read_bytes() == b'a\\1b\\1c\\1d'
+        file.write_text('a\nb', encoding='utf-8', linesep='\\n')
+        assert file.read_bytes() == b'a\\nb'
+        file.write_text('a\nb', encoding='utf-8', linesep='\n')
+        assert file.read_bytes() == b'a\nb'
+
 
 class TestPerformance:
     @staticmethod
