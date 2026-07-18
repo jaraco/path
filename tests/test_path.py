@@ -815,6 +815,15 @@ class TestScratchDir:
 
         assert i == len(txt) / size - 1
 
+    def test_chunks_rejects_nonpositive_size(self, tmpdir):
+        p = (TempDir() / 'test.txt').touch()
+        p.write_text("0123456789", encoding='utf-8')
+        with pytest.raises(ValueError, match="size must be positive"):
+            list(p.chunks(0, encoding='utf-8'))
+        with pytest.raises(ValueError, match="size must be positive"):
+            list(p.chunks(-1, encoding='utf-8'))
+        assert list(p.chunks(5, encoding='utf-8')) == ["01234", "56789"]
+
     def test_samefile(self, tmpdir):
         f1 = (TempDir() / '1.txt').touch()
         f1.write_text('foo')

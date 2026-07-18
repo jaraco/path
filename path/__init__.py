@@ -812,6 +812,8 @@ class Path(str):
 
          This will read the file by chunks of 8192 bytes.
         """
+        if size <= 0:
+            raise ValueError("size must be positive")
         with self.open(*args, **kwargs) as f:
             yield from iter(lambda: f.read(size) or None, None)
 
