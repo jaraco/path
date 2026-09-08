@@ -1787,7 +1787,7 @@ class Path(str):
 
         try:
             yield readable, writable
-        except Exception:
+        except BaseException:
             # move backup back
             readable.close()
             writable.close()
