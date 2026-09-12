@@ -471,6 +471,22 @@ class TestScratchDir:
             assert os.getcwd() == os.path.realpath(subdir)
         assert os.getcwd() == old_dir
 
+    @pytest.mark.parametrize('raise_inside', [False, True])
+    def test_reentrant_context_manager(self, tmpdir, raise_inside):
+        directory = Path(tmpdir)
+        old_dir = os.getcwd()
+        try:
+            with directory:
+                with contextlib.suppress(ValueError):
+                    with directory:
+                        assert Path.cwd() == directory.realpath()
+                        if raise_inside:
+                            raise ValueError('inner context')
+                assert Path.cwd() == directory.realpath()
+            assert os.getcwd() == old_dir
+        finally:
+            os.chdir(old_dir)
+
     def test_touch(self, tmpdir):
         # NOTE: This test takes a long time to run (~10 seconds).
         # It sleeps several seconds because on Windows, the resolution
