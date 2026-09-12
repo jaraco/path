@@ -1384,8 +1384,11 @@ class Path(str):
     def makedirs_p(self, mode: int = 0o777) -> Self:
         """Like :meth:`makedirs`, but does not raise an exception if the
         directory already exists."""
-        with contextlib.suppress(FileExistsError):
+        try:
             self.makedirs(mode)
+        except FileExistsError:
+            if not self.is_dir():
+                raise
         return self
 
     def rmdir(self) -> Self:

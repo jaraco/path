@@ -294,10 +294,11 @@ class TestBasics:
     def test_mkdir_p(self, tmpdir):
         Path(tmpdir).mkdir_p()
 
-    def test_mkdir_p_existing_file(self, tmpdir):
+    @pytest.mark.parametrize('method', ['mkdir_p', 'makedirs_p'])
+    def test_mkdir_p_existing_file(self, tmpdir, method):
         file = (Path(tmpdir) / 'file').touch()
         with pytest.raises(FileExistsError):
-            file.mkdir_p()
+            getattr(file, method)()
         assert file.is_file()
 
     def test_mkdir_p_new_directory(self, tmpdir):
