@@ -294,6 +294,17 @@ class TestBasics:
     def test_mkdir_p(self, tmpdir):
         Path(tmpdir).mkdir_p()
 
+    def test_mkdir_p_existing_file(self, tmpdir):
+        file = (Path(tmpdir) / 'file').touch()
+        with pytest.raises(FileExistsError):
+            file.mkdir_p()
+        assert file.is_file()
+
+    def test_mkdir_p_new_directory(self, tmpdir):
+        directory = Path(tmpdir) / 'new'
+        assert directory.mkdir_p() == directory
+        assert directory.is_dir()
+
     def test_removedirs_p(self, tmpdir):
         dir = Path(tmpdir) / 'somedir'
         dir.mkdir()

@@ -1369,8 +1369,11 @@ class Path(str):
     def mkdir_p(self, mode: int = 0o777) -> Self:
         """Like :meth:`mkdir`, but does not raise an exception if the
         directory already exists."""
-        with contextlib.suppress(FileExistsError):
+        try:
             self.mkdir(mode)
+        except FileExistsError:
+            if not self.is_dir():
+                raise
         return self
 
     def makedirs(self, mode: int = 0o777) -> Self:
