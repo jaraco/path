@@ -900,8 +900,12 @@ class Path(str):
         """
         if linesep is not None:
             text = U_NEWLINE.sub(linesep, text)
-        bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
-        self.write_bytes(bytes, append=append)
+        encoding = encoding or sys.getdefaultencoding()
+        if append:
+            with self.open('a', encoding=encoding, errors=errors, newline='') as f:
+                f.write(text)
+        else:
+            self.write_bytes(text.encode(encoding, errors))
 
     def lines(
         self,
