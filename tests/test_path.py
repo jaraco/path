@@ -1398,3 +1398,36 @@ class TestHandlers:
     def test_invalid_handler(self):
         with pytest.raises(ValueError):
             path.Handlers._resolve('raise')
+
+
+@pytest.mark.parametrize('target_mtime', [None, 1000, 3000])
+def test_only_newer_directory(tmp_path, target_mtime):
+    source = Path(tmp_path) / 'source.txt'
+    source.write_text('source')
+    source.utime((2000, 2000))
+    directory = (Path(tmp_path) / 'destination').mkdir()
+    target = directory / source.name
+    if target_mtime is not None:
+        target.write_text('destination')
+        target.utime((target_mtime, target_mtime))
+    directory.utime((4000, 4000))
+
+    result = path.only_newer(shutil.copy2)(source, directory)
+
+    assert result == target
+    expected = 'destination' if target_mtime == 3000 else 'source'
+    assert target.read_text() == expected
+
+
+def test_only_newer_directory_with_newer_file(tmp_path):
+    source = Path(tmp_path) / 'source.txt'
+    source.write_text('source')
+    source.utime((2000, 2000))
+    directory = (Path(tmp_path) / 'destination').mkdir()
+    target = directory / source.name
+    target.write_text('destination')
+    target.utime((3000, 3000))
+    directory.utime((1000, 1000))
+
+    assert path.only_newer(shutil.copy2)(source, directory) == target
+    assert target.read_text() == 'destination'

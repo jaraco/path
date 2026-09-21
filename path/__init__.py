@@ -1842,15 +1842,20 @@ def only_newer(copy_func: _CopyFn) -> _CopyFn:
     """
     Wrap a copy function (like shutil.copy2) to return
     the dst if it's newer than the source.
+
+    If dst is a directory, compare against the file with the source's name
+    inside that directory.
     """
 
     @functools.wraps(copy_func)
     def wrapper(src: str, dst: str):
         src_p = Path(src)
         dst_p = Path(dst)
+        if dst_p.is_dir():
+            dst_p = dst_p / src_p.name
         is_newer_dst = dst_p.exists() and dst_p.getmtime() >= src_p.getmtime()
         if is_newer_dst:
-            return dst
+            return dst_p
         return copy_func(src, dst)
 
     return wrapper
