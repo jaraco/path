@@ -44,9 +44,6 @@ test = [
 	"packaging",
 	'pywin32; platform_system == "Windows" and python_version < "3.12"',
 	"more_itertools",
-	# required for checkdocs on README.rst
-	"pygments",
-	"types-pywin32",
 ]
 
 doc = [
@@ -66,6 +63,8 @@ doc = [
 check = [
 	"pytest-checkdocs >= 2.14",
 	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
+	# required for checkdocs on README.rst
+	"pygments",
 ]
 
 cover = [
@@ -83,6 +82,7 @@ type = [
 	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy'",
 
 	# local
+	"types-pywin32",
 ]
 
 
