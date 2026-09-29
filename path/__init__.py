@@ -1662,8 +1662,12 @@ class Path(str):
         for source in itertools.filterfalse(ignored, sources):
             dest = dst_path / source.name
             if symlinks and source.islink():
-                target = source.readlink()
-                target.symlink(dest)
+                # copy2 overwrites files; replace dest so a re-merge does not fail
+                if dest.islink() or dest.is_file():
+                    dest.remove()
+                elif dest.is_dir():
+                    dest.rmtree()
+                source.readlink().symlink(dest)
             elif source.is_dir():
                 source.merge_tree(
                     dest,

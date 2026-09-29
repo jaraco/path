@@ -919,6 +919,39 @@ class TestMergeTree:
         assert set(self.subdir_b.iterdir()) == expected
         self.check_link()
 
+    def test_overwrite_existing_symlink(self):
+        """
+        Re-merging a tree that contains symlinks should overwrite
+        destination links instead of raising FileExistsError.
+        """
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        self.check_link()
+
+    def test_overwrite_retargets_existing_symlink(self):
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        self.test_link.remove()
+        other = self.subdir_a / 'other.txt'
+        other.write_text('y', encoding='utf-8')
+        other.symlink(self.test_link)
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        dest_link = self.subdir_b / self.test_link.name
+        assert dest_link.islink()
+        assert dest_link.readlink().basename() == other.name
+
+    def test_symlink_replaces_existing_file(self):
+        dest_link = self.subdir_b / self.test_link.name
+        dest_link.write_text('not a link', encoding='utf-8')
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        assert dest_link.islink()
+
+    def test_symlink_replaces_existing_directory(self):
+        dest_link = self.subdir_b / self.test_link.name
+        dest_link.mkdir()
+        (dest_link / 'child').touch()
+        self.subdir_a.merge_tree(self.subdir_b, True)
+        assert dest_link.islink()
+
     def test_with_existing_dst(self):
         self.subdir_b.rmtree()
         self.subdir_a.copytree(self.subdir_b, True)
