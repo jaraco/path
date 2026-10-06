@@ -1,0 +1,1 @@
+Added ``Path.is_symlink()`` for compatibility with ``pathlib``. Deprecated ``Path.islink()`` in favor of ``is_symlink()``.
