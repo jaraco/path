@@ -383,9 +383,14 @@ class Path(str):
     def with_name(self, name: str) -> Self:
         """Return a new path with the name changed.
 
+        Raise :exc:`ValueError` if the name is empty, ``'.'``, or contains
+        directory or drive components.
+
         >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
         Path('/home/guido/foo.zip')
         """
+        if not name or name == '.' or self.module.basename(name) != name:
+            raise ValueError(f"Invalid name {name!r}")
         return self._next_class(removesuffix(self, self.name) + name)
 
     def splitpath(self) -> tuple[Self, str]:

@@ -42,6 +42,48 @@ def os_choose(**choices):
 
 
 class TestBasics:
+    @pytest.mark.parametrize(
+        ('module', 'name'),
+        [
+            (posixpath, ''),
+            (posixpath, '.'),
+            (posixpath, '../other.txt'),
+            (posixpath, '/other.txt'),
+            (posixpath, 'other/'),
+            (ntpath, ''),
+            (ntpath, '.'),
+            (ntpath, r'..\other.txt'),
+            (ntpath, '../other.txt'),
+            (ntpath, r'C:\other.txt'),
+            (ntpath, 'C:other.txt'),
+        ],
+    )
+    def test_with_name_rejects_invalid_name(self, module, name):
+        source = Path.using_module(module)('data/report.txt')
+        with pytest.raises(ValueError, match='Invalid name'):
+            source.with_name(name)
+
+    @pytest.mark.parametrize('module', [posixpath, ntpath])
+    def test_with_stem_rejects_path_components(self, module):
+        source = Path.using_module(module)('data/report.txt')
+        with pytest.raises(ValueError, match='Invalid name'):
+            source.with_stem('../other')
+
+    @pytest.mark.parametrize(
+        ('module', 'name'),
+        [
+            (posixpath, 'other.txt'),
+            (posixpath, r'other\name.txt'),
+            (ntpath, 'other.txt'),
+        ],
+    )
+    def test_with_name_preserves_parent_and_type(self, module, name):
+        source = Path.using_module(module)('data/report.txt')
+        result = source.with_name(name)
+        assert result.parent == source.parent
+        assert result.name == name
+        assert type(result) is type(source)
+
     def test_relpath(self):
         root = Path(os_choose(nt='C:\\', posix='/'))
         foo = root / 'foo'
