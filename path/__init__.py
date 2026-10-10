@@ -1038,6 +1038,8 @@ class Path(str):
         """
         return self.module.ismount(self)
 
+    is_mount = ismount
+
     def samefile(self, other: str) -> bool:
         """.. seealso:: :func:`os.path.samefile`"""
         return self.module.samefile(self, other)
