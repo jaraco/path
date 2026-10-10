@@ -305,6 +305,30 @@ class TestBasics:
         # TODO: shouldn't sub get removed?
         # assert not (dir / 'sub').is_dir()
 
+    @pytest.mark.parametrize('nested', [False, True])
+    def test_removedirs_p_missing(self, tmpdir, nested):
+        # 2026-10-11: Cleanup is harmless when the directory or its parent is absent.
+        directory = Path(tmpdir) / 'missing'
+        if nested:
+            directory /= 'child'
+        assert directory.removedirs_p() is directory
+        assert not directory.exists()
+
+    def test_removedirs_p_repeated(self, tmpdir):
+        # 2026-10-11: Removing an empty tree twice must remain idempotent.
+        (Path(tmpdir) / 'keep').touch()
+        directory = (Path(tmpdir) / 'parent' / 'child').makedirs()
+        assert directory.removedirs_p() is directory
+        assert directory.removedirs_p() is directory
+        assert not directory.parent.exists()
+
+    def test_removedirs_p_file(self, tmpdir):
+        # 2026-10-11: Existing files are still an error rather than absent directories.
+        file = (Path(tmpdir) / 'file').touch()
+        with pytest.raises(OSError):
+            file.removedirs_p()
+        assert file.is_file()
+
     @pytest.mark.skipif("not hasattr(Path, 'group')")
     def test_group(self, tmpdir):
         file = Path(tmpdir).joinpath('file').touch()

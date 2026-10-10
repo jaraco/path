@@ -1407,7 +1407,8 @@ class Path(str):
     def removedirs_p(self) -> Self:
         """Like :meth:`removedirs`, but does not raise an exception if the
         directory is not empty or does not exist."""
-        with contextlib.suppress(FileExistsError, DirectoryNotEmpty):
+        # 2026-10-11: Repeated cleanup must also tolerate missing directories.
+        with contextlib.suppress(FileNotFoundError, FileExistsError, DirectoryNotEmpty):
             with DirectoryNotEmpty.translate():
                 self.removedirs()
         return self
