@@ -18,6 +18,7 @@ import datetime
 import importlib
 import ntpath
 import os
+import pickle
 import platform
 import posixpath
 import re
@@ -34,6 +35,19 @@ from more_itertools import ilen
 
 import path
 from path import Multi, Path, SpecialResolver, TempDir, matchers
+
+
+def _lowercase_normalizer():
+    return lambda self, value: value.lower()
+
+
+class _LambdaPattern(matchers.Pattern):
+    __slots__ = ('label',)
+    normcase = _lowercase_normalizer()
+
+    def __init__(self, pattern, label):
+        super().__init__(pattern)
+        self.label = label
 
 
 def os_choose(**choices):
@@ -1148,6 +1162,66 @@ class TestPatternMatching:
         p = always_win(tmpdir)
         assert list(p.iterdir('S*')) == [p / 'sub']
         assert list(p.iterdir('f*')) == [p / 'File']
+
+    def test_reused_pattern_respects_path_module(self, tmpdir):
+        root = Path(tmpdir)
+        (root / 'File.TXT').touch()
+        always_unix = Path.using_module(posixpath)
+        always_win = Path.using_module(ntpath)
+        paths = (always_unix(tmpdir), always_win(tmpdir))
+
+        for first, second in (paths, paths[::-1]):
+            pattern = matchers.Pattern('*.TXT')
+            assert [path.name for path in first.iterdir(pattern)] == ['File.TXT']
+            assert [path.name for path in second.iterdir(pattern)] == ['File.TXT']
+
+    def test_reused_bound_normalizer_uses_cache(self):
+        class Normalizer:
+            calls = 0
+
+            def normcase(self, value):
+                self.calls += 1
+                return value.lower()
+
+        normalizer = Normalizer()
+        pattern = matchers.Pattern('*.TXT')
+        assert pattern.get_pattern(normalizer.normcase) == '*.txt'
+        assert pattern.get_pattern(normalizer.normcase) == '*.txt'
+        assert normalizer.calls == 1
+
+    def test_reused_builtin_bound_normalizer_uses_cache(self):
+        normalizer = {'*.TXT': '*.txt'}
+        pattern = matchers.Pattern('*.TXT')
+
+        assert pattern.get_pattern(normalizer.get) == '*.txt'
+        assert pattern.get_pattern(normalizer.get) == '*.txt'
+
+    def test_distinct_callable_normalizers_do_not_alias_by_metadata(self):
+        class Normalizer:
+            __self__ = object()
+            __name__ = 'normcase'
+
+            def __init__(self, normalize):
+                self.normalize = normalize
+
+            def __call__(self, value):
+                return self.normalize(value)
+
+        pattern = matchers.Pattern('*.TXT')
+        lowercase = Normalizer(str.lower)
+        identity = Normalizer(lambda value: value)
+
+        assert pattern.get_pattern(lowercase) == '*.txt'
+        assert pattern.get_pattern(identity) == '*.TXT'
+
+    def test_lambda_normalizer_pattern_round_trips_after_matching(self):
+        pattern = _LambdaPattern('*.TXT', 'custom state')
+        assert pattern(Path('File.TXT'))
+
+        restored = pickle.loads(pickle.dumps(pattern))
+
+        assert restored.label == 'custom state'
+        assert restored(Path('File.TXT'))
 
     def test_iterdir_case_insensitive(self, tmpdir):
         """
