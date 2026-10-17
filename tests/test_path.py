@@ -348,6 +348,33 @@ class TestOwnership:
 
 
 class TestLinks:
+    @pytest.mark.parametrize('target_type', ['file', 'directory', 'missing'])
+    @pytest.mark.parametrize('symlink', [False, True])
+    def test_is_symlink(self, tmp_path, target_type, symlink):
+        target = tmp_path / 'target'
+        if target_type == 'file':
+            target.touch()
+        elif target_type == 'directory':
+            target.mkdir()
+        candidate = target
+        if symlink:
+            candidate = tmp_path / 'link'
+            candidate.symlink_to(target, target_is_directory=target_type == 'directory')
+
+        assert Path(candidate).is_symlink() is symlink
+
+    @pytest.mark.parametrize('symlink', [False, True])
+    def test_islink_deprecated(self, tmp_path, symlink):
+        candidate = tmp_path / 'link'
+        if symlink:
+            candidate.symlink_to(tmp_path / 'missing')
+
+        with pytest.warns(
+            DeprecationWarning, match='islink is deprecated; use is_symlink'
+        ) as recorded:
+            assert Path(candidate).islink() is symlink
+        assert recorded[0].filename == __file__
+
     def test_hardlink_to(self, tmpdir):
         target = Path(tmpdir) / 'target'
         target.write_text('hello', encoding='utf-8')
@@ -396,7 +423,7 @@ class TestSymbolicLinksWalk:
         assert len(list(root.walk())) == 4
 
         skip_links = path.Traversal(
-            lambda item: item.is_dir() and not item.islink(),
+            lambda item: item.is_dir() and not item.is_symlink(),
         )
         assert len(list(skip_links(root.walk()))) == 3
 
@@ -680,7 +707,7 @@ class TestScratchDir:
             testC.iterdir(),
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
         )
-        assert not testCopyOfLink.islink()
+        assert not testCopyOfLink.is_symlink()
 
         # Clean up for another try.
         testC.rmtree()
@@ -694,7 +721,7 @@ class TestScratchDir:
             [testC / testCopy.name, testC / testFile.name, testCopyOfLink],
         )
         if hasattr(os, 'symlink'):
-            assert testCopyOfLink.islink()
+            assert testCopyOfLink.is_symlink()
             assert testCopyOfLink.realpath() == testFile
 
         # Clean up.
@@ -895,7 +922,7 @@ class TestMergeTree:
 
     def check_link(self):
         target = Path(self.subdir_b / self.test_link.name)
-        check = target.islink if hasattr(os, 'symlink') else target.is_file
+        check = target.is_symlink if hasattr(os, 'symlink') else target.is_file
         assert check()
 
     def test_with_nonexisting_dst_kwargs(self):
