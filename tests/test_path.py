@@ -726,7 +726,7 @@ class TestScratchDir:
         self.assertList(d.walkfiles('*.tmp'), [e / 'x.tmp' for e in dirs])
         self.assertList(d.walkdirs('*.tmp'), [d / 'xdir.tmp'])
 
-    encodings = 'UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16'
+    encodings = 'UTF-8', 'UTF-16BE', 'UTF-16LE', 'UTF-16', 'UTF-32', 'UTF-8-SIG'
 
     @pytest.mark.parametrize("encoding", encodings)
     def test_unicode(self, tmpdir, encoding):
@@ -767,13 +767,6 @@ class TestScratchDir:
         assert p.lines(encoding) == expectedLines
         assert p.lines(encoding, retain=False) == stripped
 
-        # If this is UTF-16, that's enough.
-        # The rest of these will unfortunately fail because append=True
-        # mode causes an extra BOM to be written in the middle of the file.
-        # UTF-16 is the only encoding that has this problem.
-        if encoding == 'UTF-16':
-            return
-
         # Write Unicode to file using path.write_text().
         # This test doesn't work with a hanging line.
         cleanNoHanging = clean + '\n'
@@ -781,7 +774,7 @@ class TestScratchDir:
         p.write_text(cleanNoHanging, encoding)
         p.write_text(cleanNoHanging, encoding, append=True)
         # Check the result.
-        expectedBytes = 2 * cleanNoHanging.replace('\n', os.linesep).encode(encoding)
+        expectedBytes = (2 * cleanNoHanging.replace('\n', os.linesep)).encode(encoding)
         expectedLinesNoHanging = expectedLines[:]
         expectedLinesNoHanging[-1] += '\n'
         assert p.bytes() == expectedBytes
@@ -1401,3 +1394,14 @@ class TestHandlers:
     def test_invalid_handler(self):
         with pytest.raises(ValueError):
             path.Handlers._resolve('raise')
+
+
+@pytest.mark.parametrize('encoding', ['UTF-16', 'UTF-32', 'UTF-8-SIG'])
+@pytest.mark.parametrize('exists', [False, True])
+def test_write_text_append_bom(tmp_path, encoding, exists):
+    target = Path(tmp_path) / 'text.txt'
+    if exists:
+        target.touch()
+    target.write_text('first', encoding=encoding, append=True)
+    target.write_text('second', encoding=encoding, append=True)
+    assert target.read_bytes() == 'firstsecond'.encode(encoding)
