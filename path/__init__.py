@@ -90,7 +90,6 @@ if TYPE_CHECKING:
 
 
 from . import classes, masks, matchers
-from .compat.py38 import removeprefix, removesuffix
 
 __all__ = ['Path', 'TempDir', 'Traversal']
 
@@ -386,7 +385,7 @@ class Path(str):
         >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
         Path('/home/guido/foo.zip')
         """
-        return self._next_class(removesuffix(self, self.name) + name)
+        return self._next_class(self.removesuffix(self.name) + name)
 
     def splitpath(self) -> tuple[Self, str]:
         """Return two-tuple of ``.parent``, ``.name``.
@@ -1483,7 +1482,7 @@ class Path(str):
 
         .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
         """
-        return self._next_class(removeprefix(os.readlink(self), '\\\\?\\'))
+        return self._next_class(os.readlink(self).removeprefix('\\\\?\\'))
 
     def readlinkabs(self) -> Self:
         """Return the path to which this symbolic link points.
