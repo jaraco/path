@@ -82,7 +82,6 @@ class TestBasics:
         assert Path() == '.'
 
     def test_construction_from_none(self):
-        """ """
         with pytest.raises(TypeError):
             Path(None)
 
@@ -555,7 +554,7 @@ class TestScratchDir:
             af.remove()
 
         # Try a test with 20 files
-        files = [d / ('%d.txt' % i) for i in range(20)]
+        files = [d / f'{i}.txt' for i in range(20)]
         for f in files:
             with open(f, 'w', encoding='utf-8') as fobj:
                 fobj.write('some text\n')
@@ -1057,9 +1056,8 @@ class TestTempDir:
         assert not d.is_dir()
 
     def test_cleaned_up_on_interrupt(self):
-        with contextlib.suppress(KeyboardInterrupt):
-            with TempDir() as d:
-                raise KeyboardInterrupt()
+        with contextlib.suppress(KeyboardInterrupt), TempDir() as d:
+            raise KeyboardInterrupt()
 
         assert not d.exists()
 
@@ -1219,10 +1217,12 @@ class TestInPlace:
 
     def test_exception_in_context(self, tmpdir):
         doc = self.create_reference(tmpdir)
-        with pytest.raises(RuntimeError) as exc:
-            with doc.in_place(encoding='utf-8') as (reader, writer):
-                writer.write(self.alternate_content)
-                raise RuntimeError("some error")
+        with (
+            pytest.raises(RuntimeError) as exc,
+            doc.in_place(encoding='utf-8') as (_reader, writer),
+        ):
+            writer.write(self.alternate_content)
+            raise RuntimeError("some error")
         assert "some error" in str(exc.value)
         with doc.open(encoding='utf-8') as stream:
             data = stream.read()
@@ -1230,9 +1230,11 @@ class TestInPlace:
         assert 'lazy dog' in data
 
     def test_write_mode_invalid(self, tmpdir):
-        with pytest.raises(ValueError):
-            with (Path(tmpdir) / 'document').in_place(mode='w'):
-                pass
+        with (
+            pytest.raises(ValueError),
+            (Path(tmpdir) / 'document').in_place(mode='w'),
+        ):
+            pass
 
 
 class TestSpecialPaths:
@@ -1378,7 +1380,7 @@ class TestHandlers:
     def run_with_handler(handler):
         try:
             raise ValueError()
-        except Exception:
+        except Exception:  # noqa: BLE001
             handler("Something unexpected happened")
 
     def test_raise(self):

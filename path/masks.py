@@ -4,13 +4,13 @@ import functools
 import itertools
 import operator
 import re
-from collections.abc import Iterable, Iterator
-from typing import Any, Callable
+from collections.abc import Callable, Iterable, Iterator
+from typing import Any
 
 
 # from jaraco.functools
 def compose(*funcs: Callable[..., Any]) -> Callable[..., Any]:
-    compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))  # noqa
+    compose_two = lambda f1, f2: lambda *args, **kwargs: f1(f2(*args, **kwargs))
     return functools.reduce(compose_two, funcs)
 
 
