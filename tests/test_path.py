@@ -1239,6 +1239,7 @@ class TestInPlace:
 
 class TestSpecialPaths:
     @pytest.fixture(autouse=True, scope='class')
+    @classmethod
     def appdirs_installed(cls):
         pytest.importorskip('appdirs')
 
