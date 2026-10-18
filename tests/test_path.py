@@ -146,6 +146,27 @@ class TestBasics:
         assert isinstance(home, Path)
         assert home == os.path.expanduser('~')
 
+    @pytest.mark.parametrize('method', ['ismount', 'is_mount'])
+    @pytest.mark.parametrize('kind', ['directory', 'file', 'missing', 'root'])
+    def test_is_mount(self, tmp_path, method, kind):
+        (tmp_path / 'directory').mkdir()
+        (tmp_path / 'file').touch()
+        target = Path(tmp_path.anchor) if kind == 'root' else Path(tmp_path / kind)
+        assert getattr(target, method)() is (kind == 'root')
+
+    @pytest.mark.parametrize('method', ['ismount', 'is_mount'])
+    @pytest.mark.parametrize('expected', [False, True])
+    def test_is_mount_module(self, monkeypatch, method, expected):
+        module = types.ModuleType('mount_module')
+        target = Path.using_module(module)('some-path')
+
+        def ismount(value):
+            assert value is target
+            return expected
+
+        monkeypatch.setattr(module, 'ismount', ismount, raising=False)
+        assert getattr(target, method)() is expected
+
     def test_explicit_module(self):
         """
         The user may specify an explicit path module to use.
