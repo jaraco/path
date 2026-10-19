@@ -460,6 +460,20 @@ class TestScratchDir:
     Tests that run in a temporary directory (does not test TempDir class)
     """
 
+    @pytest.mark.skipif(os.name == 'nt', reason='POSIX file permissions')
+    def test_touch_readonly_file(self, tmp_path):
+        target = Path(tmp_path / 'readonly.txt')
+        target.write_text('preserved content')
+        target.utime((1_000_000_000, 1_000_000_000))
+        target.chmod(0o444)
+        try:
+            assert target.touch() is target
+            assert target.stat().st_mtime > 1_000_000_000
+            assert target.stat().st_mode & 0o777 == 0o444
+            assert target.read_text(encoding='utf-8') == 'preserved content'
+        finally:
+            target.chmod(0o644)
+
     def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
         d = Path(tmpdir)
