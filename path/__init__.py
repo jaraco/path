@@ -647,7 +647,7 @@ class Path(str):
                   :func:`walkdirs` or :func:`walkfiles`.
         """
         cls = self._next_class
-        return [cls(s) for s in glob.glob(self / pattern)]
+        return [cls(s) for s in glob.glob(cls(glob.escape(self)) / pattern)]
 
     def iglob(self, pattern: str) -> Iterator[Self]:
         """Return an iterator of Path objects that match the pattern.
@@ -665,7 +665,7 @@ class Path(str):
                   :func:`walkdirs` or :func:`walkfiles`.
         """
         cls = self._next_class
-        return (cls(s) for s in glob.iglob(self / pattern))
+        return (cls(s) for s in glob.iglob(cls(glob.escape(self)) / pattern))
 
     #
     # --- Reading or writing an entire file at once.

@@ -460,6 +460,15 @@ class TestScratchDir:
     Tests that run in a temporary directory (does not test TempDir class)
     """
 
+    @pytest.mark.parametrize('method', ['glob', 'iglob'])
+    def test_glob_literal_parent(self, tmp_path, method):
+        directory = Path(tmp_path / '[reports]').mkdir()
+        expected = (directory / 'result.txt').touch()
+        (directory / 'ignored.csv').touch()
+        decoy = Path(tmp_path / 'r').mkdir()
+        (decoy / 'wrong.txt').touch()
+        assert list(getattr(directory, method)('*.txt')) == [expected]
+
     def test_context_manager(self, tmpdir):
         """Can be used as context manager for chdir."""
         d = Path(tmpdir)
