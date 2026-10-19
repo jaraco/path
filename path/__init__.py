@@ -1750,43 +1750,42 @@ class Path(str):
         backup_fn = self + (backup_extension or os.extsep + 'bak')
         backup_fn.remove_p()
         self.rename(backup_fn)
-        # closed explicitly below, after the caller's block exits
-        readable = open(  # noqa: SIM115
-            backup_fn,
-            mode,
-            buffering=buffering,
-            encoding=encoding,
-            errors=errors,
-            newline=newline,
-        )
-
-        perm = os.stat(readable.fileno()).st_mode
-        os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
-        os_mode |= getattr(os, 'O_BINARY', 0)
-        fd = os.open(self, os_mode, perm)
-        writable = open(  # noqa: SIM115
-            fd,
-            "w" + mode.replace('r', ''),
-            buffering=buffering,
-            encoding=encoding,
-            errors=errors,
-            newline=newline,
-        )
-        with contextlib.suppress(OSError, AttributeError):
-            self.chmod(perm)
-
         try:
-            yield readable, writable
+            with contextlib.ExitStack() as streams:
+                readable = streams.enter_context(
+                    open(
+                        backup_fn,
+                        mode,
+                        buffering=buffering,
+                        encoding=encoding,
+                        errors=errors,
+                        newline=newline,
+                    )
+                )
+                perm = os.stat(readable.fileno()).st_mode
+                os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
+                os_mode |= getattr(os, 'O_BINARY', 0)
+                fd = os.open(self, os_mode, perm)
+                streams.callback(os.close, fd)
+                writable = streams.enter_context(
+                    open(
+                        fd,
+                        "w" + mode.replace('r', ''),
+                        buffering=buffering,
+                        encoding=encoding,
+                        errors=errors,
+                        newline=newline,
+                        closefd=False,
+                    )
+                )
+                with contextlib.suppress(OSError, AttributeError):
+                    self.chmod(perm)
+                yield readable, writable
         except Exception:
-            # move backup back
-            readable.close()
-            writable.close()
+            # move backup back after closing any streams opened during setup
             self.remove_p()
             backup_fn.rename(self)
             raise
-        else:
-            readable.close()
-            writable.close()
         finally:
             backup_fn.remove_p()
 
