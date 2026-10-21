@@ -1229,6 +1229,17 @@ class TestInPlace:
         assert 'Lorem' not in data
         assert 'lazy dog' in data
 
+    @pytest.mark.parametrize('error', [KeyboardInterrupt, SystemExit, GeneratorExit])
+    def test_base_exception_restores_original(self, tmpdir, error):
+        doc = self.create_reference(tmpdir)
+        with pytest.raises(error), doc.in_place(encoding='utf-8') as (reader, writer):
+            writer.write(self.alternate_content)
+            raise error()
+        assert doc.read_text(encoding='utf-8') == self.reference_content
+        assert reader.closed
+        assert writer.closed
+        assert not (doc + '.bak').exists()
+
     def test_write_mode_invalid(self, tmpdir):
         with (
             pytest.raises(ValueError),
