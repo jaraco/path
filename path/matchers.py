@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import fnmatch
 import ntpath
-from typing import TYPE_CHECKING, Any, Callable, overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, overload
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal
+    from typing import Literal
 
 
 @overload

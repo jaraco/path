@@ -59,18 +59,17 @@ with contextlib.suppress(ImportError):
 with contextlib.suppress(ImportError):
     import grp
 
-from collections.abc import Generator, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable, Iterator
 from typing import (
     IO,
     TYPE_CHECKING,
     Any,
     BinaryIO,
-    Callable,
     overload,
 )
 
 if TYPE_CHECKING:
-    from typing import Union
+    from typing import Literal
 
     from _typeshed import (
         ExcInfo,
@@ -80,9 +79,9 @@ if TYPE_CHECKING:
         OpenBinaryModeWriting,
         OpenTextMode,
     )
-    from typing_extensions import Literal, Never, Self
+    from typing_extensions import Never, Self
 
-    _Match = Union[str, Callable[[str], bool], None]
+    _Match = str | Callable[[str], bool] | None
     _CopyFn = Callable[[str, str], object]
     _IgnoreFn = Callable[[str, list[str]], Iterable[str]]
     _OnErrorCallback = Callable[[Callable[..., Any], str, ExcInfo], object]
@@ -90,7 +89,6 @@ if TYPE_CHECKING:
 
 
 from . import classes, masks, matchers
-from .compat.py38 import removeprefix, removesuffix
 
 __all__ = ['Path', 'TempDir', 'Traversal']
 
@@ -386,7 +384,7 @@ class Path(str):
         >>> Path('/home/guido/python.tar.gz').with_name("foo.zip")
         Path('/home/guido/foo.zip')
         """
-        return self._next_class(removesuffix(self, self.name) + name)
+        return self._next_class(self.removesuffix(self.name) + name)
 
     def splitpath(self) -> tuple[Self, str]:
         """Return two-tuple of ``.parent``, ``.name``.
@@ -587,7 +585,7 @@ class Path(str):
 
         try:
             childList = self.iterdir()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 # reported via the errors handler
             error_fn(f"Unable to list directory '{self}': {exc}")
             return
 
@@ -598,7 +596,7 @@ class Path(str):
             traverse = traverse or child.is_dir
             try:
                 do_traverse = traverse()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 # reported via the errors handler
                 error_fn(f"Unable to access '{child}': {exc}")
                 continue
 
@@ -1206,7 +1204,7 @@ class Path(str):
                 self, win32security.OWNER_SECURITY_INFORMATION
             )
             sid = desc.GetSecurityDescriptorOwner()
-            account, domain, typecode = win32security.LookupAccountSid(None, sid)  # type: ignore[arg-type]
+            account, domain, _typecode = win32security.LookupAccountSid(None, sid)  # type: ignore[arg-type, unused-ignore]
             return domain + '\\' + account
 
     else:
@@ -1394,9 +1392,8 @@ class Path(str):
         """Like :meth:`rmdir`, but does not raise an exception if the
         directory is not empty or does not exist."""
         suppressed = FileNotFoundError, FileExistsError, DirectoryNotEmpty
-        with contextlib.suppress(*suppressed):
-            with DirectoryNotEmpty.translate():
-                self.rmdir()
+        with contextlib.suppress(*suppressed), DirectoryNotEmpty.translate():
+            self.rmdir()
         return self
 
     def removedirs(self) -> Self:
@@ -1408,9 +1405,9 @@ class Path(str):
         """Like :meth:`removedirs`, but does not raise an exception if the
         directory is not empty or does not exist."""
         # 2026-10-11: Repeated cleanup must also tolerate missing directories.
-        with contextlib.suppress(FileNotFoundError, FileExistsError, DirectoryNotEmpty):
-            with DirectoryNotEmpty.translate():
-                self.removedirs()
+        suppressed = FileNotFoundError, FileExistsError, DirectoryNotEmpty
+        with contextlib.suppress(*suppressed), DirectoryNotEmpty.translate():
+            self.removedirs()
         return self
 
     # --- Modifying operations on files
@@ -1484,7 +1481,7 @@ class Path(str):
 
         .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
         """
-        return self._next_class(removeprefix(os.readlink(self), '\\\\?\\'))
+        return self._next_class(os.readlink(self).removeprefix('\\\\?\\'))
 
     def readlinkabs(self) -> Self:
         """Return the path to which this symbolic link points.
@@ -1687,30 +1684,22 @@ class Path(str):
             os.chroot(self)
 
     if sys.platform == "win32":
-        if sys.version_info >= (3, 10):
 
-            @overload
-            def startfile(
-                self,
-                arguments: str = ...,
-                cwd: str | None = ...,
-                show_cmd: int = ...,
-            ) -> Self: ...
-            @overload
-            def startfile(
-                self,
-                operation: str,
-                arguments: str = ...,
-                cwd: str | None = ...,
-                show_cmd: int = ...,
-            ) -> Self: ...
-
-        else:
-
-            @overload
-            def startfile(self) -> Self: ...
-            @overload
-            def startfile(self, operation: str) -> Self: ...
+        @overload
+        def startfile(
+            self,
+            arguments: str = ...,
+            cwd: str | None = ...,
+            show_cmd: int = ...,
+        ) -> Self: ...
+        @overload
+        def startfile(
+            self,
+            operation: str,
+            arguments: str = ...,
+            cwd: str | None = ...,
+            show_cmd: int = ...,
+        ) -> Self: ...
 
         def startfile(self, *args, **kwargs) -> Self:  # pragma: nocover
             """.. seealso:: :func:`os.startfile`"""
@@ -1762,7 +1751,8 @@ class Path(str):
         backup_fn = self + (backup_extension or os.extsep + 'bak')
         backup_fn.remove_p()
         self.rename(backup_fn)
-        readable = open(
+        # closed explicitly below, after the caller's block exits
+        readable = open(  # noqa: SIM115
             backup_fn,
             mode,
             buffering=buffering,
@@ -1775,7 +1765,7 @@ class Path(str):
         os_mode = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
         os_mode |= getattr(os, 'O_BINARY', 0)
         fd = os.open(self, os_mode, perm)
-        writable = open(
+        writable = open(  # noqa: SIM115
             fd,
             "w" + mode.replace('r', ''),
             buffering=buffering,
@@ -1946,9 +1936,8 @@ class Multi:
 
     @classmethod
     def detect(cls, input: str) -> _MultiPathType:
-        if os.pathsep not in input:
-            cls = cls._next_class
-        return cls(input)  # type: ignore[return-value, call-arg]
+        target = cls if os.pathsep in input else cls._next_class
+        return target(input)  # type: ignore[return-value, call-arg]
 
     def __iter__(self) -> Iterator[Path]:
         return iter(map(self._next_class, self.split(os.pathsep)))  # type: ignore[attr-defined]
@@ -2012,7 +2001,8 @@ class TempDir(Path):
 class Handlers:
     @staticmethod
     def strict(msg: str) -> Never:
-        raise
+        # invoked from within an except block; re-raises the active exception
+        raise  # noqa: PLE0704
 
     @staticmethod
     def warn(msg: str) -> None:
@@ -2031,5 +2021,6 @@ class Handlers:
             return {"strict": cls.strict, "warn": cls.warn, "ignore": cls.ignore}[param]
         else:
             if not callable(param):
-                raise ValueError(msg)
+                # ValueError retained for compatibility
+                raise ValueError(msg)  # noqa: TRY004
             return param

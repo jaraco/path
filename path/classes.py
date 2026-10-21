@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 
 class ClassProperty(property):
