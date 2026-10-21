@@ -1401,3 +1401,10 @@ class TestHandlers:
     def test_invalid_handler(self):
         with pytest.raises(ValueError):
             path.Handlers._resolve('raise')
+
+
+def test_write_lines_iterables(tmp_path) -> None:
+    target = Path(tmp_path) / 'lines.txt'
+    target.write_lines(('one\r\n', 'two\n'))
+    target.write_lines((line for line in ('three', 'four\r')), append=True)
+    assert target.read_text() == 'one\ntwo\nthree\nfour\n'
