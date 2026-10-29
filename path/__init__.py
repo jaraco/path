@@ -1023,9 +1023,18 @@ class Path(str):
         """.. seealso:: :func:`os.path.isfile`"""
         return self.module.isfile(self)
 
-    def islink(self) -> bool:
-        """.. seealso:: :func:`os.path.islink`"""
+    def is_symlink(self) -> bool:
+        """.. seealso:: :func:`os.path.islink`, :meth:`pathlib.Path.is_symlink`"""
         return self.module.islink(self)
+
+    def islink(self) -> bool:
+        """Deprecated alias for :meth:`is_symlink`."""
+        warnings.warn(
+            "islink is deprecated; use is_symlink",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.is_symlink()
 
     def ismount(self) -> bool:
         """
@@ -1658,7 +1667,7 @@ class Path(str):
 
         for source in itertools.filterfalse(ignored, sources):
             dest = dst_path / source.name
-            if symlinks and source.islink():
+            if symlinks and source.is_symlink():
                 target = source.readlink()
                 target.symlink(dest)
             elif source.is_dir():
