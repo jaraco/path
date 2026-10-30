@@ -41,6 +41,55 @@ def os_choose(**choices):
     return choices[os.name]
 
 
+class TestResolve:
+    def test_relative_path(self, tmp_path, monkeypatch):
+        (tmp_path / 'child').mkdir()
+        monkeypatch.chdir(tmp_path)
+        resolved = Path('child/..').resolve()
+        assert resolved == str(tmp_path)
+        assert type(resolved) is Path
+
+    def test_missing_path_is_allowed_by_default(self, tmp_path):
+        target = Path(tmp_path / 'missing' / 'file.txt')
+        assert target.resolve() == target
+
+    def test_strict_missing_path(self, tmp_path):
+        with pytest.raises(FileNotFoundError):
+            Path(tmp_path / 'missing').resolve(strict=True)
+
+    def test_strict_existing_path(self, tmp_path):
+        target = tmp_path / 'file.txt'
+        target.write_text('content', encoding='utf-8')
+        assert Path(target).resolve(True) == str(target)
+
+    def test_preserves_subclass(self, tmp_path):
+        class CustomPath(Path):
+            pass
+
+        assert type(CustomPath(tmp_path).resolve()) is CustomPath
+
+    def test_tempdir_result_is_a_plain_path(self, tmp_path):
+        temp = TempDir(dir=tmp_path)
+        try:
+            resolved = temp.resolve()
+            assert type(resolved) is Path
+            assert resolved == temp
+        finally:
+            temp.rmdir()
+
+    def test_symlink(self, tmp_path):
+        target = tmp_path / 'target'
+        target.mkdir()
+        link = tmp_path / 'link'
+        try:
+            link.symlink_to(target, target_is_directory=True)
+        except OSError as error:
+            if getattr(error, 'winerror', None) == 1314:
+                pytest.skip('Creating symlinks requires Windows permission')
+            raise
+        assert Path(link).resolve() == str(target)
+
+
 class TestBasics:
     def test_relpath(self):
         root = Path(os_choose(nt='C:\\', posix='/'))
