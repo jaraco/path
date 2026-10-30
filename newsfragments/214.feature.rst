@@ -1,0 +1,1 @@
+Add ``Path.resolve()`` with pathlib-compatible symbolic-link resolution and a strict mode.

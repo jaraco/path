@@ -279,6 +279,15 @@ class Path(str):
         """.. seealso:: :func:`os.path.realpath`"""
         return self._next_class(self.module.realpath(self))
 
+    def resolve(self, strict: bool = False) -> Self:
+        """Return an absolute path with symbolic links resolved.
+
+        Uses the host filesystem, with the same behavior as
+        :meth:`pathlib.Path.resolve`. If *strict* is true, raise an error
+        when the path cannot be resolved completely.
+        """
+        return self._next_class(pathlib.Path(self).resolve(strict=strict))
+
     def expanduser(self) -> Self:
         """.. seealso:: :func:`os.path.expanduser`"""
         return self._next_class(self.module.expanduser(self))
