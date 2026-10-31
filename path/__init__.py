@@ -897,7 +897,7 @@ class Path(str):
         conversion.
         """
         if linesep is not None:
-            text = U_NEWLINE.sub(linesep, text)
+            text = U_NEWLINE.sub(lambda match: linesep, text)
         bytes = text.encode(encoding or sys.getdefaultencoding(), errors)
         self.write_bytes(bytes, append=append)
 
