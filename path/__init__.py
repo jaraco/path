@@ -1415,8 +1415,7 @@ class Path(str):
         """Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        os.close(os.open(self, os.O_WRONLY | os.O_CREAT, 0o666))
-        os.utime(self, None)
+        pathlib.Path(self).touch()
         return self
 
     def remove(self) -> Self:
