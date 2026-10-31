@@ -804,6 +804,26 @@ class TestScratchDir:
         # Check the result.
         assert p.bytes() == expectedBytes
 
+    @pytest.mark.parametrize(
+        'linesep', [r'\n', r'\1', r'\folder', '\\', '\n', '\r\n', '', None]
+    )
+    @pytest.mark.parametrize('append', [False, True])
+    def test_write_text_literal_linesep(self, tmp_path, linesep, append):
+        target = Path(tmp_path / 'literal-newlines.txt')
+        text = 'first\nsecond\r\nthird\rfourth\u2028last'
+        expected = (
+            text
+            if linesep is None
+            else linesep.join(['first', 'second', 'third', 'fourth', 'last'])
+        )
+        target.write_bytes(b'existing')
+
+        target.write_text(text, encoding='utf-8', linesep=linesep, append=append)
+
+        assert target.read_bytes() == (
+            b'existing' if append else b''
+        ) + expected.encode('utf-8')
+
     def test_chunks(self, tmpdir):
         p = (TempDir() / 'test.txt').touch()
         txt = "0123456789"
