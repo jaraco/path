@@ -1229,6 +1229,51 @@ class TestInPlace:
         assert 'Lorem' not in data
         assert 'lazy dog' in data
 
+    @pytest.mark.parametrize(
+        ('options', 'error'),
+        [({'encoding': 'missing-codec'}, LookupError), ({'mode': 'q'}, ValueError)],
+    )
+    def test_reader_setup_failure_restores_file(self, tmpdir, options, error):
+        doc = self.create_reference(tmpdir)
+        with pytest.raises(error), doc.in_place(**options):
+            pytest.fail('setup must fail before yielding')
+        assert doc.read_text(encoding='utf-8') == self.reference_content
+        assert not (doc + '.bak').exists()
+
+    def test_writer_setup_failure_restores_file(self, tmpdir, monkeypatch):
+        doc = self.create_reference(tmpdir)
+
+        def fail_open(*args, **kwargs):
+            raise PermissionError('cannot create replacement')
+
+        monkeypatch.setattr(os, 'open', fail_open)
+        with pytest.raises(PermissionError), doc.in_place(encoding='utf-8'):
+            pytest.fail('setup must fail before yielding')
+        assert doc.read_text(encoding='utf-8') == self.reference_content
+        assert not (doc + '.bak').exists()
+
+    def test_writer_wrapping_failure_closes_resources(self, tmpdir, monkeypatch):
+        doc = self.create_reference(tmpdir)
+        opened = []
+
+        def fail_writer(file, *args, **kwargs):
+            if isinstance(file, int):
+                opened.append(file)
+                raise OSError('cannot wrap replacement descriptor')
+            reader = open(file, *args, **kwargs)  # noqa: SIM115 - caller owns stream
+            opened.append(reader)
+            return reader
+
+        monkeypatch.setattr(path, 'open', fail_writer, raising=False)
+        with pytest.raises(OSError), doc.in_place(encoding='utf-8'):
+            pytest.fail('setup must fail before yielding')
+        reader, fd = opened
+        assert reader.closed
+        with pytest.raises(OSError):
+            os.fstat(fd)
+        assert doc.read_text(encoding='utf-8') == self.reference_content
+        assert not (doc + '.bak').exists()
+
     def test_write_mode_invalid(self, tmpdir):
         with (
             pytest.raises(ValueError),
