@@ -15,16 +15,20 @@ time on files.
 
 import contextlib
 import datetime
+import errno
 import importlib
 import ntpath
 import os
+import pathlib
 import platform
 import posixpath
 import re
 import shutil
+import socket
 import stat
 import subprocess
 import sys
+import tempfile
 import textwrap
 import time
 import types
@@ -339,6 +343,90 @@ class TestPerformance:
         measure = self.get_command_time('import path')
         duration = measure - baseline
         assert duration < limit
+
+
+@pytest.mark.parametrize(
+    'predicate', ('is_fifo', 'is_socket', 'is_block_device', 'is_char_device')
+)
+class TestSpecialFilePredicates:
+    @pytest.mark.parametrize('kind', ('file', 'directory', 'missing', 'file_parent'))
+    def test_non_special(self, tmp_path, predicate, kind):
+        file = tmp_path / 'file'
+        file.touch()
+        candidate = dict(
+            file=file,
+            directory=tmp_path,
+            missing=tmp_path / 'missing',
+            file_parent=file / 'child',
+        )[kind]
+        assert getattr(Path(candidate), predicate)() is False
+
+    @pytest.fixture
+    def symlink(self):
+        def create(target, link):
+            try:
+                link.symlink_to(target)
+            except NotImplementedError as exc:
+                pytest.skip(f'Symbolic links unavailable: {exc}')
+            except OSError as exc:
+                if exc.errno not in (errno.EPERM, errno.EACCES, errno.ENOSYS):
+                    raise
+                pytest.skip(f'Symbolic links unavailable: {exc}')
+            return Path(link)
+
+        return create
+
+    def test_broken_symlink(self, tmp_path, predicate, symlink):
+        link = symlink(tmp_path / 'missing', tmp_path / 'link')
+        assert getattr(link, predicate)() is False
+
+    @pytest.mark.skipif(not hasattr(os, 'mkfifo'), reason='FIFOs unavailable')
+    def test_fifo(self, tmp_path, predicate):
+        fifo = tmp_path / 'fifo'
+        os.mkfifo(fifo)
+        assert getattr(Path(fifo), predicate)() is (predicate == 'is_fifo')
+
+    @pytest.mark.skipif(not hasattr(os, 'mkfifo'), reason='FIFOs unavailable')
+    def test_fifo_symlink(self, tmp_path, predicate, symlink):
+        fifo = tmp_path / 'fifo'
+        os.mkfifo(fifo)
+        link = symlink(fifo, tmp_path / 'link')
+        assert getattr(link, predicate)() is (predicate == 'is_fifo')
+
+    @pytest.fixture
+    def unix_socket(self):
+        if not hasattr(socket, 'AF_UNIX'):
+            pytest.skip('Unix-domain sockets unavailable')
+        with tempfile.TemporaryDirectory(prefix='p-') as directory:
+            candidate = pathlib.Path(directory) / 'socket'
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
+                server.bind(str(candidate))
+                yield candidate
+
+    def test_socket(self, unix_socket, predicate):
+        assert getattr(Path(unix_socket), predicate)() is (predicate == 'is_socket')
+
+    def test_socket_symlink(self, unix_socket, predicate, symlink):
+        link = symlink(unix_socket, unix_socket.with_name('link'))
+        assert getattr(link, predicate)() is (predicate == 'is_socket')
+
+    def test_char_device(self, predicate):
+        device = pathlib.Path('/dev/null')
+        if not device.is_char_device():
+            pytest.skip('/dev/null is not a character device on this platform')
+        assert getattr(Path(device), predicate)() is (predicate == 'is_char_device')
+
+    def test_block_device(self, tmp_path, monkeypatch, predicate):
+        candidate = tmp_path / 'block'
+        original_stat = pathlib.Path.stat
+
+        def stat_result(self, *args, **kwargs):
+            if self == candidate:
+                return os.stat_result((stat.S_IFBLK | 0o600,) + (0,) * 9)
+            return original_stat(self, *args, **kwargs)
+
+        monkeypatch.setattr(pathlib.Path, 'stat', stat_result)
+        assert getattr(Path(candidate), predicate)() is (predicate == 'is_block_device')
 
 
 class TestOwnership:

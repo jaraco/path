@@ -1023,6 +1023,22 @@ class Path(str):
         """.. seealso:: :func:`os.path.isfile`"""
         return self.module.isfile(self)
 
+    def is_fifo(self) -> bool:
+        """.. seealso:: :meth:`pathlib.Path.is_fifo`"""
+        return pathlib.Path(self).is_fifo()
+
+    def is_socket(self) -> bool:
+        """.. seealso:: :meth:`pathlib.Path.is_socket`"""
+        return pathlib.Path(self).is_socket()
+
+    def is_block_device(self) -> bool:
+        """.. seealso:: :meth:`pathlib.Path.is_block_device`"""
+        return pathlib.Path(self).is_block_device()
+
+    def is_char_device(self) -> bool:
+        """.. seealso:: :meth:`pathlib.Path.is_char_device`"""
+        return pathlib.Path(self).is_char_device()
+
     def islink(self) -> bool:
         """.. seealso:: :func:`os.path.islink`"""
         return self.module.islink(self)
