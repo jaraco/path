@@ -331,6 +331,8 @@ class Path(str):
     def with_suffix(self, suffix: str) -> Self:
         """Return a new path with the file suffix changed (or added, if none)
 
+        The suffix must start with a dot and contain no directory separators.
+
         >>> Path('/home/guido/python.tar.gz').with_suffix(".foo")
         Path('/home/guido/python.tar.foo')
 
@@ -342,7 +344,10 @@ class Path(str):
         ...
         ValueError: Invalid suffix 'zip'
         """
-        if not suffix.startswith('.'):
+        separators = (self.module.sep, self.module.altsep)
+        if not suffix.startswith('.') or any(
+            sep and sep in suffix for sep in separators
+        ):
             raise ValueError(f"Invalid suffix {suffix!r}")
         return self.stripext() + suffix
 

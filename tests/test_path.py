@@ -169,6 +169,34 @@ class TestBasics:
         assert nt_path is Path.using_module(ntpath)
         assert nt_path.__name__ == 'Path_ntpath'
 
+    @pytest.mark.parametrize('module', [posixpath, ntpath])
+    @pytest.mark.parametrize('suffix', ['.txt/child', './child', '.txt/'])
+    def test_with_suffix_rejects_directory_separator(self, module, suffix):
+        filename = Path.using_module(module)('archive.tar.gz')
+        with pytest.raises(ValueError, match='Invalid suffix'):
+            filename.with_suffix(suffix)
+
+    @pytest.mark.parametrize('suffix', [r'.txt\child', '.\\child', '.txt\\'])
+    def test_with_suffix_rejects_windows_separator(self, suffix):
+        filename = Path.using_module(ntpath)('archive.tar.gz')
+        with pytest.raises(ValueError, match='Invalid suffix'):
+            filename.with_suffix(suffix)
+
+    def test_with_suffix_preserves_posix_backslash(self):
+        filename = Path.using_module(posixpath)('archive.tar.gz')
+        result = filename.with_suffix(r'.txt\child')
+        assert result == r'archive.tar.txt\child'
+        assert isinstance(result, type(filename))
+
+    @pytest.mark.parametrize('module', [posixpath, ntpath])
+    @pytest.mark.parametrize('suffix', ['.txt', '.tar.gz'])
+    def test_with_suffix_preserves_directory(self, module, suffix):
+        path_cls = Path.using_module(module)
+        filename = path_cls('directory') / 'archive.tar.gz'
+        result = filename.with_suffix(suffix)
+        assert result == path_cls('directory') / ('archive.tar' + suffix)
+        assert isinstance(result, path_cls)
+
     def test_joinpath_on_instance(self):
         res = Path('foo')
         foo_bar = res.joinpath('bar')
