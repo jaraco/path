@@ -1,0 +1,1 @@
+Added ``Path.rglob`` for lazy recursive globbing using host-platform ``pathlib`` matching semantics.

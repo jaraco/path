@@ -15,6 +15,7 @@ time on files.
 
 import contextlib
 import datetime
+import errno
 import importlib
 import ntpath
 import os
@@ -399,6 +400,89 @@ class TestSymbolicLinksWalk:
             lambda item: item.is_dir() and not item.islink(),
         )
         assert len(list(skip_links(root.walk()))) == 3
+
+
+class TestRglob:
+    @pytest.mark.parametrize('parent', ['root', 'root[1]'])
+    def test_matches(self, tmp_path, parent):
+        root = tmp_path / parent
+        names = ['top.txt', 'a/deep/file.txt', '.hidden.txt', '.hidden/file.txt']
+        for name in names + ['a/other.bin']:
+            target = root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.touch()
+        results = list(Path(root).rglob('*.txt'))
+        assert set(results) == {str(root / name) for name in names}
+        assert all(type(item) is Path for item in results)
+        assert list(Path(root).rglob('*.missing')) == []
+        assert list(Path(root).rglob('deep/*.txt')) == [str(root / 'a/deep/file.txt')]
+
+    def test_lazy(self, tmp_path):
+        root = tmp_path / 'later'
+        matches = Path(root).rglob('*.txt')
+        assert iter(matches) is matches
+        root.mkdir()
+        target = root / 'file.txt'
+        target.touch()
+        assert list(matches) == [str(target)]
+
+    def test_subclass(self, tmp_path):
+        class SubPath(Path):
+            pass
+
+        target = tmp_path / 'file.txt'
+        target.touch()
+        matches = list(SubPath(tmp_path).rglob('*.txt'))
+        assert matches == [str(target)]
+        assert type(matches[0]) is SubPath
+
+    def test_captures_next_class(self, tmp_path, monkeypatch):
+        class SubPath(Path):
+            pass
+
+        (tmp_path / 'file.txt').touch()
+        matches = SubPath(tmp_path).rglob('*.txt')
+        monkeypatch.setattr(SubPath, '_next_class', Path)
+        assert type(next(matches)) is SubPath
+
+    def test_tempdir(self, tmp_path):
+        directory = TempDir(dir=tmp_path)
+        with directory:
+            target = (directory / 'file.txt').touch()
+            matches = list(directory.rglob('*.txt'))
+            assert matches == [target]
+            assert type(matches[0]) is Path
+
+    @pytest.mark.parametrize('module', [ntpath, posixpath])
+    @pytest.mark.parametrize('pattern', ['*.TXT', 'nested/*.txt', r'nested\*.txt'])
+    def test_host_semantics(self, tmp_path, module, pattern):
+        (tmp_path / 'nested').mkdir()
+        (tmp_path / 'nested/file.txt').touch()
+        (tmp_path / 'ROOT.txt').touch()
+        cls = Path.using_module(module)
+        matches = list(cls(tmp_path).rglob(pattern))
+        assert set(matches) == {str(item) for item in tmp_path.rglob(pattern)}
+        assert all(type(item) is cls for item in matches)
+
+    def test_directory_symlinks(self, tmp_path):
+        root = tmp_path / 'root'
+        root.mkdir()
+        outside = tmp_path / 'outside'
+        outside.mkdir()
+        (outside / 'file.txt').touch()
+        link = root / 'linked'
+        try:
+            link.symlink_to(outside, target_is_directory=True)
+        except OSError as exc:
+            if exc.errno in (errno.EPERM, errno.EACCES, errno.ENOSYS, errno.ENOTSUP):
+                pytest.skip(f'Directory symlinks unavailable: {exc}')
+            raise
+        assert list(Path(root).rglob('*')) == [str(link)]
+        assert list(root.rglob('*')) == [link]
+        assert list(Path(root).rglob('*.txt')) == []
+        assert list(root.rglob('*.txt')) == []
+        assert list(Path(root).rglob('linked/*.txt')) == [str(link / 'file.txt')]
+        assert list(root.rglob('linked/*.txt')) == [link / 'file.txt']
 
 
 class TestSelfReturn:

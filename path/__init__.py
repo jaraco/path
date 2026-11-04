@@ -643,7 +643,7 @@ class Path(str):
         .. seealso:: :func:`glob.glob`
 
         .. note:: Glob is **not** recursive, even when using ``**``.
-                  To do recursive globbing see :func:`walk`,
+                  To do recursive globbing see :meth:`rglob`, :func:`walk`,
                   :func:`walkdirs` or :func:`walkfiles`.
         """
         cls = self._next_class
@@ -661,11 +661,28 @@ class Path(str):
         .. seealso:: :func:`glob.iglob`
 
         .. note:: Glob is **not** recursive, even when using ``**``.
-                  To do recursive globbing see :func:`walk`,
+                  To do recursive globbing see :meth:`rglob`, :func:`walk`,
                   :func:`walkdirs` or :func:`walkfiles`.
         """
         cls = self._next_class
         return (cls(s) for s in glob.iglob(self / pattern))
+
+    def rglob(self, pattern: str) -> Iterator[Self]:
+        """Return an iterator of paths matching `pattern` recursively.
+
+        `pattern` is relative to this directory. For example,
+        ``Path('/users').rglob('*.py')`` finds Python files at any depth.
+
+        Matching follows :meth:`pathlib.Path.rglob` on the host platform,
+        including its case and separator rules, regardless of :attr:`module`.
+        Hidden files and directories are included. Recursive ``**`` expansion
+        does not follow directory symlinks, but the links themselves may match.
+        An explicit pattern segment may follow a named directory symlink.
+
+        The filesystem is scanned lazily and results use ``self._next_class``.
+        """
+        cls = self._next_class
+        return (cls(s) for s in pathlib.Path(self).rglob(pattern))
 
     #
     # --- Reading or writing an entire file at once.
