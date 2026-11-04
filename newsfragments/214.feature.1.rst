@@ -1,0 +1,1 @@
+Added ``Path.is_mount()`` as an alias for ``Path.ismount()`` for pathlib compatibility.
