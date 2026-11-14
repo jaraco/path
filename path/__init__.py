@@ -1294,6 +1294,21 @@ class Path(str):
         os.chmod(self, mode)
         return self
 
+    def lchmod(self, mode: int) -> Self:
+        """
+        Change permissions without following symbolic links.
+
+        If this path is a symbolic link, change the link's permissions
+        rather than those of its target. Support depends on the platform
+        and filesystem; errors from :func:`os.chmod` are propagated.
+
+        Return self, like :meth:`chmod`.
+
+        .. seealso:: :meth:`pathlib.Path.lchmod`, :func:`os.chmod`
+        """
+        os.chmod(self, mode, follow_symlinks=False)
+        return self
+
     if sys.platform != "win32":
 
         def chown(self, uid: str | int = -1, gid: str | int = -1) -> Self:
