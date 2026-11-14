@@ -1,0 +1,1 @@
+Add ``Path.lchmod()`` to change permissions without following symbolic links.
