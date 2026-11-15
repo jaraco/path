@@ -85,11 +85,10 @@ has several advantages over ``pathlib``:
   and encouraged.
 - ``path`` provides superior portability using a uniform abstraction
   over its single Path object,
-  freeing the implementer to subclass it readily. One cannot
-  subclass a ``pathlib.Path`` to add functionality, but must
-  subclass ``Path``, ``PosixPath``, and ``WindowsPath``, even
-  to do something as simple as to add a ``__dict__`` to the subclass
-  instances.  ``path`` instead allows the ``Path.module``
+  freeing the implementer to subclass it readily. ``pathlib.Path`` supports
+  direct subclassing on `Python 3.12 and later
+  <https://docs.python.org/3.12/whatsnew/3.12.html#pathlib>`_.
+  ``path`` allows the ``Path.module``
   object to be overridden by subclasses, defaulting to the
   ``os.path``. Even advanced uses of ``path.Path`` that
   subclass the model do not need to be concerned with
