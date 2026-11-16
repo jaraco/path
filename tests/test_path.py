@@ -918,6 +918,41 @@ class TestMergeTree:
         assert set(self.subdir_b.iterdir()) == expected
         self.check_link()
 
+    @pytest.mark.parametrize('existing', ['link', 'dangling', 'file', 'directory'])
+    def test_replace_existing_link_destination(self, existing):
+        dest = self.subdir_b / self.test_link.name
+        old_target = self.test_dir / 'old-target'
+        old_target.mkdir()
+        sentinel = old_target / 'keep.txt'
+        sentinel.write_text('keep', encoding='utf-8')
+        if existing == 'link':
+            dest.symlink_to(old_target, target_is_directory=True)
+        elif existing == 'dangling':
+            (self.test_dir / 'missing').symlink(dest)
+        elif existing == 'file':
+            dest.write_text('old', encoding='utf-8')
+        else:
+            dest.mkdir()
+            (dest / 'old.txt').write_text('old', encoding='utf-8')
+
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
+
+        assert dest.islink()
+        assert dest.readlink() == self.test_file
+        assert sentinel.read_text(encoding='utf-8') == 'keep'
+
+    def test_repeated_merge_with_changed_link_target(self):
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
+        self.test_link.remove()
+        Path('relative-missing-target').symlink(self.test_link)
+
+        self.subdir_a.merge_tree(self.subdir_b, symlinks=True)
+
+        dest = self.subdir_b / self.test_link.name
+        assert dest.islink()
+        assert dest.readlink() == 'relative-missing-target'
+
     def test_with_existing_dst(self):
         self.subdir_b.rmtree()
         self.subdir_a.copytree(self.subdir_b, True)

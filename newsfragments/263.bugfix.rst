@@ -1,0 +1,3 @@
+Allow repeated ``merge_tree(symlinks=True)`` calls to replace existing links,
+files, and directories at a copied link's destination without following the
+destination link.
