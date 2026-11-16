@@ -1660,6 +1660,10 @@ class Path(str):
             dest = dst_path / source.name
             if symlinks and source.islink():
                 target = source.readlink()
+                if not dest.islink() and dest.is_dir():
+                    dest.rmtree()
+                else:
+                    dest.remove_p()
                 target.symlink(dest)
             elif source.is_dir():
                 source.merge_tree(
