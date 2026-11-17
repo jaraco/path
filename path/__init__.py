@@ -1045,7 +1045,7 @@ class Path(str):
         return self.module.getatime(self)
 
     def set_atime(self, value: float | datetime.datetime) -> None:
-        mtime_ns = self.stat().st_atime_ns
+        mtime_ns = self.stat().st_mtime_ns
         self.utime(ns=(_make_timestamp_ns(value), mtime_ns))
 
     @property

@@ -268,6 +268,16 @@ class TestBasics:
         new_time = (time.time() - 600,) * 2
         assert Path(tmpfile).utime(new_time).stat().st_atime == new_time[0]
 
+    def test_set_atime_preserves_mtime(self, tmpdir):
+        target = (Path(tmpdir) / 'file').touch()
+        target.utime(ns=(1_600_000_000_000_000_000, 1_700_000_000_123_456_700))
+        original_mtime = target.stat().st_mtime_ns
+
+        target.atime = 1_500_000_000.0
+
+        assert target.stat().st_atime == 1_500_000_000.0
+        assert target.stat().st_mtime_ns == original_mtime
+
     def test_chmod_str(self, tmpdir):
         tmpfile = Path(tmpdir) / 'file'
         tmpfile.touch()
