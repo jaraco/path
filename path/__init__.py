@@ -117,19 +117,31 @@ class Traversal:
 
     `follow` is a function that takes an item and returns
     True if that item should be followed and False otherwise.
+    It is called for files as well as directories, so it should
+    return False for files.
 
     For example, to avoid traversing into directories that
     begin with `.`:
 
-    >>> traverse = Traversal(lambda dir: not dir.startswith('.'))
-    >>> items = list(traverse(Path('.').walk()))
+    >>> traverse = Traversal(
+    ...     lambda item: item.is_dir() and not item.name.startswith('.')
+    ... )
+    >>> with TempDir() as root:
+    ...     visible = (root / 'visible').mkdir()
+    ...     hidden = (root / '.hidden').mkdir()
+    ...     _ = (visible / 'keep.txt').touch()
+    ...     _ = (hidden / 'skip.txt').touch()
+    ...     with root:
+    ...         items = list(traverse(Path('.').walk()))
+    ...     sorted(str(item.name) for item in items)
+    ['.hidden', 'keep.txt', 'visible']
 
     Directories beginning with `.` will appear in the results, but
     their children will not.
 
-    >>> dot_dir = next(item for item in items if item.is_dir() and item.startswith('.'))
-    >>> any(item.parent == dot_dir for item in items)
-    False
+    Check each item's :attr:`Path.name`, rather than the whole path,
+    so that a leading ``.`` in the starting path does not prevent
+    traversal of ordinary directories.
     """
 
     def __init__(self, follow: Callable[[Path], bool]):
