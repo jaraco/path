@@ -348,6 +348,21 @@ class TestOwnership:
 
 
 class TestLinks:
+    @pytest.mark.parametrize(
+        ('target', 'expected'),
+        [
+            (r'\\?\UNC\server\share\file', r'\\server\share\file'),
+            (r'\\?\C:\folder\file', r'C:\folder\file'),
+            (r'\\server\share\file', r'\\server\share\file'),
+            ('relative-file', 'relative-file'),
+        ],
+    )
+    def test_readlink_windows_prefixes(self, monkeypatch, target, expected):
+        monkeypatch.setattr(os, 'readlink', lambda _: target)
+        result = Path('link').readlink()
+        assert result == expected
+        assert isinstance(result, Path)
+
     def test_hardlink_to(self, tmpdir):
         target = Path(tmpdir) / 'target'
         target.write_text('hello', encoding='utf-8')

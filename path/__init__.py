@@ -1480,7 +1480,12 @@ class Path(str):
 
         .. seealso:: :meth:`readlinkabs`, :func:`os.readlink`
         """
-        return self._next_class(os.readlink(self).removeprefix('\\\\?\\'))
+        target = os.readlink(self)
+        if target.startswith('\\\\?\\UNC\\'):
+            target = '\\\\' + target.removeprefix('\\\\?\\UNC\\')
+        else:
+            target = target.removeprefix('\\\\?\\')
+        return self._next_class(target)
 
     def readlinkabs(self) -> Self:
         """Return the path to which this symbolic link points.
