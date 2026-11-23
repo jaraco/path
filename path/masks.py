@@ -152,6 +152,13 @@ class Permissions(int):
     'rwxrw-r--'
     >>> str(Permissions(0o222))
     '-w--w--w-'
+
+    File type bits from stat results do not add permission characters.
+
+    >>> str(Permissions(0o100644))
+    'rw-r--r--'
+    >>> str(Permissions(0o40755))
+    'rwxr-xr-x'
     """
 
     @property
@@ -162,7 +169,7 @@ class Permissions(int):
 
     @property
     def bits(self) -> Iterator[int]:
-        return reversed(tuple(padded(gen_bit_values(self), 0, n=9)))
+        return reversed(tuple(padded(gen_bit_values(self & 0o777), 0, n=9)))
 
     def __str__(self) -> str:
         return self.symbolic
