@@ -241,12 +241,14 @@ class Path(str):
         return self._next_class(self.module.join(rel, self))
 
     def __enter__(self) -> Self:
-        self._old_dir = self.cwd()
+        old_dir = self.cwd()
         os.chdir(self)
+        self._old_dirs = getattr(self, '_old_dirs', [])
+        self._old_dirs.append(old_dir)
         return self
 
     def __exit__(self, *_) -> None:
-        os.chdir(self._old_dir)
+        os.chdir(self._old_dirs.pop())
 
     @classmethod
     def cwd(cls):
