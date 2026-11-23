@@ -926,7 +926,7 @@ class Path(str):
 
     def write_lines(
         self,
-        lines: list[str],
+        lines: Iterable[str],
         encoding: str | None = None,
         errors: str = 'strict',
         *,
@@ -938,7 +938,7 @@ class Path(str):
 
         Puts a platform-specific newline sequence on every line.
 
-            `lines` - A list of strings.
+            `lines` - An iterable of strings.
 
             `encoding` - A Unicode encoding to use.  This applies only if
                 `lines` contains any Unicode strings.
