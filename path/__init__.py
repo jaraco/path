@@ -337,12 +337,21 @@ class Path(str):
         >>> Path('python').with_suffix('.zip')
         Path('python.zip')
 
+        An empty suffix removes the final extension.
+
+        >>> Path('some/archive.tar.gz').with_suffix('')
+        Path('some/archive.tar')
+        >>> Path('some/file').with_suffix('')
+        Path('some/file')
+        >>> Path('some/.config').with_suffix('')
+        Path('some/.config')
+
         >>> Path('filename.ext').with_suffix('zip')
         Traceback (most recent call last):
         ...
         ValueError: Invalid suffix 'zip'
         """
-        if not suffix.startswith('.'):
+        if suffix and not suffix.startswith('.'):
             raise ValueError(f"Invalid suffix {suffix!r}")
         return self.stripext() + suffix
 
