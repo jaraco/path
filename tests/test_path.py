@@ -310,6 +310,35 @@ class TestBasics:
         assert isinstance(file.group(), str)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 12), reason='junction API requires Python 3.12'
+)
+class TestJunctions:
+    def test_non_junctions(self, tmp_path):
+        root = Path(tmp_path)
+        file = (root / 'file').touch()
+        assert not root.is_junction()
+        assert not file.is_junction()
+        assert not (root / 'missing').is_junction()
+        assert not Path('invalid\0path').is_junction()
+
+    @pytest.mark.skipif(sys.platform != 'win32', reason='Windows junctions')
+    def test_junction(self, tmp_path):
+        winapi = pytest.importorskip('_winapi')
+        root = Path(tmp_path)
+        target = (root / 'target').mkdir()
+        junction = root / 'junction'
+        winapi.CreateJunction(str(target), str(junction))
+        try:
+            assert junction.is_junction()
+            assert not target.is_junction()
+            target.rmdir()
+            assert junction.is_junction()
+            assert not junction.exists()
+        finally:
+            junction.rmdir()
+
+
 class TestReadWriteText:
     def test_read_write(self, tmpdir):
         file = path.Path(tmpdir) / 'filename'
