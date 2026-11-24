@@ -1027,6 +1027,18 @@ class Path(str):
         """.. seealso:: :func:`os.path.islink`"""
         return self.module.islink(self)
 
+    if sys.version_info >= (3, 12):
+
+        def is_junction(self) -> bool:
+            """Return whether this path is a Windows junction.
+
+            Available on Python 3.12 and later. Returns False on
+            platforms that do not support junctions.
+
+            .. seealso:: :func:`os.path.isjunction`
+            """
+            return self.module.isjunction(self)
+
     def ismount(self) -> bool:
         """
         >>> Path('.').ismount()
